@@ -18,9 +18,13 @@ class Prayers {
   String month;
   String year;
 
+  String briefDate() {
+    return '$day/$month';
+  }
+
   @override
   String toString() {
-    return '${day}${month}    ${Fajr}    ${Dhuhr}    ${Asr}    ${Maghrib}    ${Isha}    ${year}';
+    return '${day}/${month}    ${Fajr}    ${Dhuhr}    ${Asr}    ${Maghrib}    ${Isha}    ${year}';
   }
 
   String write() {
