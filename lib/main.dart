@@ -1,31 +1,85 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_pro/prayers.dart';
 import 'package:http/http.dart' as http;
+import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 
-void main() => runApp(MyApp());
+FlutterLocalNotificationsPlugin notificationsPlugin =
+    FlutterLocalNotificationsPlugin();
+
+void initalizeSettings() async {
+  var initializeAndroid = AndroidInitializationSettings('rutaul');
+  var initalizeSettings = InitializationSettings(android: initializeAndroid);
+  notificationsPlugin.initialize(initalizeSettings);
+}
+
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  FlutterBackgroundService.initialize(StartRepeatedJob);
+  runApp(MyApp());
+}
+
+late AudioPlayer player2 = AudioPlayer();
+
+void StartRepeatedJob() {
+  WidgetsFlutterBinding.ensureInitialized();
+  final service = FlutterBackgroundService();
+  service.onDataReceived.listen((event) {
+    if (event!["action"] == "setAsForeground") {
+      service.setForegroundMode(true);
+      return;
+    }
+
+    if (event["action"] == "setAsBackground") {
+      service.setForegroundMode(false);
+    }
+
+    if (event["action"] == "stopService") {
+      service.stopBackgroundService();
+    }
+  });
+
+  // bring to foreground
+  service.setForegroundMode(true);
+  Timer.periodic(Duration(seconds: 4444), (timer) async {
+    if (!(await service.isServiceRunning())) timer.cancel();
+    service.setNotificationInfo(
+      title: "My App Service",
+      content: "Updated at ${DateTime.now()}",
+    );
+    print('...  --->     <---  .....');
+    print('...  --->     <---  .....');
+    // player2.dispose();
+    await player2.setAsset('lib/assets/smooth.mp3');
+    print(player2);
+
+    player2.play();
+
+    service.sendData(
+      {"current_date": DateTime.now().toString()},
+    );
+  });
+}
 
 class MyApp extends StatefulWidget implements PreferredSizeWidget {
   MyApp({Key? key})
       : preferredSize = Size.fromHeight(kToolbarHeight),
         super(key: key);
-
-  // var myFile = File('file.txt');
-  void readFile() {}
-
   @override
-  final Size preferredSize; // default is 56.0
-
-  // var myFile = File('file.txt');
+  final Size preferredSize; // default is 56.0 IT ALLOW US TO CHANGE THE APP BAR
   @override
   _MyAppState createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
+  // FETCH SALAH TIME
   Future fetchAlbum([month = '7', year = '2021']) async {
     final response = await http.get(Uri.parse(
         'https://api.aladhan.com/v1/calendar?latitude=51.508515&longitude=-0.1254872&method=10&month=$month&year=$year'));
@@ -42,7 +96,6 @@ class _MyAppState extends State<MyApp> {
 
   Future<String> get _localPath async {
     final directory = await getApplicationDocumentsDirectory();
-
     return directory.path;
   }
 
@@ -51,16 +104,42 @@ class _MyAppState extends State<MyApp> {
     return File('$path/timingData.txt');
   }
 
-  Future<File> writeCounter(counter) async {
+  Future<File> writeTimings(counter) async {
     final file = await _localFile;
-
     // Write the file
     return file.writeAsString('$counter');
   }
 
-  Future readTimingData() async {
+  Future readTiming() async {
     try {
       final file = await _localFile;
+      // Read the file
+      final contents = await file.readAsString();
+      return contents;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  // MIGHT CAUSE A PROBLEM
+  Future<String> get _localPath2 async {
+    final directory = await getApplicationDocumentsDirectory();
+    return directory.path;
+  }
+
+  Future<File> get _localFile2 async {
+    final path = await _localPath2;
+    return File('$path/DAYS.txt');
+  }
+
+  Future<File> writeDAYS(counter) async {
+    final file = await _localFile2;
+    return file.writeAsString('$counter');
+  }
+
+  Future readDAYS() async {
+    try {
+      final file = await _localFile2;
       // Read the file
       final contents = await file.readAsString();
       return contents;
@@ -72,13 +151,11 @@ class _MyAppState extends State<MyApp> {
   bool _Loading = true;
   List<Prayers> prayers = [];
 
-  Future<List<Prayers>> start() async {
-    var res = await readTimingData();
+  Future<List<Prayers>> startFetchTiming() async {
+    var res = await readTiming();
     bool fetchMonthTimings = false;
     print('at the start method');
-
     print(res);
-
     var entries = res.split(';');
     var now_month = DateTime.now().month;
     var now_year = DateTime.now().year;
@@ -159,7 +236,7 @@ class _MyAppState extends State<MyApp> {
         print(prayers[prayers.length - 1].write());
         var temp = saveTimingLocalStorage.split(';');
         print('${temp[temp.length - 2]}   <--');
-        writeCounter(saveTimingLocalStorage);
+        writeTimings(saveTimingLocalStorage);
       });
     }
     print('I am gone');
@@ -171,8 +248,8 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    futureAlbum = start();
-    // start();
+    futureAlbum = startFetchTiming();
+
     print("initState at _MyAppState");
   }
 
@@ -187,22 +264,38 @@ class _MyAppState extends State<MyApp> {
       ),
       home: Scaffold(
         appBar: AppBar(
-          toolbarHeight: 69,
+          toolbarHeight: 119,
           title: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              Text('Fetch Data Example'),
+              SizedBox(
+                height: 33,
+              ),
+              Text('Athan London',
+                  style: TextStyle(fontWeight: FontWeight.normal)),
               Container(
-                margin: EdgeInsets.fromLTRB(32, 11, 12, 1),
+                margin: EdgeInsets.fromLTRB(32, 23, 12, 0),
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Date       '),
-                      Text('Fajr  '),
-                      Text('Duhur '),
-                      Text('Asr   '),
-                      Text('Magrib'),
-                      Text('Isha  '),
+                      Text('Date       ',
+                          style: TextStyle(
+                              fontWeight: FontWeight.normal, fontSize: 18)),
+                      Text('Fajr  ',
+                          style: TextStyle(
+                              fontWeight: FontWeight.normal, fontSize: 18)),
+                      Text('Duhur ',
+                          style: TextStyle(
+                              fontWeight: FontWeight.normal, fontSize: 18)),
+                      Text('Asr   ',
+                          style: TextStyle(
+                              fontWeight: FontWeight.normal, fontSize: 18)),
+                      Text('Magrib',
+                          style: TextStyle(
+                              fontWeight: FontWeight.normal, fontSize: 18)),
+                      Text('Isha  ',
+                          style: TextStyle(
+                              fontWeight: FontWeight.normal, fontSize: 18)),
                     ]),
               ),
             ],
@@ -216,12 +309,19 @@ class _MyAppState extends State<MyApp> {
             print(prayers.length);
             return ListView.builder(
               itemCount: prayers.length,
-              itemBuilder: (con, index) {
+              itemBuilder: (
+                con,
+                index,
+              ) {
+                int nowday = DateTime.now().day;
+                var now_day = nowday > 10 ? '$nowday' : '0$nowday';
+                var now_month = '${DateTime.now().month}';
+                bool today =
+                    prayers[index].briefDate() == '$now_day/$now_month';
+                print('$now_day/$now_month');
                 Prayers pray = prayers[index];
-                print(con);
-                print(index);
                 return Card(
-                  // color: (((saved_year == '$now_year') && (saved_month == '$now_month')) ?Colors.blue.shade50 : Colors.white,
+                  color: today ? Colors.blue.shade50 : Colors.white,
                   child: Container(
                     margin: EdgeInsets.symmetric(vertical: 13, horizontal: 21),
                     child: Row(
@@ -229,11 +329,11 @@ class _MyAppState extends State<MyApp> {
                       children: <Widget>[
                         FlatButton(
                           onPressed: () async {
-                            print('button is pressed');
-                            var res = await readTimingData();
-                            print(res);
-                            writeCounter(
-                                '2021/5/1.+1/6=23:32 3:32 23:32 3:32 23:32+4/6=23:32 3:32 23:32 3:32 23:32;2021/6.+1/6=23:32 3:32 23:32 3:32 23:32+3/6=23:32 3:32 23:32 3:32 23:32+4/6=23:32 3:32 23:32 3:32 23:32');
+                            // print('button is pressed');
+                            // var res = await readTiming();
+                            // print(res);
+                            // writeTimings(
+                            //     '2021/5/1.+1/6=23:32 3:32 23:32 3:32 23:32+4/6=23:32 3:32 23:32 3:32 23:32;2021/6.+1/6=23:32 3:32 23:32 3:32 23:32+3/6=23:32 3:32 23:32 3:32 23:32+4/6=23:32 3:32 23:32 3:32 23:32');
                           },
                           child: Text(
                             '${pray.briefDate()}',
@@ -254,7 +354,7 @@ class _MyAppState extends State<MyApp> {
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            start();
+            startFetchTiming();
           }
           // print(res);
           ,
@@ -264,30 +364,3 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
-// Card(
-// child: Container(
-// margin: EdgeInsets.symmetric(vertical: 13, horizontal: 21),
-// child: Row(
-// mainAxisAlignment: MainAxisAlignment.spaceBetween,
-// children: <Widget>[
-// FlatButton(
-// onPressed: () async {
-// print('button is pressed');
-// var res = await readTimingData();
-// print(res);
-// writeCounter(
-// '2021/5/1.+1/6=23:32 3:32 23:32 3:32 23:32+4/6=23:32 3:32 23:32 3:32 23:32;2021/6.+1/6=23:32 3:32 23:32 3:32 23:32+3/6=23:32 3:32 23:32 3:32 23:32+4/6=23:32 3:32 23:32 3:32 23:32');
-// },
-// child: Text(
-// '${pray.briefDate()}',
-// ),
-// ),
-// Text('ddd'),
-// Text('${pray.Dhuhr}'),
-// Text('${pray.Asr}'),
-// Text('${pray.Maghrib}'),
-// Text('${pray.Isha}'),
-// ],
-// ),
-// ),
-// );

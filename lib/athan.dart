@@ -87,31 +87,7 @@ class _MyAppState extends State<MyApp> {
           },
           itemCount: 49,
         ),
-
-        // body: Center(
-        //   child: FutureBuilder<Album>(
-        //     future: futureAlbum,
-        //     builder: (context, snapshot) {
-        //       if (snapshot.hasData) {
-        //         return Text(snapshot.data!.title);
-        //       } else if (snapshot.hasError) {
-        //         return Text('${snapshot.error}');
-        //       }
-        //
-        //       // By default, show a loading spinner.
-        //       return const CircularProgressIndicator();
-        //     },
-        //   ),
       ),
     );
   }
 }
-// children: <Widget>[
-//   Text(
-//     'You have pushed the button this many times:',
-//   ),
-//   Text(
-//     '$_counter',
-//     style: Theme.of(context).textTheme.headline4,
-//   ),
-// ],
