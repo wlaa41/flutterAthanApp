@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -11,9 +12,10 @@ import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'myGlobals.dart';
 
-FlutterLocalNotificationsPlugin notificationsPlugin =
-    FlutterLocalNotificationsPlugin();
+// FlutterLocalNotificationsPlugin notificationsPlugin =
+//     FlutterLocalNotificationsPlugin();
 void initalizeSettings() async {
   var initializeAndroid = AndroidInitializationSettings('rutaul');
   var initalizeSettings = InitializationSettings(android: initializeAndroid);
@@ -28,44 +30,6 @@ void main() {
 }
 
 late AudioPlayer player2 = AudioPlayer();
-void StartRepeatedJob() {
-  print('++++++_________________________________________________________________+++++++++++++_______________++++++++++++++');
-  WidgetsFlutterBinding.ensureInitialized();
-  final service = FlutterBackgroundService();
-  service.onDataReceived.listen((event) {
-    if (event!["action"] == "setAsForeground") {
-      service.setForegroundMode(true);
-      return;
-    }
-    if (event["action"] == "setAsBackground") {
-      service.setForegroundMode(false);
-    }
-    if (event["action"] == "stopService") {
-      service.stopBackgroundService();
-    }
-  });
-
-  // bring to foreground
-  service.setForegroundMode(true);
-  Timer.periodic(Duration(seconds: 33), (timer) async {
-    if (!(await service.isServiceRunning())) timer.cancel();
-    service.setNotificationInfo(
-      title: "My App Service",
-      content: "Updated at ${DateTime.now()}",
-    );
-    print('...  --->     <---  .....');
-    print('...  --->     <---  .....');
-    // player2.dispose();
-    // await player2.setAsset('asset/smooth.mp3');
-    // print(player2);
-    // player2.play();
-    init
-
-    service.sendData(
-      {"current_date": DateTime.now().toString()},
-    );
-  });
-}
 
 class MyApp extends StatefulWidget implements PreferredSizeWidget {
   MyApp({Key? key})
@@ -78,9 +42,12 @@ class MyApp extends StatefulWidget implements PreferredSizeWidget {
 }
 class _MyAppState extends State<MyApp> {
   late AudioPlayer player;
+  // static bool notificationIsOn  = false;
+
+
 
   late Future<List<Prayers>> futureAlbum;
-  bool _Loading = true;
+  // bool _Loading = true;
   List<Prayers> prayers = [];
 
   // FETCH SALAH TIME
@@ -125,48 +92,46 @@ class _MyAppState extends State<MyApp> {
   }
   Future<List<Prayers>> startFetchTiming() async {
     var res = await readTiming();
-    bool fetchMonthTimings = false;
+    // bool fetchMonthTimings = false;
     print('at the start method');
     // print(res);
     var entries = res.split(';');
-    var now_month = DateTime.now().month;
-    var now_year = DateTime.now().year;
-    
-    var saved_yearmonth = entries[0].split('.')[0].split('/');
-    var saved_year = saved_yearmonth[0];
-    var saved_month = saved_yearmonth[1];
-    var saved_day = saved_yearmonth[2];
+    DateTime now_date = DateTime.now();
+    var now_month = now_date.month;
+    var now_year = now_date.year;
+    DateTime saved_Date = DateTime.parse(entries[0].split('.')[0]);
+
     prayers = [];
     int no = prayers.length;
     String saveTimingLocalStorage = '';
     void addINFO_from_fetch(value) {
-      // print(value['data'][0]['timings']);
+      print('addINFO_from_fetch method is called and ---------------------------------->>>>>');
       List li = value['data'];
       // print('------------- $no');
       for (var i = 0; i < li.length; i++) {
         var d = li[i];
+        var tempdate = d['date']['gregorian']['date'].split('-');
         var prayer1 = new Prayers(
             Fajr: d['timings']['Fajr'].split(' ')[0],
             Dhuhr: d['timings']['Dhuhr'].split(' ')[0],
             Asr: d['timings']['Asr'].split(' ')[0],
             Maghrib: d['timings']['Maghrib'].split(' ')[0],
             Isha: d['timings']['Isha'].split(' ')[0],
-            day: d['date']['gregorian']['day'],
-            month: '${d['date']['gregorian']['month']['number']}',
-            year: d['date']['gregorian']['year'],
-            date: DateTime.parse(d['date']['gregorian']['date'])
+            date: DateTime.parse('${tempdate[2]}${tempdate[1]}${tempdate[0]}')
         );
+
+        // print(prayer1.writeStorage());
         prayers.add(prayer1);
-        saveTimingLocalStorage += prayer1.write();
+        saveTimingLocalStorage += prayer1.writeStorage();
       }
     };
     void addINFO_from_local() {
-      // print(value['data'][0]['timings']);
-      // print('------------- ${entries[0]}');
+      print(' ------------->>>>>  addINFO_from_local' );
+
       for (var i = 0; i < entries.length - 1; i++) {
         // print(entries[i]);
         var d = entries[i];
-        var date = d.split('.')[0].split('/');
+        var date = d.split('.')[0];
         var p5 = d.split('.')[1].split('+');
         var prayer1 = new Prayers(
             Fajr: p5[0],
@@ -174,19 +139,19 @@ class _MyAppState extends State<MyApp> {
             Asr: p5[2],
             Maghrib: p5[3],
             Isha: p5[4],
-            day: date[2],
-            month: date[1],
-            year: date[0]);
+            date: DateTime.parse(date));
         prayers.add(prayer1);
       }
     };
 
-    if ((saved_year == '$now_year') &&
-        (saved_month == '$now_month')) // information already exist
+    if ((saved_Date.year == now_year) &&
+        (saved_Date.month == now_month)) // information already exist
     {
       print('same same samesamesame same same same same same');
       addINFO_from_local();
     } else {
+      print(' same not not not samesamesame notsame same same not same not same');
+
       await fetchOnly(now_month, now_year).then((value) async {
         addINFO_from_fetch(value);
         if (now_month == 12) {
@@ -194,16 +159,11 @@ class _MyAppState extends State<MyApp> {
           now_year += 1;
         } // PREPARING PARAMETER FOR FETCH FOR THE NEXT MONTH
         now_month += 1;
-        print('second fetch month $now_month year $now_year');
         await fetchOnly(now_month, now_year).then((value2) {
-          print('month $now_month year $now_year');
           addINFO_from_fetch(value2);
         });
         no = prayers.length;
         print('------------- $no');
-        // print('-->  $saveTimingLocalStorage');
-        // print('------------- ${prayers[prayers.length - 3]}');
-        // print(prayers[prayers.length - 1].write());
         var temp = saveTimingLocalStorage.split(';');
         print('${temp[temp.length - 2]}   <--');
         writeTimings(saveTimingLocalStorage);
@@ -237,39 +197,23 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  Future<void> createNotification(date) async {
-    notificationsPlugin.zonedSchedule(
-        0,
-        'Athan',
-        'Notification',
-        tz.TZDateTime.from(date, tz.local),
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            'channel id',
-            'channel name',
-            'channel description',
-            importance: Importance.max,
-            priority: Priority.max,
-            sound: RawResourceAndroidNotificationSound('smooth'),
-          ),
-        ),
-        uiLocalNotificationDateInterpretation:
-        UILocalNotificationDateInterpretation.absoluteTime,
-        androidAllowWhileIdle: true);
+  @override
+  void dispose(){
+    MyGlobals.writeGLOBAL('notification is NOT running');
   }
 
   @override
   void initState() {
     super.initState();
+    MyGlobals.writeGLOBAL('notification is NOT running');
     futureAlbum = startFetchTiming();
     tz.initializeTimeZones();
     initalizeSettings();
     player = AudioPlayer();
-    startFetchTiming();
-    // initRepeatedJob();
+    // startFetchTiming();
+    initRepeatedJob();
     print("initState at _MyAppState");
   }
-
   @override
   Widget build(BuildContext context) {
     print("build at _MyAppState");
@@ -321,9 +265,6 @@ class _MyAppState extends State<MyApp> {
         body: FutureBuilder(
           future: futureAlbum,
           builder: (context, projectSnap) {
-            print('hellow');
-            // print(projectSnap.data);
-            // print(prayers.length);
             return ListView.builder(
               itemCount: prayers.length,
               itemBuilder: (
@@ -344,13 +285,13 @@ class _MyAppState extends State<MyApp> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
-                        FlatButton(
+                        TextButton(
                           onPressed: () async {
-                            // print('button is pressed');
+                            print('button is pressed');
                             // var res = await readTiming();
                             // print(res);
-                            writeTimings(
-                                '2021/5/1.+1/6=23:32 3:32 23:32 3:32 23:32+4/6=23:32 3:32 23:32 3:32 23:32;2021/6.+1/6=23:32 3:32 23:32 3:32 23:32+3/6=23:32 3:32 23:32 3:32 23:32+4/6=23:32 3:32 23:32 3:32 23:32');
+                            // writeTimings(
+                            //     '2021-05-01.23:32+3:32+23:32+3:32+23:32;');
                           },
                           child: Text(
                             '${pray.briefDate()}',
@@ -371,64 +312,178 @@ class _MyAppState extends State<MyApp> {
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
-            startFetchTiming();
-
-            await writeDAYS('2021-03-12;2021-03-12;2021-03-12;2021-03-12;2021-09-12;2021-09-12;');
-            print(await readDAYS());
+            // print(await readDAYS());
             await initRepeatedJob();
+
           }
           // print(res);
           ,
-          child: const Icon(Icons.cloud_download_outlined),
+          child: const Icon(Icons.refresh_sharp),
         ),
       ),
     );
   }
+
+
+
+
+
   Future<void> initRepeatedJob() async {
+    String backgroundRunning = await MyGlobals.readGLOBAL();
+    if(backgroundRunning == 'notification is NOT running' ){
+      MyGlobals.cancelAllNotifications();
+      MyGlobals.notificationIsOn=true;
+      // print("notificationIsOn: ${MyGlobals.notificationIsOn}");
+      await writeDAYS('2021-03-12;2021-03-12;2021-03-12;');
+    }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+    // await writeDAYS('2021-03-12;2021-03-12;2021-03-12;2021-07-26;2021-07-27;');
+    // print(await readDAYS());
     var isRunning =
     await FlutterBackgroundService().isServiceRunning();
     FlutterBackgroundService.initialize(StartRepeatedJob);
-
-    print('is it running $isRunning');
-    print('is it running $isRunning');
-
     if (isRunning) {
-      // FlutterBackgroundService().sendData(
-      //   {"action": "stopService"},
-      // );
-
       FlutterBackgroundService.initialize(StartRepeatedJob);
       var alarm_DayFile = await readDAYS();
-      print(alarm_DayFile);
       List alarmDays = alarm_DayFile.split(';');
-      print(alarmDays);
-      var todaydate = new DateTime(DateTime.now().year,DateTime.now().month,DateTime.now().day);
-      var tempAlarmDate = DateTime.parse(alarmDays[0]);
-
-      try{
-        alarmDays.removeLast();  // THE LAST ITEM IS '' AFTER ';'
-      }catch(e){}
-
-      // int length = alarmDays.length-1; // THE LAST ITEM IS '' AFTER ';'
-      int deletedItem = 0;
-      while(tempAlarmDate.compareTo(todaydate)<0 )
-        {
-
-          if(alarmDays.length == 0)
-            break;
-          alarmDays.removeAt(0);
-          print(alarmDays.length);
-          if(alarmDays.length > 0) {
-            print(alarmDays[0]);
-            tempAlarmDate = DateTime.parse(alarmDays[0]);}
+      var todaydate = new DateTime(DateTime
+          .now()
+          .year, DateTime
+          .now()
+          .month, DateTime
+          .now()
+          .day);
+        if(alarmDays.length==1)alarmDays=[];// IF IT WAS EMPTY SPLIT(';') WILL GIVE IT A LENGTH OF 1
+        if (alarmDays.length > 0) {
+          var tempAlarmDate = DateTime.parse(alarmDays[0]);
+          alarmDays.removeLast();// THE LAST ITEM IS '' AFTER ';'
+          while (tempAlarmDate.compareTo(todaydate) < 0) {
+            if (alarmDays.length == 0) {
+              print('break');
+              break;
+            }
+            print('No break');
+            alarmDays.removeAt(0);
+            print(alarmDays.length);
+            if (alarmDays.length > 0) {
+              // print(alarmDays[0]);
+              tempAlarmDate = DateTime.parse(alarmDays[0]);
+            }
+          }
         }
-        print(alarmDays);
-      // startFetchTiming();
-      int startfrom = 0;
-
-      for (int i = startfrom; i < 20; i++) {
-
+      DateTime startAlarmForm = DateTime.parse(DateTime.now().toString().split(' ')[0]).subtract(Duration(days: 1));
+      if (alarmDays.isEmpty) {}
+      else {
+          DateTime lastDateWithAlarm = DateTime.parse(alarmDays[alarmDays.length-1]);
+          if(startAlarmForm.compareTo(lastDateWithAlarm)>0 )// ALL DATE ARE IN THE PAST
+              alarmDays = [];
+          else
+              startAlarmForm = lastDateWithAlarm;
       }
+      int startfrom = alarmDays.length;
+      print('at the start method');
+
+      startFetchTiming();// UPDATE PRAYERS
+      for(int i = 0;i<prayers.length-22; i++)
+        {
+          if(prayers[i].date.compareTo(startAlarmForm)>0){
+              for (int j = startfrom; j < 20; j++) { // change 3 to 20 and delete this
+                for(int salahNo = 1; salahNo<=5;salahNo++){
+                  DateTime date = DateTime.parse(prayers[i].getPrayer(salahNo));
+                  MyGlobals.createNotification(date,prayers[i].getPrayerName(salahNo),'created ${DateTime.now().toString().split('.')[0]}');
+                }
+
+                alarmDays.add(prayers[i].YMD());
+                i++;
+              }
+              break;
+            }
+        }
+      MyGlobals.createNotification(DateTime.now().add(Duration(seconds: 5)),'Trial to see','Salah is better than anything "Everything"');
+
+      String addedDays = '';
+      for(var n in alarmDays){
+        addedDays += n+';';
+      }
+      print('.................................');
+      print('addedDays');
+      writeDAYS(addedDays);
+      writeDAYS(await readDAYS());
+      print(alarmDays.length);
+      print('.................................');
     }
+
     }
+
+  // Future<void> createNotification(date , [ title='Athan',discription='Notification',int id= -1]) async {
+  //
+  //   id = id==-1 ? new Random().nextInt(999999999):id;
+  //   notificationsPlugin.zonedSchedule(
+  //       id,
+  //       title,
+  //       discription + '  $id',
+  //       tz.TZDateTime.from(date, tz.local),
+  //       NotificationDetails(
+  //         android: AndroidNotificationDetails(
+  //           'channel id',
+  //           'channel name',
+  //           'channel description',
+  //           importance: Importance.max,
+  //           priority: Priority.max,
+  //           sound: RawResourceAndroidNotificationSound('smooth'),
+  //         ),
+  //       ),
+  //       uiLocalNotificationDateInterpretation:
+  //       UILocalNotificationDateInterpretation.absoluteTime,
+  //       androidAllowWhileIdle: true);
+  // }
 }
+void StartRepeatedJob() {
+  print('++++++_________________________________________________________________+++++++++++++_______________++++++++++++++');
+  WidgetsFlutterBinding.ensureInitialized();
+  final service = FlutterBackgroundService();
+  service.onDataReceived.listen((event) {
+    if (event!["action"] == "setAsForeground") {
+      service.setForegroundMode(true);
+      return;
+    }
+    if (event["action"] == "setAsBackground") {
+      service.setForegroundMode(false);
+    }
+    if (event["action"] == "stopService") {
+      service.stopBackgroundService();
+    }
+  });
+
+  // bring to foreground
+  service.setForegroundMode(true);
+  Timer.periodic(Duration(seconds: 16), (timer) async {
+    if (!(await service.isServiceRunning())) timer.cancel();
+    service.setNotificationInfo(
+      title: "My App Service",
+      content: "Updated at ${DateTime.now()}",
+    );
+    print('...  --->     <---  .....');
+    print('...  --->     <---  .....');
+
+    print('...  ---> notificationIsOn: ${MyGlobals.notificationIsOn } <---  .....');
+    print('...  ---> notificationIsOn: ${await  MyGlobals.readGLOBAL()} <---  .....');
+    tz.initializeTimeZones();
+    initalizeSettings();
+    await MyGlobals.createNotification(DateTime.now().add(Duration(seconds: 1)),'Trial to see','Salah is better than anything "Everything"');
+    // player2.dispose();
+    // await MyGlobals._cancelAllNotifications();
+
+    // await player2.setAsset('asset/smooth.mp3');
+    // print(player2);
+    // player2.play();
+    // init
+
+    service.sendData(
+      {"current_date": DateTime.now().toString()},
+    );
+  });
+}
+
+
+// final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+// FlutterLocalNotificationsPlugin();
