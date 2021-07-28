@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
+import 'dart:ui';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:timezone/timezone.dart' as tz;
+import 'package:flutter/material.dart';
+
 
 FlutterLocalNotificationsPlugin notificationsPlugin =
 FlutterLocalNotificationsPlugin();
@@ -24,7 +27,7 @@ class MyGlobals {
             'channel id $id',
             'channel name $id',
             'channel description $id',
-            timeoutAfter: 19000,// SET IT TO 500000 ALMOST 7 MINS
+            timeoutAfter: 500000,// SET IT TO 500000 ALMOST 7 MINS
             importance: Importance.max,
             priority: Priority.max,
             sound: RawResourceAndroidNotificationSound('smooth'),
@@ -59,5 +62,15 @@ class MyGlobals {
   }
   static Future<void> cancelAllNotifications() async {
     await flutterLocalNotificationsPlugin.cancelAll();
+  }
+}
+
+abstract class MyStyle {
+  static TextStyle getProgressHeaderStyle() {
+    return const TextStyle(
+        color: Colors.white,
+        fontFamily: 'Montserrat',
+        fontWeight: FontWeight.w100,
+        fontSize: 11.0);
   }
 }
