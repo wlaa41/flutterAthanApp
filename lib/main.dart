@@ -93,10 +93,10 @@ class _MyAppState extends State<MyApp> {
     }
   }
   Future<List<Prayers>> startFetchTiming() async {
-    var res = await readTiming();
-    // bool fetchMonthTimings = false;
+    var respond = await readTiming();
+    String res = respond.toString();
     print('at the start method');
-    // print(res);
+    if(respond == 0 || respond.runtimeType == int)res = '2020-05-01.23:32+3:32+23:32+3:32+23:32';//   IN CASE THE IT WAS EMPTY
     var entries = res.split(';');
     DateTime now_date = DateTime.now();
     var now_month = now_date.month;
@@ -239,22 +239,24 @@ class _MyAppState extends State<MyApp> {
               ),
               Text('Athan London',
                   style: TextStyle(fontWeight: FontWeight.normal)),
-              // StreamBuilder<Map<String, dynamic>?>(
-              //   stream: FlutterBackgroundService().onDataReceived,
-              //   builder: (context, snapshot) {
-              //     if (!snapshot.hasData) {
-              //       return Center(
-              //         child: CircularProgressIndicator(),
-              //       );
-              //     }
-              //
-              //     final data = snapshot.data!;
-              //     DateTime? date = DateTime.tryParse(data["current_date"]);
-              //     print(date.toString().split('.')[0]);
-              //     return
-            Text('rutaul London Limited',style: MyStyle.getProgressHeaderStyle(),),
-            // ;  },
-              // ),
+              Text('rutaul London Limited',style: MyStyle.getProgressHeaderStyle(),),
+
+              StreamBuilder<Map<String, dynamic>?>(
+                stream: FlutterBackgroundService().onDataReceived,
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+
+                  final data = snapshot.data!;
+                  DateTime? date = DateTime.tryParse(data["current_date"]);
+                  print(date.toString().split('.')[0]);
+                  return
+                  Text('rutaul London Limited',style: MyStyle.getProgressHeaderStyle(),);
+            ;  },
+              ),
               Container(
                 margin: EdgeInsets.fromLTRB(22, 23, 12, 0),
                 child: Row(
@@ -306,8 +308,8 @@ class _MyAppState extends State<MyApp> {
                             // var res = await readTiming();
                             // print(res);
                             writeDAYS('');
-                            // writeTimings(
-                            //     '2021-05-01.23:32+3:32+23:32+3:32+23:32;');
+                            writeTimings(
+                                '2021-05-01.23:32+3:32+23:32+3:32+23:32;');
                           },
                           child: Text(
                             '${pray.briefDate()}',
@@ -379,7 +381,11 @@ class _MyAppState extends State<MyApp> {
     FlutterBackgroundService.initialize(StartRepeatedJob);
     if (isRunning) {
       FlutterBackgroundService.initialize(StartRepeatedJob);
-      var alarm_DayFile = await readDAYS();
+      var respond = await readTiming();
+      // bool fetchMonthTimings = false;
+      String alarm_DayFile = respond.toString();
+      print('at the start method');
+      if(respond == 0 || respond.runtimeType == int)alarm_DayFile = '2020-11-11;';//   IN CASE THE IT WAS EMPTY
       List alarmDays = alarm_DayFile.split(';');
       var todaydate = new DateTime(DateTime
           .now()
@@ -401,7 +407,6 @@ class _MyAppState extends State<MyApp> {
             alarmDays.removeAt(0);
             print(alarmDays.length);
             if (alarmDays.length > 0) {
-              // print(alarmDays[0]);
               tempAlarmDate = DateTime.parse(alarmDays[0]);
             }
           }
@@ -418,7 +423,7 @@ class _MyAppState extends State<MyApp> {
       }
       int startfrom = alarmDays.length;
       print('at the start method');
-      startFetchTiming();// UPDATE PRAYERS
+      await startFetchTiming();// UPDATE PRAYERS
       for(int i = 0;i<prayers.length-22; i++)
         {
           if(prayers[i].date.compareTo(startAlarmForm)>0){
