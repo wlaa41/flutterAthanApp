@@ -227,12 +227,32 @@ class _MyAppState extends State<MyApp> {
 
   void ListenToBackgroundService(data){
     print('Calling the JOB_Fetch_Update_Alarm();');
-    JOB_Fetch_Update_Alarm();
+    print(data["message"]);
+      switch (data["message"]){
+      case 'update today highlight':
+        // testing = testing == '27/7'? '28/7':'27/7';
+        setState(() {
+
+        });
+        break;
+        case 'update EVERYTHING':
+          JOB_Fetch_Update_Alarm();
+          break;
+
+      }
 
   }
-
+  // var focusNode = FocusNode();
   @override
   void initState() {
+    // focusNode.addListener(() {
+    //   print("====================<                                            >===========================");
+    //   print("====================<                                            >===========================");
+    //   print("====================<                                            >===========================");
+    //   print("====================<                                            >===========================");
+    //   print("====================<                                            >===========================");
+    //   print(focusNode.hasFocus);
+    // });
     super.initState();
     stream.listen((event) {ListenToBackgroundService(event);});
     // MyGlobals.writeGLOBAL('notification is NOT running');
@@ -280,7 +300,7 @@ class _MyAppState extends State<MyApp> {
               //     }
               //
               //     final data = snapshot.data!;
-              //     DateTime? date = DateTime.tryParse(data["current_date"]);
+              //     DateTime? date = DateTime.tryParse(data["message"]);
               //     print(date.toString().split('.')[0]);
               //     return
               //     Text(data,style: MyStyle.getProgressHeaderStyle(),);
@@ -324,6 +344,7 @@ class _MyAppState extends State<MyApp> {
                 var now_month = '${DateTime.now().month}';
                 bool today =
                     prayers[index].briefDate() == '$now_day/$now_month';
+                    // prayers[index].briefDate() == testing;
                 // print('$now_day/$now_month');
                 Prayers pray = prayers[index];
                 return Card(
@@ -337,7 +358,14 @@ class _MyAppState extends State<MyApp> {
                           onPressed: () async {
                             print('button is pressed');
                             // var res = await readTiming();
-
+                            int minutesUntilTomorrow = DateTime.parse(DateTime.now()
+                                .add(Duration(days: 1)).toString().split(' ')[0])
+                                .difference(DateTime.now()).inMinutes;
+                            int hoursUntilTomorrow = DateTime.now()
+                                .add(Duration(days: 1))
+                                .difference(DateTime.now()).inHours;
+                            print(DateTime.now().add(Duration(days: 1)));
+                            print('in mins: $minutesUntilTomorrow , in hours; $hoursUntilTomorrow');
                             // var res = await readAlarmedDAYS();
                             // print(res);
                             // print(res);
@@ -345,7 +373,7 @@ class _MyAppState extends State<MyApp> {
                             // // for( var n in entreies){
                             // //   print(n.split('.')[0]);
                             // // }
-                            MyGlobals.createNotification(DateTime.now().add(Duration(seconds: 4)) ,'testing','created ${DateTime.now().toString().split('.')[0]}');
+                            // MyGlobals.createNotification(DateTime.now().add(Duration(seconds: 4)) ,'testing','created ${DateTime.now().toString().split('.')[0]}');
 
                             // writeAlarmedDAYS('');
                             // for(int i = 0 ; i <prayers.length;i++){
@@ -474,7 +502,7 @@ class _MyAppState extends State<MyApp> {
         {
           if(prayers[i].date.compareTo(startAlarmForm)>0){
               DateTime now = DateTime.now();
-              for (int j = startfrom; j < 27; j++) { // change 3 to 20 and delete this
+              for (int j = startfrom; j < 37; j++) { // change 3 to 20 and delete this
                 for(int salahNo = 1; salahNo<=5;salahNo++){
                   DateTime date = DateTime.parse(prayers[i].getPrayer(salahNo));
                   String title = prayers[i].getPrayerName(salahNo);
@@ -527,10 +555,13 @@ void StartRepeatedJob() {
     tz.initializeTimeZones();
     initalizeSettings();
     service.sendData(
-      {"current_date": DateTime.now().toString()},
+      {"message": 'update EVERYTHING'},
     );
   });
-  Timer.periodic(Duration(days: 1), (timer) async {
+  int minutesUntilTomorrow = DateTime.parse(DateTime.now()
+      .add(Duration(days: 1)).toString().split(' ')[0])
+      .difference(DateTime.now()).inMinutes  +  2;// Trigger to update the selected date
+  Timer.periodic(Duration(minutes:minutesUntilTomorrow), (timer) async {
     if (!(await service.isServiceRunning())) timer.cancel();
     service.setNotificationInfo(
       title: "My App Service",
@@ -539,7 +570,7 @@ void StartRepeatedJob() {
     tz.initializeTimeZones();
     initalizeSettings();
     service.sendData(
-      {"current_date": DateTime.now().toString()},
+      {"message": 'update today highlight'},
     );
   });
 }
