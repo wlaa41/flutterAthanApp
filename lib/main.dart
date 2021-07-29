@@ -24,7 +24,7 @@ void initalizeSettings() async {
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  FlutterBackgroundService.initialize(StartRepeatedJob);
+  FlutterBackgroundService.initialize(StartTIMER_RepeatedJob);
 
   runApp(MyApp());
 }
@@ -92,10 +92,10 @@ class _MyAppState extends State<MyApp> {
       return 0;
     }
   }
-  Future<List<Prayers>> startFetchTiming() async {
+  Future<List<Prayers>> startFetchTiming(msg) async {
     var respond = await readTiming();
     String res = respond.toString();
-    print('at the start method');
+    print('at the start method called by $msg');
     if(respond == 0 || respond.runtimeType == int)res = '2020-05-01.23:32+3:32+23:32+3:32+23:32';//   IN CASE THE IT WAS EMPTY
     var entries = res.split(';');
     DateTime now_date = DateTime.now();
@@ -107,11 +107,13 @@ class _MyAppState extends State<MyApp> {
     int no = prayers.length;
     String saveTimingLocalStorage = '';
 
-    void addTimingList(Prayers prayer1){// METHOD TO ADD PRAYER BUT NOT TO ADD OLDER THAN 7 DAYS
+    void addTO_TimingList(Prayers prayer1){// METHOD TO ADD PRAYER BUT NOT TO ADD OLDER THAN 7 DAYS
 
       final difference =DateTime.now().difference( prayer1.date).inDays;
       if(difference<7){
         prayers.add(prayer1);
+        print(prayers.length);
+
       }
     }
     void addINFO_from_fetch(value) {
@@ -132,7 +134,7 @@ class _MyAppState extends State<MyApp> {
 
         // print(prayer1.writeStorage());
         final difference = prayer1.date.difference(DateTime.now()).inDays;
-        addTimingList(prayer1);
+        addTO_TimingList(prayer1);
         saveTimingLocalStorage += prayer1.writeStorage();
 
 
@@ -156,7 +158,7 @@ class _MyAppState extends State<MyApp> {
             Maghrib: p5[3],
             Isha: p5[4],
             date: DateTime.parse(date));
-        addTimingList(prayer1);
+        addTO_TimingList(prayer1);
       }
     };
 
@@ -245,31 +247,22 @@ class _MyAppState extends State<MyApp> {
   // var focusNode = FocusNode();
   @override
   void initState() {
-    // focusNode.addListener(() {
-    //   print("====================<                                            >===========================");
-    //   print("====================<                                            >===========================");
-    //   print("====================<                                            >===========================");
-    //   print("====================<                                            >===========================");
-    //   print("====================<                                            >===========================");
-    //   print(focusNode.hasFocus);
-    // });
     super.initState();
     stream.listen((event) {ListenToBackgroundService(event);});
     // MyGlobals.writeGLOBAL('notification is NOT running');
-    futureAlbum = startFetchTiming();
+    // futureAlbum = startFetchTiming('futureAlbum');
     tz.initializeTimeZones();
     initalizeSettings();
-    player = AudioPlayer();
+    // player = AudioPlayer();
     print('Calling the JOB_Fetch_Update_Alarm() <------------------------------------------------------------------');
     JOB_Fetch_Update_Alarm();
-    // startFetchTiming();
     // initRepeatedJob();
   }
   @override
   Widget build(BuildContext context) {
     print("build at _MyAppState");
-
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Fetch Data Example',
       theme: ThemeData(
         primarySwatch: Colors.blue,
@@ -330,10 +323,12 @@ class _MyAppState extends State<MyApp> {
             ],
           ),
         ),
-        body: FutureBuilder(
-          future: futureAlbum,
-          builder: (context, projectSnap) {
-            return ListView.builder(
+        body:
+        // FutureBuilder(
+          // future: futureAlbum,
+          // builder: (context, projectSnap) {
+            // return
+              ListView.builder(
               itemCount: prayers.length,
               itemBuilder: (
                 con,
@@ -357,31 +352,9 @@ class _MyAppState extends State<MyApp> {
                         TextButton(
                           onPressed: () async {
                             print('button is pressed');
-                            // var res = await readTiming();
-                            int minutesUntilTomorrow = DateTime.parse(DateTime.now()
-                                .add(Duration(days: 1)).toString().split(' ')[0])
-                                .difference(DateTime.now()).inMinutes;
-                            int hoursUntilTomorrow = DateTime.now()
-                                .add(Duration(days: 1))
-                                .difference(DateTime.now()).inHours;
-                            print(DateTime.now().add(Duration(days: 1)));
-                            print('in mins: $minutesUntilTomorrow , in hours; $hoursUntilTomorrow');
-                            // var res = await readAlarmedDAYS();
-                            // print(res);
-                            // print(res);
-                            // var entreies = res.split(';');
-                            // // for( var n in entreies){
-                            // //   print(n.split('.')[0]);
-                            // // }
-                            // MyGlobals.createNotification(DateTime.now().add(Duration(seconds: 4)) ,'testing','created ${DateTime.now().toString().split('.')[0]}');
 
-                            // writeAlarmedDAYS('');
-                            // for(int i = 0 ; i <prayers.length;i++){
-                            //   print(prayers[i].YMD());
-                            // }
-                            // writeAlarmedDAYS('2021-07-29;2021-07-30;2021-07-31;2021-08-01;2021-08-02;2021-08-03;2021-08-04;2021-08-05;2021-08-06;2021-08-07;2021-08-08;2021-08-09;2021-08-10;2021-08-11;2021-08-12;2021-08-13;2021-08-14;2021-08-15;2021-08-16;2021-08-17;2021-08-18;2021-08-19;2021-08-20;2021-08-21;');
-                            // writeTimings(
-                            //     '2021-05-01.23:32+3:32+23:32+3:32+23:32;');
+                            MyGlobals.createNotification(DateTime.now().add(Duration(seconds: 4)) ,'testing','created ${DateTime.now().toString().split('.')[0]}');
+
                           },
                           child: Text(
                             '${pray.briefDate()}',
@@ -397,15 +370,19 @@ class _MyAppState extends State<MyApp> {
                   ),
                 );
               },
-            );
-          },
+            // );
+          // },
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
             // print(await readAlarmedDAYS());
             // await JOB_Fetch_Update_Alarm();
-            _checkPendingNotificationRequests();
-
+            // JOB_Fetch_Update_Alarm();
+            int PendingNotificationRequests = 0;
+            await _checkPendingNotificationRequests().then((value) => PendingNotificationRequests = value);
+            await MyGlobals.createNotification(DateTime.now().add(Duration(seconds: 3)),
+                'PendingNotificationn','Count = $PendingNotificationRequests');
+            // RestartEverything();
           }
           // print(res);
           ,
@@ -414,16 +391,32 @@ class _MyAppState extends State<MyApp> {
       ),
     );
   }
+  
+  void RestartEverything()async{
+    await MyGlobals.cancelAllNotifications();
+    await writeAlarmedDAYS('');
+    await writeTimings('');
+    FlutterBackgroundService().sendData(
+        {"action": "stopService"},);
+    await FlutterBackgroundService.initialize(StartTIMER_RepeatedJob);
+    FlutterBackgroundService().sendData({"action": "setAsBackground"});
+    tz.initializeTimeZones();
+    initalizeSettings();
+    // player = AudioPlayer();
+    print('Calling the JOB_Fetch_Update_Alarm() <------------------------------------------------------------------');
+    JOB_Fetch_Update_Alarm();
+
+  }
 
 
 
-  Future<void> _checkPendingNotificationRequests() async {
+  Future<int> _checkPendingNotificationRequests() async {
     final List<PendingNotificationRequest> pendingNotificationRequests =
     await flutterLocalNotificationsPlugin.pendingNotificationRequests();
     print(pendingNotificationRequests);
-    print(pendingNotificationRequests[0]);
+    // print(pendingNotificationRequests[0]);
     print(pendingNotificationRequests.length);
-
+    return pendingNotificationRequests.length;
     // return showDialog<void>(
     //   context: context,
     //   builder: (BuildContext context) => AlertDialog(
@@ -444,13 +437,18 @@ class _MyAppState extends State<MyApp> {
 
 
   Future<void> JOB_Fetch_Update_Alarm() async {
-      MyGlobals.cancelAllNotifications();
-      MyGlobals.notificationIsOn=true;
+
+      // MyGlobals.cancelAllNotifications();
+      // MyGlobals.notificationIsOn=true;
     //   var isRunning =
     // await FlutterBackgroundService().isServiceRunning();
-    // FlutterBackgroundService.initialize(StartRepeatedJob);
+    // FlutterBackgroundService.initialize(StartTIMER_RepeatedJob);
     // if (isRunning) {
-      FlutterBackgroundService.initialize(StartRepeatedJob);
+    //   FlutterBackgroundService.initialize(StartTIMER_RepeatedJob);
+      int PendingNotificationRequests = 0;
+      await _checkPendingNotificationRequests().then((value) => PendingNotificationRequests = value);
+      print("PendingNotificationRequests  =>  $PendingNotificationRequests");
+      if(PendingNotificationRequests==0 ) await writeAlarmedDAYS('');
       var respond = await readAlarmedDAYS();// READ ALARM LIST
       // var respond = 0;// READ ALARM LIST  // Daprecated
       // bool fetchMonthTimings = false;
@@ -496,8 +494,7 @@ class _MyAppState extends State<MyApp> {
               startAlarmForm = lastDateWithAlarm;
       }
       int startfrom = alarmDays.length;
-      print('at the start method');
-      await startFetchTiming();// UPDATE PRAYERS
+      await startFetchTiming('JOB_Fetch_Update_Alarm');// UPDATE PRAYERS
       for(int i = 0;i<prayers.length-22; i++)
         {
           if(prayers[i].date.compareTo(startAlarmForm)>0){
@@ -528,7 +525,7 @@ class _MyAppState extends State<MyApp> {
     // }
 
 }
-void StartRepeatedJob() {
+void StartTIMER_RepeatedJob() {
   print('++++++_______________________ Background Timer is triggered ________________________________++++++++++');
   WidgetsFlutterBinding.ensureInitialized();
   final service = FlutterBackgroundService();
