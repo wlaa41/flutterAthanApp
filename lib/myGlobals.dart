@@ -13,7 +13,7 @@ FlutterLocalNotificationsPlugin();
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 FlutterLocalNotificationsPlugin();
 class MyGlobals {
-  static Future<void> createNotification(date , [ title='Athan',discription='Notification',int id= -1]) async {
+  static Future<void> createNotification(date , [ title='Athan',discription='Notification',int id= -1,int timeSeconds = 500]) async {
 
     id = id==-1 ? new Random().nextInt(999999999):id;
     notificationsPlugin.zonedSchedule(
@@ -27,7 +27,7 @@ class MyGlobals {
             'channel id $id',
             'channel name $id',
             'channel description $id',
-            timeoutAfter: 500000,// SET IT TO 500000 ALMOST 7 MINS
+            timeoutAfter: 500*1000,// SET IT TO 500000 ALMOST 7 MINS
             importance: Importance.max,
             priority: Priority.max,
             sound: RawResourceAndroidNotificationSound('smooth'),

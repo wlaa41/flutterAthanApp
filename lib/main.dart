@@ -106,6 +106,14 @@ class _MyAppState extends State<MyApp> {
     prayers = [];
     int no = prayers.length;
     String saveTimingLocalStorage = '';
+
+    void addTimingList(Prayers prayer1){// METHOD TO ADD PRAYER BUT NOT TO ADD OLDER THAN 7 DAYS
+
+      final difference =DateTime.now().difference( prayer1.date).inDays;
+      if(difference<7){
+        prayers.add(prayer1);
+      }
+    }
     void addINFO_from_fetch(value) {
       print('addINFO_from_fetch method is called and ---------------------------------->>>>>');
       List li = value['data'];
@@ -123,10 +131,16 @@ class _MyAppState extends State<MyApp> {
         );
 
         // print(prayer1.writeStorage());
-        prayers.add(prayer1);
+        final difference = prayer1.date.difference(DateTime.now()).inDays;
+        addTimingList(prayer1);
         saveTimingLocalStorage += prayer1.writeStorage();
+
+
       }
     };
+
+
+
     void addINFO_from_local() {
       print(' ------------->>>>>  addINFO_from_local' );
 
@@ -142,9 +156,10 @@ class _MyAppState extends State<MyApp> {
             Maghrib: p5[3],
             Isha: p5[4],
             date: DateTime.parse(date));
-        prayers.add(prayer1);
+        addTimingList(prayer1);
       }
     };
+
 
     if ((saved_Date.year == now_year) &&
         (saved_Date.month == now_month)) // information already exist
@@ -164,6 +179,14 @@ class _MyAppState extends State<MyApp> {
         await fetchOnly(now_month, now_year).then((value2) {
           addINFO_from_fetch(value2);
         });
+        if (now_month == 12) {
+          now_month = 0;
+          now_year += 1;
+        } // PREPARING PARAMETER FOR FETCH FOR THE NEXT MONTH
+        now_month += 1;
+        await fetchOnly(now_month, now_year).then((value3) {
+          addINFO_from_fetch(value3);
+        });
         no = prayers.length;
         print('------------- $no');
         var temp = saveTimingLocalStorage.split(';');
@@ -172,6 +195,9 @@ class _MyAppState extends State<MyApp> {
       });
     }
     print('I am gone');
+    setState(() {
+
+    });
     return prayers;
   }
   // MIGHT CAUSE A PROBLEM
@@ -183,11 +209,11 @@ class _MyAppState extends State<MyApp> {
     final path = await _localPath2;
     return File('$path/DAYS.txt');
   }
-  Future<File> writeDAYS(counter) async {
+  Future<File> writeAlarmedDAYS(counter) async {
     final file = await _localFile2;
     return file.writeAsString('$counter');
   }
-  Future readDAYS() async {
+  Future readAlarmedDAYS() async {
     try {
       final file = await _localFile2;
       // Read the file
@@ -239,25 +265,30 @@ class _MyAppState extends State<MyApp> {
               ),
               Text('Athan London',
                   style: TextStyle(fontWeight: FontWeight.normal)),
-              Text('rutaul London Limited',style: MyStyle.getProgressHeaderStyle(),),
+              // Text('rutaul London Limited',style: MyStyle.getProgressHeaderStyle(),),
 
-              StreamBuilder<Map<String, dynamic>?>(
-                stream: FlutterBackgroundService().onDataReceived,
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  }
+              // StreamBuilder<Map<String, dynamic>?>(
+              //   stream: FlutterBackgroundService().onDataReceived,
+              //   builder: (context, snapshot) {
+              //     if (!snapshot.hasData) {
+              //       return
+              //       Text('rutaul London Limited',style: MyStyle.getProgressHeaderStyle(),);
+              //
+              //       //   Center(
+              //       //   child: CircularProgressIndicator(),
+              //       // );
+              //     }
+              //
+              //     final data = snapshot.data!;
+              //     DateTime? date = DateTime.tryParse(data["current_date"]);
+              //     print(date.toString().split('.')[0]);
+              //     return
+              //     Text(data,style: MyStyle.getProgressHeaderStyle(),);
+              // },
+              // ),
+            Text('rutaul London Limited',style: MyStyle.getProgressHeaderStyle(),),
 
-                  final data = snapshot.data!;
-                  DateTime? date = DateTime.tryParse(data["current_date"]);
-                  print(date.toString().split('.')[0]);
-                  return
-                  Text('rutaul London Limited',style: MyStyle.getProgressHeaderStyle(),);
-            ;  },
-              ),
-              Container(
+            Container(
                 margin: EdgeInsets.fromLTRB(22, 23, 12, 0),
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -306,10 +337,23 @@ class _MyAppState extends State<MyApp> {
                           onPressed: () async {
                             print('button is pressed');
                             // var res = await readTiming();
+
+                            // var res = await readAlarmedDAYS();
                             // print(res);
-                            writeDAYS('');
-                            writeTimings(
-                                '2021-05-01.23:32+3:32+23:32+3:32+23:32;');
+                            // print(res);
+                            // var entreies = res.split(';');
+                            // // for( var n in entreies){
+                            // //   print(n.split('.')[0]);
+                            // // }
+                            MyGlobals.createNotification(DateTime.now().add(Duration(seconds: 4)) ,'testing','created ${DateTime.now().toString().split('.')[0]}');
+
+                            // writeAlarmedDAYS('');
+                            // for(int i = 0 ; i <prayers.length;i++){
+                            //   print(prayers[i].YMD());
+                            // }
+                            // writeAlarmedDAYS('2021-07-29;2021-07-30;2021-07-31;2021-08-01;2021-08-02;2021-08-03;2021-08-04;2021-08-05;2021-08-06;2021-08-07;2021-08-08;2021-08-09;2021-08-10;2021-08-11;2021-08-12;2021-08-13;2021-08-14;2021-08-15;2021-08-16;2021-08-17;2021-08-18;2021-08-19;2021-08-20;2021-08-21;');
+                            // writeTimings(
+                            //     '2021-05-01.23:32+3:32+23:32+3:32+23:32;');
                           },
                           child: Text(
                             '${pray.briefDate()}',
@@ -330,7 +374,7 @@ class _MyAppState extends State<MyApp> {
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
-            // print(await readDAYS());
+            // print(await readAlarmedDAYS());
             // await JOB_Fetch_Update_Alarm();
             _checkPendingNotificationRequests();
 
@@ -374,14 +418,13 @@ class _MyAppState extends State<MyApp> {
   Future<void> JOB_Fetch_Update_Alarm() async {
       MyGlobals.cancelAllNotifications();
       MyGlobals.notificationIsOn=true;
-      // writeDAYS(addedDays);
-
-      var isRunning =
-    await FlutterBackgroundService().isServiceRunning();
-    FlutterBackgroundService.initialize(StartRepeatedJob);
-    if (isRunning) {
+    //   var isRunning =
+    // await FlutterBackgroundService().isServiceRunning();
+    // FlutterBackgroundService.initialize(StartRepeatedJob);
+    // if (isRunning) {
       FlutterBackgroundService.initialize(StartRepeatedJob);
-      var respond = await readTiming();
+      var respond = await readAlarmedDAYS();// READ ALARM LIST
+      // var respond = 0;// READ ALARM LIST  // Daprecated
       // bool fetchMonthTimings = false;
       String alarm_DayFile = respond.toString();
       print('at the start method');
@@ -396,9 +439,12 @@ class _MyAppState extends State<MyApp> {
           .day);
         if(alarmDays.length==1)alarmDays=[];// IF IT WAS EMPTY SPLIT(';') WILL GIVE IT A LENGTH OF 1
         if (alarmDays.length > 0) {
+          print('alarmDays[0]');
+          print(alarmDays[0]);
+          print(alarmDays.length);
           var tempAlarmDate = DateTime.parse(alarmDays[0]);
           alarmDays.removeLast();// THE LAST ITEM IS '' AFTER ';'
-          while (tempAlarmDate.compareTo(todaydate) < 0) {
+          while (tempAlarmDate.compareTo(todaydate) < 0) { // REMOVING PAST DATES FROM
             if (alarmDays.length == 0) {
               print('break');
               break;
@@ -436,25 +482,22 @@ class _MyAppState extends State<MyApp> {
                     print('Adding alarm at $date');
                     MyGlobals.createNotification(date ,title,'created ${DateTime.now().toString().split('.')[0]}');
                   }
-
                 }
-
                 alarmDays.add(prayers[i].YMD());
                 i++;
               }
               break;
             }
         }
-
       String addedDays = '';
       for(var n in alarmDays){
         addedDays += n+';';
       }
       print('.................................');
-      // writeDAYS(addedDays);
+      writeAlarmedDAYS(addedDays);
     }
 
-    }
+    // }
 
 }
 void StartRepeatedJob() {
@@ -473,7 +516,6 @@ void StartRepeatedJob() {
       service.stopBackgroundService();
     }
   });
-
   // bring to foreground
   service.setForegroundMode(true);
   Timer.periodic(Duration(days: 9), (timer) async {
@@ -482,17 +524,24 @@ void StartRepeatedJob() {
       title: "My App Service",
       content: "Updated at ${DateTime.now()}",
     );
-
     tz.initializeTimeZones();
     initalizeSettings();
-    // await MyGlobals.createNotification(DateTime.now().add(Duration(seconds: 1)),'Trial to see','Salah is better than anything "Everything"');
-
+    service.sendData(
+      {"current_date": DateTime.now().toString()},
+    );
+  });
+  Timer.periodic(Duration(days: 1), (timer) async {
+    if (!(await service.isServiceRunning())) timer.cancel();
+    service.setNotificationInfo(
+      title: "My App Service",
+      content: "Updated at ${DateTime.now()}",
+    );
+    tz.initializeTimeZones();
+    initalizeSettings();
     service.sendData(
       {"current_date": DateTime.now().toString()},
     );
   });
 }
-
-
 // final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 // FlutterLocalNotificationsPlugin();
