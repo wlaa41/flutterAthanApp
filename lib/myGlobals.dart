@@ -15,7 +15,8 @@ FlutterLocalNotificationsPlugin();
 class MyGlobals {
   static Future<void> createNotification(date , [ title='Athan',discription='Notification',int id= -1,int timeSeconds = 500]) async {
 
-    id = id==-1 ? new Random().nextInt(999999999):id;
+    // id = id==-1 ? new Random().nextInt(999999999):id;
+    id = 1;
     notificationsPlugin.zonedSchedule(
         id,
         title,
@@ -31,6 +32,7 @@ class MyGlobals {
             importance: Importance.max,
             priority: Priority.max,
             sound: RawResourceAndroidNotificationSound('smooth'),
+              fullScreenIntent: true,
           ),
         ),
         uiLocalNotificationDateInterpretation:

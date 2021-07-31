@@ -228,16 +228,24 @@ class _MyAppState extends State<MyApp> {
 
 
   void ListenToBackgroundService(data){
-    print('Calling the JOB_Fetch_Update_Alarm();');
-    print(data["message"]);
+    // print(data["message"]);
       switch (data["message"]){
       case 'update today highlight':
         // testing = testing == '27/7'? '28/7':'27/7';
+      print('------> \n >>>>>> \n >>>>>> ready to update');
+      if(prayers.length>46)
         setState(() {
+          print('removing one element');
+          prayers.removeAt(0);
 
         });
-        break;
+      else
+        JOB_Fetch_Update_Alarm();
+      // print('======== \n ========= \n ======== doing nothing');
+
+      break;
         case 'update EVERYTHING':
+          print('Calling the JOB_Fetch_Update_Alarm();');
           JOB_Fetch_Update_Alarm();
           break;
 
@@ -377,11 +385,11 @@ class _MyAppState extends State<MyApp> {
           onPressed: () async {
             // print(await readAlarmedDAYS());
             // await JOB_Fetch_Update_Alarm();
-            // JOB_Fetch_Update_Alarm();
-            int PendingNotificationRequests = 0;
-            await _checkPendingNotificationRequests().then((value) => PendingNotificationRequests = value);
-            await MyGlobals.createNotification(DateTime.now().add(Duration(seconds: 3)),
-                'PendingNotificationn','Count = $PendingNotificationRequests');
+            JOB_Fetch_Update_Alarm();
+            // int PendingNotificationRequests = 0;
+            // await _checkPendingNotificationRequests().then((value) => PendingNotificationRequests = value);
+            // await MyGlobals.createNotification(DateTime.now().add(Duration(seconds: 3)),
+            //     'PendingNotificationn','Count = $PendingNotificationRequests');
             // RestartEverything();
           }
           // print(res);
@@ -391,7 +399,7 @@ class _MyAppState extends State<MyApp> {
       ),
     );
   }
-  
+
   void RestartEverything()async{
     await MyGlobals.cancelAllNotifications();
     await writeAlarmedDAYS('');
@@ -477,7 +485,7 @@ class _MyAppState extends State<MyApp> {
             }
             print('No break');
             alarmDays.removeAt(0);
-            print(alarmDays.length);
+            print('AlarmDays ${alarmDays.length}');
             if (alarmDays.length > 0) {
               tempAlarmDate = DateTime.parse(alarmDays[0]);
             }
@@ -505,7 +513,8 @@ class _MyAppState extends State<MyApp> {
                   String title = prayers[i].getPrayerName(salahNo);
                   if(date.compareTo(now)>0){// IF THE DAY IS TODAY AND THE PRAYER IS PASSED .. DONOT SCHADULE ALARM
                     print('Adding alarm at $date');
-                    MyGlobals.createNotification(date ,title,'created ${DateTime.now().toString().split('.')[0]}');
+                    MyGlobals.createNotification(
+                        date ,title,'created ${DateTime.now().toString().split('.')[0]}');
                   }
                 }
                 alarmDays.add(prayers[i].YMD());
@@ -555,10 +564,13 @@ void StartTIMER_RepeatedJob() {
       {"message": 'update EVERYTHING'},
     );
   });
+
+
   int minutesUntilTomorrow = DateTime.parse(DateTime.now()
       .add(Duration(days: 1)).toString().split(' ')[0])
       .difference(DateTime.now()).inMinutes  +  2;// Trigger to update the selected date
   Timer.periodic(Duration(minutes:minutesUntilTomorrow), (timer) async {
+    // Timer.periodic(Duration(seconds: 5), (timer) async {
     if (!(await service.isServiceRunning())) timer.cancel();
     service.setNotificationInfo(
       title: "My App Service",
