@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
-import 'dart:math';
+// import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -11,9 +11,8 @@ import 'package:http/http.dart' as http;
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:timezone/data/latest.dart' as tz;
-import 'package:timezone/timezone.dart' as tz;
+// import 'package:timezone/timezone.dart' as tz;
 import 'myGlobals.dart';
-import 'screen2.dart';
 
 // FlutterLocalNotificationsPlugin notificationsPlugin =
 //     FlutterLocalNotificationsPlugin();
