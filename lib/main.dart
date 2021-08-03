@@ -13,6 +13,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'myGlobals.dart';
+import 'screen2.dart';
 
 // FlutterLocalNotificationsPlugin notificationsPlugin =
 //     FlutterLocalNotificationsPlugin();
@@ -233,12 +234,22 @@ class _MyAppState extends State<MyApp> {
       case 'update today highlight':
         // testing = testing == '27/7'? '28/7':'27/7';
       print('------> \n >>>>>> \n >>>>>> ready to update');
-      if(prayers.length>46)
-        setState(() {
-          print('removing one element');
-          prayers.removeAt(0);
+      if(prayers.length>50) {
+        DateTime NOW = DateTime.now();
 
-        });
+        for (Prayers pray in prayers) {
+          int PastDays = pray.date
+              .difference(NOW)
+              .inDays;
+          if (PastDays > -4)
+            break;
+          else{
+            setState(() {
+              print('removing one element');
+              prayers.removeAt(0);
+            });}
+        }
+      }
       else
         JOB_Fetch_Update_Alarm();
       // print('======== \n ========= \n ======== doing nothing');
@@ -342,16 +353,20 @@ class _MyAppState extends State<MyApp> {
                 con,
                 index,
               ) {
-                int nowday = DateTime.now().day;
-                var now_day = nowday > 10 ? '$nowday' : '0$nowday';
-                var now_month = '${DateTime.now().month}';
+                DateTime NOW = DateTime.now();
+                var now_day = NOW.day;
+                var now_month = '${NOW.month}';
                 bool today =
                     prayers[index].briefDate() == '$now_day/$now_month';
                     // prayers[index].briefDate() == testing;
                 // print('$now_day/$now_month');
+                // print(today);
+                Color color =Colors.white;
+                if(today) color = Colors.blue.shade50 ;
                 Prayers pray = prayers[index];
+
                 return Card(
-                  color: today ? Colors.blue.shade50 : Colors.white,
+                  color: color,
                   child: Container(
                     margin: EdgeInsets.symmetric(vertical: 13, horizontal: 21),
                     child: Row(
@@ -383,14 +398,17 @@ class _MyAppState extends State<MyApp> {
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
+            // Navigator.push(context,
+            //   MaterialPageRoute(builder: (context) => SettingScreen()),
+            // );
             // print(await readAlarmedDAYS());
             // await JOB_Fetch_Update_Alarm();
-            JOB_Fetch_Update_Alarm();
+            // JOB_Fetch_Update_Alarm();
             // int PendingNotificationRequests = 0;
             // await _checkPendingNotificationRequests().then((value) => PendingNotificationRequests = value);
             // await MyGlobals.createNotification(DateTime.now().add(Duration(seconds: 3)),
             //     'PendingNotificationn','Count = $PendingNotificationRequests');
-            // RestartEverything();
+            RestartEverything();
           }
           // print(res);
           ,
@@ -401,9 +419,13 @@ class _MyAppState extends State<MyApp> {
   }
 
   void RestartEverything()async{
+    prayers= [];
+    setState(() {
+      prayers= [];
+    });
     await MyGlobals.cancelAllNotifications();
     await writeAlarmedDAYS('');
-    await writeTimings('');
+    await writeTimings('2021-05-01.23:32+3:32+23:32+3:32+23:32;2021-05-01.23:32+3:32+23:32+3:32+23:32;');
     FlutterBackgroundService().sendData(
         {"action": "stopService"},);
     await FlutterBackgroundService.initialize(StartTIMER_RepeatedJob);
