@@ -8,15 +8,10 @@ allprojects {
 rootProject.buildDir = '../build'
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
-    project.evaluationDependsOn(':app')
 }
 
-tasks.register("clean", Delete) {
-    delete rootProject.buildDir
-}
-
-subprojects {
-    afterEvaluate { project ->
+subprojects { project ->
+    def setNamespace = {
         if (project.hasProperty('android')) {
             project.android {
                 if (namespace == null) {
@@ -29,4 +24,15 @@ subprojects {
             }
         }
     }
+    if (project.state.executed) {
+        setNamespace()
+    } else {
+        project.afterEvaluate {
+            setNamespace()
+        }
+    }
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.buildDir
 }
