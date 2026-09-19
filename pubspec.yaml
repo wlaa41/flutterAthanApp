@@ -26,12 +26,12 @@ dependencies:
 
   cupertino_icons: ^1.0.2
   just_audio: ^0.9.36
-  flutter_local_notifications: ^9.0.0
+  flutter_local_notifications: ^17.0.0
   http: ^0.13.6
   path_provider: ^2.1.2
   rxdart: ^0.27.7
   shared_preferences: ^2.2.2
-  timezone: ^0.8.0
+  timezone: ^0.9.4
 
 
 dev_dependencies:

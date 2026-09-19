@@ -21,8 +21,8 @@ class NotificationService {
 
     await _notificationsPlugin.initialize(
       initSettings,
-      onSelectNotification: (String? payload) async {
-        debugPrint('Notification clicked with payload: $payload');
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        debugPrint('Notification clicked with payload: ${response.payload}');
       },
     );
     _isInitialized = true;
@@ -83,7 +83,7 @@ class NotificationService {
               details,
               uiLocalNotificationDateInterpretation:
                   UILocalNotificationDateInterpretation.absoluteTime,
-              androidAllowWhileIdle: true,
+              androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
             );
           } catch (e) {
             debugPrint('NotificationService: schedule error: $e');
