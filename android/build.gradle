@@ -14,3 +14,19 @@ subprojects {
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
+
+subprojects {
+    afterEvaluate { project ->
+        if (project.hasProperty('android')) {
+            project.android {
+                if (namespace == null) {
+                    if (project.group != null && !project.group.toString().isEmpty()) {
+                        namespace = project.group.toString()
+                    } else {
+                        namespace = "com.plugin.${project.name.replace('-', '_')}"
+                    }
+                }
+            }
+        }
+    }
+}
