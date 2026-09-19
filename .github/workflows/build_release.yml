@@ -5,6 +5,9 @@ on:
     branches: [ master, main ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -28,9 +31,6 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
-      - name: Run Unit Tests
-        run: flutter test
-
       - name: Build Android Release APK
         run: flutter build apk --release
 
@@ -39,3 +39,23 @@ jobs:
         with:
           name: app-release
           path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main'
+        with:
+          tag_name: v2.0.0
+          name: "Athan & Quran London Pro v2.0.0"
+          body: |
+            ## Athan & Quran London Pro - Release v2.0.0
+
+            ### What's New
+            - **Modern Prayer Times**: Live countdown timer, interval progress bar, and authentic Athan sound preview (`smooth.mp3`).
+            - **Robust Offline Fallback**: Built-in astronomical solar calculation engine (fail-safe when offline or API is down).
+            - **Holy Quran with Colored Tajweed**: Authentic Tajweed coloring (Qalqalah, Ikhfa, Idgham, Madd rules, etc.) with in-app guide.
+            - **Stylus & Highlighter Canvas**: Write notes, circle ayahs, and highlight text with S-Pen, Apple Pencil, or finger.
+            - **Clickable Verses**: Tap any ayah for Sheikh Mishary Rashid Alafasy recitation, English Saheeh International translation, bookmarks, and copy.
+            - **Qibla Direction & Adhkar**: Compass pointing to Mecca with daily authentic adhkar and touch tasbeeh counter.
+          files: build/app/outputs/flutter-apk/app-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

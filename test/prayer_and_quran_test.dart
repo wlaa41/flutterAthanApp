@@ -4,6 +4,7 @@ import 'package:flutter_pro/models/drawing_stroke.dart';
 import 'package:flutter_pro/models/prayer_time_model.dart';
 import 'package:flutter_pro/models/quran_models.dart';
 import 'package:flutter_pro/services/astronomical_calculator.dart';
+import 'package:flutter_pro/services/prayer_service.dart';
 import 'package:flutter_pro/services/quran_service.dart';
 
 void main() {
