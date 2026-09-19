@@ -231,6 +231,7 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
                 ),
               ],
             ),
+      ),
     );
   }
 

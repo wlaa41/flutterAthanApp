@@ -24,7 +24,8 @@ if (flutterVersionName == null) {
 
 android {
     namespace "wlaa41.github.io.flutter_pro"
-    compileSdkVersion 34
+    compileSdkVersion 36
+    ndkVersion "28.2.13676358"
 
     compileOptions {
         coreLibraryDesugaringEnabled true
