@@ -32,7 +32,6 @@ dependencies:
   rxdart: ^0.27.7
   shared_preferences: ^2.2.2
   timezone: ^0.8.0
-  flutter_background_service: ^2.4.6
 
 
 dev_dependencies:

@@ -63,7 +63,7 @@ class NotificationService {
           const androidDetails = AndroidNotificationDetails(
             'athan_channel',
             'Athan Prayer Times',
-            'Prayer notifications with Athan sound',
+            channelDescription: 'Prayer notifications with Athan sound',
             importance: Importance.max,
             priority: Priority.max,
             sound: RawResourceAndroidNotificationSound('smooth'),
@@ -99,7 +99,7 @@ class NotificationService {
     const androidDetails = AndroidNotificationDetails(
       'athan_channel_test',
       'Athan Test',
-      'Test notification for Athan sound',
+      channelDescription: 'Test notification for Athan sound',
       importance: Importance.max,
       priority: Priority.max,
       sound: RawResourceAndroidNotificationSound('smooth'),

@@ -188,7 +188,7 @@ class _QuranIndexScreenState extends State<QuranIndexScreen> {
                           decoration: BoxDecoration(
                             color: surah.revelationType == 'Meccan'
                                 ? Colors.amber.shade50
-                                : Colors.emerald.shade50,
+                                : Colors.teal.shade50,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
