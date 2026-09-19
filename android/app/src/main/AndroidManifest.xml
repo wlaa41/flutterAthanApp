@@ -7,13 +7,14 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
-
-
     <application
-        android:label="rutaul Athan"
-        android:icon="@mipmap/ic_launcher">
+        android:label="Athan & Quran London"
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true">
        <service android:name=".BackgroundService"/>
        <receiver android:name=".WatchdogReceiver"/>
        <receiver android:name=".BootReceiver">
