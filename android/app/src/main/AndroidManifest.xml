@@ -1,29 +1,21 @@
-
-
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="wlaa41.github.io.flutter_pro">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
 
     <application
-        android:label="Athan & Quran London"
+        android:label="Athan &amp; Quran London"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true">
-       <service android:name=".BackgroundService"/>
-       <receiver android:name=".WatchdogReceiver"/>
-       <receiver android:name=".BootReceiver">
-           <intent-filter>
-               <action android:name="android.intent.action.BOOT_COMPLETED"/>
-           </intent-filter>
-       </receiver>
+        
         <activity
             android:name=".MainActivity"
+            android:exported="true"
             android:launchMode="singleTop"
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
@@ -44,9 +36,8 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-        </activity
+        </activity>
 
-            >
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
