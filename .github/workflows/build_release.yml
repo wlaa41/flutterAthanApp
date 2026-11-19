@@ -38,12 +38,31 @@ jobs:
         run: flutter analyze --no-fatal-infos
       - name: Test scheduling, fetching, settings, and widgets
         run: flutter test
+      - name: Restore stable preview signing key
+        if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        env:
+          ATHAN_PREVIEW_KEYSTORE_BASE64: ${{ secrets.ATHAN_PREVIEW_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$ATHAN_PREVIEW_KEYSTORE_BASE64" ]; then
+            echo "::error::Configure ATHAN_PREVIEW_KEYSTORE_BASE64 for upgradeable preview APKs."
+            exit 1
+          fi
+          umask 077
+          mkdir -p "$HOME/.android"
+          printf '%s' "$ATHAN_PREVIEW_KEYSTORE_BASE64" | base64 --decode > "$HOME/.android/debug.keystore"
       - name: Build Android preview APK
         run: flutter build apk --release
+      - name: Verify preview signing certificate
+        if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        run: |
+          signature_report="$("$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs build/app/outputs/flutter-apk/app-release.apk)"
+          printf '%s\n' "$signature_report"
+          actual="$(printf '%s\n' "$signature_report" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
+          test "$actual" = 'f7f52594422cf2ce808e9510ed91ee27e42ff7efd2e9fee841d29a05a0441678'
       - name: Save installable preview
         uses: actions/upload-artifact@v4
         with:
-          name: athan-android-preview-${{ github.sha }}
+          name: athan-android-${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && 'preview' || 'test' }}-${{ github.sha }}
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 14
@@ -76,6 +95,6 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-# Android previews use the project's debug signing key. Production signing and
+# Trusted Android previews use a stable private debug key. Production signing and
 # publishing are separate deliberate steps; this workflow never overwrites v2.0.0.
 

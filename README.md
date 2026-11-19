@@ -83,9 +83,19 @@ bash tools/ios_smoke.sh
 ```
 
 CI runs analysis/tests and creates a preview APK for each pull request. It does not
-publish a store release or overwrite an existing GitHub release. Release builds
-still use the repository's original debug-signing setup; configure your own signing
-before store distribution.
+publish a store release or overwrite an existing GitHub release. Trusted CI preview
+builds restore a stable private debug key from the `ATHAN_PREVIEW_KEYSTORE_BASE64`
+Actions secret and verify its public certificate before uploading the APK. Fork
+and Dependabot pull requests cannot access that key and produce clearly labelled
+disposable test builds.
+
+From rc.7 onward, trusted previews share a signing identity so later versions can
+update in place. Earlier previews with a different key need one reinstall, which
+clears app-local settings and imported audio. Keep a private backup of the preview
+keystore; never commit it. Configure production signing before store distribution.
+
+Preview certificate SHA-256:
+`f7f52594422cf2ce808e9510ed91ee27e42ff7efd2e9fee841d29a05a0441678`.
 
 See [audio attribution](asset/AUDIO_SOURCES.md) and
 [verification notes](docs/verification.md) for sources and device-test coverage.

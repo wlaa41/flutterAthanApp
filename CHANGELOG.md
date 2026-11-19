@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.1.0-rc.7 (build 9)
+
+- Stabilized trusted preview signing with a private GitHub Actions secret and a
+  certificate check, so future preview updates can keep app data. Fork builds do
+  not receive the key. Older differently signed previews need one clean install.
+- Excluded keystore files from Git; production/store signing remains separate.
+- Validation: CI verifies the expected signing certificate before publishing an
+  APK artifact. rc.6 passed all 69 tests, both platform builds and iPhone startup;
+  actual Android import/preview, private-copy persistence and native custom-sound
+  playback also passed.
+
 ## 2.1.0-rc.6 (build 8)
 
 - Pinned the Android storage implementation to compatible `path_provider_android`

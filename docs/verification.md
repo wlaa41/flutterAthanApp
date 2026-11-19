@@ -12,6 +12,7 @@ Each checkpoint is pushed on `codex/athan-reliability` with a matching Git tag.
 | `v2.1.0-rc.4` / build 6 | Automated iPhone startup check and Android dependency caching |
 | `v2.1.0-rc.5` / build 7 | Actual-screen navigation contrast, simulator startup allowance, verification record |
 | `v2.1.0-rc.6` / build 8 | Follow-up Android storage compatibility fix from real import/preview testing |
+| `v2.1.0-rc.7` / build 9 | Stable private preview signing and certificate verification for future updates |
 
 ## Evidence and scope
 
@@ -38,8 +39,11 @@ Each checkpoint is pushed on `codex/athan-reliability` with a matching Git tag.
   entering deep Doze because an alarm was imminent, so deep Doze is not claimed.
 - The emulator is muted: playback state/resource cleanup was verified, not
   audible quality. Valid-file import and in-app preview checks exposed an Android
-  storage dependency incompatibility; the follow-up checkpoint must pass those
-  same real-picker/preview checks before handoff.
+  storage dependency incompatibility, fixed in rc.6. The corrected release passed
+  real-picker import, built-in/imported preview and persistence after deleting
+  both the original and picker-cache copies and restarting. The private copy's
+  SHA-256 matches the original; native alert playback reads that private file and
+  notification Stop releases its service/audio focus.
 - Live endpoint probes on 19 November 2026 returned HTTP 200: Aladhan supplied all
   30 November dates for London in `Europe/London`; the Quran service returned
   Surah 2 with all 286 verses in both requested editions.
@@ -47,8 +51,9 @@ Each checkpoint is pushed on `codex/athan-reliability` with a matching Git tag.
   The navigation regression also passes after the contrast/label-size change.
 - Final CI and emulator outcomes are recorded in
   [PR #1](https://github.com/wlaa41/flutterAthanApp/pull/1) and its linked checks.
-  APK previews retain the repository's debug-signing setup; they are not store
-  releases. No physical-phone power measurement has been performed.
+  Trusted APK previews from rc.7 use a stable private debug key; they are not store
+  releases. Earlier differently signed previews require a clean install. No
+  physical-phone power measurement has been performed.
 
 ## Five review passes
 
