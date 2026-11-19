@@ -15,21 +15,23 @@ void main() {
     int number,
     List<Ayah> ayahs,
     String edition,
-  ) => {
-    'number': number,
-    'edition': {'identifier': edition},
-    'ayahs': ayahs
-        .map(
-          (ayah) => {
-            'number': ayah.number,
-            'numberInSurah': ayah.numberInSurah,
-            'juz': ayah.juz,
-            'page': ayah.page,
-            'text': edition == 'en.sahih' ? ayah.translation : ayah.tajweedText,
-          },
-        )
-        .toList(),
-  };
+  ) =>
+      {
+        'number': number,
+        'edition': {'identifier': edition},
+        'ayahs': ayahs
+            .map(
+              (ayah) => {
+                'number': ayah.number,
+                'numberInSurah': ayah.numberInSurah,
+                'juz': ayah.juz,
+                'page': ayah.page,
+                'text':
+                    edition == 'en.sahih' ? ayah.translation : ayah.tajweedText,
+              },
+            )
+            .toList(),
+      };
 
   test('Offline unavailable Surah never substitutes Al-Fatiha', () async {
     final service = QuranService(
@@ -93,9 +95,10 @@ void main() {
         ),
       );
       final loaded = await service.getSurahAyahs(112);
+      // Preserve the API's Arabic spelling, including alif wasla.
       expect(
         loaded.first.cleanText,
-        QuranService.offlineIkhlas.first.cleanText,
+        'قُلْ هُوَ ٱللَّهُ أَحَدٌ',
       );
       expect(
         (await SharedPreferences.getInstance()).containsKey('surah_detail_112'),

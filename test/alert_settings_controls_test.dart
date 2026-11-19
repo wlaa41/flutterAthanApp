@@ -65,8 +65,12 @@ void main() {
     expect(preferences.quietStartMinute, 540);
     expect(preferences.quietEndMinute, 1020);
     await tester.scrollUntilVisible(find.text('Fri'), 150);
-    await tester.tap(find.text('Fri'));
     await tester.pumpAndSettle();
+    final friday = find.widgetWithText(FilterChip, 'Fri');
+    expect(tester.widget<FilterChip>(friday).onSelected, isNotNull);
+    await tester.tap(friday);
+    await tester.pumpAndSettle();
+    expect(tester.widget<FilterChip>(friday).selected, isFalse);
     expect((await AlertPreferences.load()).quietWeekdays, {1, 2, 3, 4});
     expect(tester.takeException(), isNull);
   });

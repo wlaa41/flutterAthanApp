@@ -30,6 +30,7 @@ object PrayerAlarms {
     }
     @Synchronized fun armNext(c: Context) {
         manager(c).cancel(pending(c))
+        if (!notificationsAllowed(c)) return
         val old = queue(c)
         val future = JSONArray()
         val now = System.currentTimeMillis()
@@ -71,7 +72,7 @@ object PrayerAlarms {
         val audio = c.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         val nm = c.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val playbackChannel = if (Build.VERSION.SDK_INT >= 26) nm.getNotificationChannel("athan_playback_v1") else null
-        if (playbackChannel?.importance == NotificationManager.IMPORTANCE_NONE) return false
+        if (playbackChannel != null && playbackChannel.importance < NotificationManager.IMPORTANCE_DEFAULT) return false
         return audio.ringerMode == AudioManager.RINGER_MODE_NORMAL && (Build.VERSION.SDK_INT < 23 || nm.currentInterruptionFilter == NotificationManager.INTERRUPTION_FILTER_ALL)
     }
     fun notification(c: Context, event: JSONObject, playing: Boolean, fallback: Boolean = false): Notification {

@@ -44,6 +44,7 @@ class NotificationService {
   bool get _supported => _android || _ios;
 
   Future<void> initialize() async {
+    if (!_supported) return;
     try {
       await (_initializing ??= _initialize());
     } catch (_) {
@@ -78,18 +79,21 @@ class NotificationService {
     await refreshSchedule();
   }
 
-  Future<void> refreshSchedule() => _enqueue(() async {
-        await initialize();
-        if (!_supported) return;
-        if (!(await getHealth()).notificationsEnabled) {
-          await cancelAll();
-          return;
-        }
-        final days = await PrayerService.instance.getUpcomingPrayers(
-          days: _android ? 60 : 14,
-        );
-        await _schedule(days);
-      });
+  Future<void> refreshSchedule() {
+    if (!_supported) return Future<void>.value();
+    return _enqueue(() async {
+      await initialize();
+      if (!_supported) return;
+      if (!(await getHealth()).notificationsEnabled) {
+        await cancelAll();
+        return;
+      }
+      final days = await PrayerService.instance.getUpcomingPrayers(
+        days: _android ? 60 : 14,
+      );
+      await _schedule(days);
+    });
+  }
 
   // Retained for older callers; always extend beyond the current month.
   Future<void> schedulePrayers(List<PrayerTimeModel> days) => refreshSchedule();

@@ -32,8 +32,7 @@ List<PlannedAlert> planAlerts({
       final name = day.getPrayerName(index);
       void add(DateTime time, int repeat, bool iqama) {
         if (!time.isAfter(now)) return;
-        final dayCode =
-            DateTime.utc(
+        final dayCode = DateTime.utc(
               day.date.year,
               day.date.month,
               day.date.day,
@@ -57,8 +56,8 @@ List<PlannedAlert> planAlerts({
 
       add(prayer, 0, false);
       if (!preferences.iqamaEnabled) continue;
-      // Never let a delayed Iqama spill into the following prayer.
-      final nextIndex = index == 1 ? 3 : index + 1;
+      // Fajr ends at sunrise; other Iqamas stop before the following prayer.
+      final nextIndex = index == 1 ? 2 : index + 1;
       DateTime? nextPrayer;
       if (index < 6) nextPrayer = day.getPrayerDateTime(nextIndex);
       if (index == 6) {
@@ -67,15 +66,12 @@ List<PlannedAlert> planAlerts({
         if (following.isNotEmpty)
           nextPrayer = following.first.getPrayerDateTime(1);
       }
-      for (
-        var repeat = 0;
-        repeat < preferences.iqamaRepeatCount.clamp(1, 5);
-        repeat++
-      ) {
+      for (var repeat = 0;
+          repeat < preferences.iqamaRepeatCount.clamp(1, 5);
+          repeat++) {
         final time = prayer.add(
           Duration(
-            minutes:
-                preferences.iqamaDelayMinutes +
+            minutes: preferences.iqamaDelayMinutes +
                 repeat * preferences.iqamaRepeatIntervalMinutes,
           ),
         );

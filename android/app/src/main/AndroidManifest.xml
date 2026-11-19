@@ -10,7 +10,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
 
     <application
-        android:label="Athan &amp; Quran London"
+        android:label="Athan &amp; Quran"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="false">
         <service android:name=".AthanPlaybackService" android:exported="false" android:foregroundServiceType="mediaPlayback" />
