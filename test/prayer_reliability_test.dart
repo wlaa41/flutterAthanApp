@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -241,6 +242,81 @@ void main() {
       '02/01/2027',
     ]);
   });
+
+  test(
+    'location change during a rolling fetch retries one consistent snapshot',
+    () async {
+      final requestStarted = Completer<void>();
+      final firstResponse = Completer<http.Response>();
+      final requested = <String>[];
+      final service = PrayerService(
+        client: MockClient((request) async {
+          final zone = request.url.queryParameters['timezonestring']!;
+          final year = int.parse(request.url.pathSegments[2]);
+          final month = int.parse(request.url.pathSegments[3]);
+          requested.add('$zone:$month');
+          if (requested.length == 1) {
+            requestStarted.complete();
+            return firstResponse.future;
+          }
+          return http.Response(
+            jsonEncode(calendar(year, month, zone: zone)),
+            200,
+          );
+        }),
+        clock: () => DateTime.utc(2026, 11, 30, 12),
+      );
+      final request = service.getUpcomingPrayers(days: 3);
+      await requestStarted.future;
+      await service.updateLocation(
+        lat: 25.2048,
+        lng: 55.2708,
+        city: 'Dubai, UAE',
+        method: 16,
+      );
+      firstResponse.complete(
+        http.Response(jsonEncode(calendar(2026, 11)), 200),
+      );
+      final days = await request;
+      expect(requested, ['Europe/London:11', 'Asia/Dubai:11', 'Asia/Dubai:12']);
+      expect(days.length, 4);
+      expect(days.every((day) => day.timeZoneName == 'Asia/Dubai'), isTrue);
+      expect(days.last.formattedDate, '02/12/2026');
+    },
+  );
+
+  test(
+    'repeated city changes fail safely after one retry without a mixed plan',
+    () async {
+      var calls = 0;
+      late PrayerService service;
+      service = PrayerService(
+        client: MockClient((request) async {
+          calls++;
+          final zone = request.url.queryParameters['timezonestring']!;
+          if (zone == 'Europe/London') {
+            await service.updateLocation(
+              lat: 25.2048,
+              lng: 55.2708,
+              city: 'Dubai, UAE',
+              method: 16,
+            );
+          } else {
+            await service.updateLocation(
+              lat: 51.5074,
+              lng: -0.1278,
+              city: 'London, United Kingdom',
+              method: 15,
+            );
+          }
+          return http.Response(jsonEncode(calendar(2026, 11, zone: zone)), 200);
+        }),
+        clock: () => DateTime.utc(2026, 11, 30, 12),
+      );
+      await expectLater(service.getUpcomingPrayers(days: 3), throwsStateError);
+      expect(calls, 2);
+    },
+  );
 
   test(
     'today follows selected city even when UTC calendar day differs',

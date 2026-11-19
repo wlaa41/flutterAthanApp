@@ -249,7 +249,15 @@ class PrayerService {
     if (year < 1900 || year > 2200 || month < 1 || month > 12)
       throw ArgumentError('Invalid month');
     await loadSavedSettings();
-    final config = _configuration;
+    return _monthFor(_configuration, year, month, forceRefresh: forceRefresh);
+  }
+
+  Future<List<PrayerTimeModel>> _monthFor(
+    _PrayerConfiguration config,
+    int year,
+    int month, {
+    bool forceRefresh = false,
+  }) async {
     final key = config.key(year, month);
     final existing = _inflight[key];
     if (existing != null) return existing;
@@ -387,8 +395,9 @@ class PrayerService {
         final rawTime = timings[name];
         if (rawTime is! String)
           throw const FormatException('Missing prayer time');
-        final match = RegExp(r'^(\d{2}:\d{2})(?:\s*\([^)]*\))?$')
-            .firstMatch(rawTime.trim());
+        final match = RegExp(
+          r'^(\d{2}:\d{2})(?:\s*\([^)]*\))?$',
+        ).firstMatch(rawTime.trim());
         if (match == null) throw const FormatException('Invalid prayer time');
         return match.group(1)!;
       }
@@ -445,23 +454,37 @@ class PrayerService {
   Future<List<PrayerTimeModel>> getUpcomingPrayers({int days = 30}) async {
     if (days < 1 || days > 62) throw RangeError.range(days, 1, 62);
     await loadSavedSettings();
-    final current = now;
-    final first = DateTime.utc(current.year, current.month, current.day - 1);
-    final last = DateTime.utc(
-      current.year,
-      current.month,
-      current.day + days - 1,
-    );
-    final months = <List<PrayerTimeModel>>[];
-    var cursor = DateTime.utc(first.year, first.month);
-    while (!cursor.isAfter(last)) {
-      months.add(await getMonthlyPrayers(cursor.year, cursor.month));
-      cursor = DateTime.utc(cursor.year, cursor.month + 1);
+    // Keep every month on one immutable location/method snapshot. A city change
+    // can happen while HTTP is in flight; retry once, never return a mixed plan.
+    for (var attempt = 0; attempt < 2; attempt++) {
+      final config = _configuration;
+      final current = tz.TZDateTime.from(_clock(), prayerLocation(config.zone));
+      final first = DateTime.utc(current.year, current.month, current.day - 1);
+      final last = DateTime.utc(
+        current.year,
+        current.month,
+        current.day + days - 1,
+      );
+      final months = <List<PrayerTimeModel>>[];
+      var cursor = DateTime.utc(first.year, first.month);
+      bool isCurrent() => _configuration.key(0, 0) == config.key(0, 0);
+      while (!cursor.isAfter(last)) {
+        months.add(await _monthFor(config, cursor.year, cursor.month));
+        if (!isCurrent()) break;
+        cursor = DateTime.utc(cursor.year, cursor.month + 1);
+      }
+      if (isCurrent()) {
+        return months
+            .expand((month) => month)
+            .where(
+              (day) => !day.date.isBefore(first) && !day.date.isAfter(last),
+            )
+            .toList();
+      }
     }
-    return months
-        .expand((month) => month)
-        .where((day) => !day.date.isBefore(first) && !day.date.isAfter(last))
-        .toList();
+    throw StateError(
+      'Location changed while loading reminders. Please try again.',
+    );
   }
 
   NextPrayerInfo calculateNextPrayer(PrayerTimeModel today, DateTime instant) {

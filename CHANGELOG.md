@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.1.0-rc.2 (build 4)
+
+- Calendar scheduling now uses one location/method snapshot for every month. A
+  location change during fetching retries once; repeated changes fail safely
+  instead of returning a timetable that mixes cities.
+- Iqama settings explain the sunrise/next-prayer cutoff.
+- Validation: all 17 prayer reliability tests pass, including two asynchronous
+  location-change regressions; all 9 settings tests pass.
+
 ## 2.1.0-rc.1 (build 3)
 
 - Added bundled Athan/Iqama recordings, gentle tones, private audio imports, and

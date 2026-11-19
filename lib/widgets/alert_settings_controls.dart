@@ -204,6 +204,8 @@ class ReminderTimingEditor extends StatelessWidget {
             ? 'One Iqama reminder, $delayMinutes minutes after Athan.'
             : '$repeatCount reminders: first at +$delayMinutes minutes, then every $intervalMinutes minutes.',
       ),
+      const SizedBox(height: 8),
+      const Text('Reminders stop at sunrise or the next prayer.'),
     ],
   );
 }
