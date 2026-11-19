@@ -68,6 +68,10 @@ north-up; it does not use a live compass sensor.
 Flutter 3.50.0 is pinned in CI. Use Java 17, Android SDK 36, and the Gradle versions
 committed here. iOS builds require macOS/Xcode and CocoaPods.
 
+The Android path-provider implementation is pinned to 2.2.23 because 2.3.1's
+generated JNI bindings are incompatible with the resolved JNI class lookup.
+Revisit that pin only with device checks for private file imports and audio previews.
+
 ```sh
 flutter pub get
 flutter analyze --no-fatal-infos

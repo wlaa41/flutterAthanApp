@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.1.0-rc.6 (build 8)
+
+- Pinned the Android storage implementation to compatible `path_provider_android`
+  2.2.23 after release-device tests exposed a JNI binding mismatch affecting both
+  custom audio imports and in-app previews. Other JNI dependencies are unchanged.
+- Added staged import and preview diagnostics for future device-specific failures.
+- Validation: 20 focused audio/hero/settings tests pass and changed Dart analysis
+  is clean. rc.5 also passed all 69 tests, both platform builds and iPhone startup.
+  The corrected release APK must pass real-picker import/preview checks before
+  handoff; results are recorded in the pull request.
+
 ## 2.1.0-rc.5 (build 7)
 
 - Improved navigation label contrast and size after inspecting the Android release

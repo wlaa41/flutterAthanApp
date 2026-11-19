@@ -56,8 +56,9 @@ class AudioService {
           }
         }),
       );
-    } catch (_) {
+    } catch (error, stackTrace) {
       if (request != _request) return;
+      debugPrint('Audio preview failed: $error\n$stackTrace');
       _clearPlaying();
       lastError.value = 'Audio could not load. Try another sound.';
       rethrow;

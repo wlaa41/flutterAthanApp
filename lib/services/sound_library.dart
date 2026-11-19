@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
@@ -196,6 +197,7 @@ class SoundLibrary {
     _importing = true;
     File? copied;
     File? iosCopy;
+    var stage = 'file selection';
     try {
       final picked = await FilePicker.pickFile(
         type: FileType.custom,
@@ -206,6 +208,7 @@ class SoundLibrary {
       if (!['mp3', 'm4a', 'wav'].contains(extension)) {
         throw const FormatException('Choose an MP3, M4A or WAV file.');
       }
+      stage = 'private storage';
       final directory = Directory(
         '${(await getApplicationSupportDirectory()).path}/alert_sounds',
       );
@@ -214,9 +217,11 @@ class SoundLibrary {
       copied = File('${directory.path}/$id.$extension');
       // Streams also work with cloud-backed/content URI files that have no
       // filesystem path or known length. Enforce the cap on actual bytes read.
+      stage = 'file copy';
       await copyBoundedAudio(picked.readAsByteStream(), copied);
 
       // Validate with the platform decoder, not just the filename extension.
+      stage = 'audio validation';
       final validator = AudioPlayer();
       Duration? duration;
       try {
@@ -234,6 +239,7 @@ class SoundLibrary {
         );
       }
 
+      stage = 'sound registration';
       String? iosSound;
       if (Platform.isIOS &&
           extension == 'wav' &&
@@ -264,7 +270,8 @@ class SoundLibrary {
         );
       }
       return sound;
-    } catch (_) {
+    } catch (error, stackTrace) {
+      debugPrint('Audio import failed during $stage: $error\n$stackTrace');
       if (copied != null && await copied.exists()) await copied.delete();
       if (iosCopy != null && await iosCopy.exists()) await iosCopy.delete();
       rethrow;

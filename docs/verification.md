@@ -11,6 +11,7 @@ Each checkpoint is pushed on `codex/athan-reliability` with a matching Git tag.
 | `v2.1.0-rc.3` / build 5 | Android plugin compatibility; both platform builds pass |
 | `v2.1.0-rc.4` / build 6 | Automated iPhone startup check and Android dependency caching |
 | `v2.1.0-rc.5` / build 7 | Actual-screen navigation contrast, simulator startup allowance, verification record |
+| `v2.1.0-rc.6` / build 8 | Follow-up Android storage compatibility fix from real import/preview testing |
 
 ## Evidence and scope
 
@@ -18,12 +19,27 @@ Each checkpoint is pushed on `codex/athan-reliability` with a matching Git tag.
   and an unsigned iOS simulator build. The iPhone startup script installs/launches
   the built app, checks its process for 15 seconds, and saves a screenshot. A fresh
   simulator has up to ten minutes to boot and complete that check.
+- The rc.5 iPhone startup check passed. Its captured screen was inspected and
+  shows the working prayer timetable, permission setup and readable navigation.
 - The Android release APK from rc.3 was checksum-verified, installed and launched
   on an Android 14 x64 emulator. It correctly displayed the offline-calculation
   fallback and reminder setup while notification/exact-alarm access was denied.
   No app crash was observed during launch. System UI/Google-service ANRs on this
   test emulator delayed further interaction; they are not counted as app failures
   or as passed delivery checks.
+- Further Android release checks passed: real notification denial/allow recovery;
+  299 queued reminders with one OS alarm; exact-alarm access changing the alarm
+  from inexact to exact; no playback service while idle; full native playback and
+  notification Stop releasing the service and audio focus.
+- The persisted work-hours schedule replaces daytime prayer/Iqama sounds with
+  beep while retaining Athan outside the window. Selecting five Iqama reminders
+  produced five correctly spaced events. A scheduled Isha alert fired with the
+  app backgrounded and the screen off. The emulator stayed INACTIVE rather than
+  entering deep Doze because an alarm was imminent, so deep Doze is not claimed.
+- The emulator is muted: playback state/resource cleanup was verified, not
+  audible quality. Valid-file import and in-app preview checks exposed an Android
+  storage dependency incompatibility; the follow-up checkpoint must pass those
+  same real-picker/preview checks before handoff.
 - Live endpoint probes on 19 November 2026 returned HTTP 200: Aladhan supplied all
   30 November dates for London in `Europe/London`; the Quran service returned
   Surah 2 with all 286 verses in both requested editions.
