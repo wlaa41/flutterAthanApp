@@ -150,7 +150,7 @@ class ReminderTimingEditor extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: DropdownButtonFormField<int>(
-        value: value,
+        initialValue: value,
         isExpanded: true,
         itemHeight: null,
         decoration: InputDecoration(

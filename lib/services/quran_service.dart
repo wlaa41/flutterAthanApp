@@ -1091,18 +1091,18 @@ class QuranService {
   Future<List<Ayah>> _loadSurah(int surahNumber) async {
     final cacheKey = 'surah_detail_$surahNumber';
     final prefs = await SharedPreferences.getInstance();
-    final cachedJson = prefs.getString(cacheKey);
-    if (cachedJson != null) {
-      try {
+    try {
+      final cachedJson = prefs.getString(cacheKey);
+      if (cachedJson != null) {
         final decoded = jsonDecode(cachedJson) as List<dynamic>;
         final cached = decoded
             .map((item) => Ayah.fromJson(item as Map<String, dynamic>))
             .toList();
         _validateSurah(surahNumber, cached);
         return cached;
-      } catch (_) {
-        await prefs.remove(cacheKey);
       }
+    } catch (_) {
+      await prefs.remove(cacheKey);
     }
 
     try {

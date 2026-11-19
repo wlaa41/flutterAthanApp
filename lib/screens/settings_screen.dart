@@ -848,6 +848,13 @@ class _SettingsScreenState extends State<SettingsScreen>
                     : 'Set up precise alarms',
               ),
             ),
+            if (needsNotifications)
+              TextButton(
+                onPressed: _busy
+                    ? null
+                    : () => _run(NotificationService.instance.openAppSettings),
+                child: const Text('Open phone settings'),
+              ),
           ],
         ),
       ),

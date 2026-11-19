@@ -19,8 +19,7 @@ void main() {
     testWidgets('capture settings at text scale $scale', (tester) async {
       // Widget tests default to the square Ahem test font. Load a real local font
       // for human review; REVIEW_FONT can point to any installed TTF on other OSes.
-      final fontPath =
-          Platform.environment['REVIEW_FONT'] ??
+      final fontPath = Platform.environment['REVIEW_FONT'] ??
           (Platform.isWindows
               ? 'C:/Windows/Fonts/segoeui.ttf'
               : '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf');
@@ -30,6 +29,8 @@ void main() {
           ..addFont(Future.value(ByteData.sublistView(bytes)));
         await loader.load();
       });
+      // This file is executed by flutter test to capture review screenshots.
+      // ignore: invalid_use_of_visible_for_testing_member
       SharedPreferences.setMockInitialValues({
         'alert_preferences': jsonEncode(
           const AlertPreferences(

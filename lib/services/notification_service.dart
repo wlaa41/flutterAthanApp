@@ -79,13 +79,17 @@ class NotificationService {
   }
 
   Future<void> refreshSchedule() => _enqueue(() async {
-    await initialize();
-    if (!_supported) return;
-    final days = await PrayerService.instance.getUpcomingPrayers(
-      days: _android ? 60 : 14,
-    );
-    await _schedule(days);
-  });
+        await initialize();
+        if (!_supported) return;
+        if (!(await getHealth()).notificationsEnabled) {
+          await cancelAll();
+          return;
+        }
+        final days = await PrayerService.instance.getUpcomingPrayers(
+          days: _android ? 60 : 14,
+        );
+        await _schedule(days);
+      });
 
   // Retained for older callers; always extend beyond the current month.
   Future<void> schedulePrayers(List<PrayerTimeModel> days) => refreshSchedule();
@@ -119,9 +123,9 @@ class NotificationService {
     );
     final sounds = await SoundLibrary.instance.loadSounds();
     SoundOption sound(String id) => sounds.firstWhere(
-      (s) => s.id == id,
-      orElse: () => SoundCatalog.byId('beep'),
-    );
+          (s) => s.id == id,
+          orElse: () => SoundCatalog.byId('beep'),
+        );
     final events = plan.map((a) {
       final s = sound(a.soundId);
       return {
@@ -193,10 +197,8 @@ class NotificationService {
         scheduledCount: 0,
       );
     if (_android) {
-      final plugin = _plugin
-          .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin
-          >();
+      final plugin = _plugin.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
       final native =
           await _native.invokeMapMethod<String, dynamic>('health') ?? {};
       return NotificationHealth(
@@ -212,8 +214,7 @@ class NotificationService {
     }
     final permissions = await _plugin
         .resolvePlatformSpecificImplementation<
-          IOSFlutterLocalNotificationsPlugin
-        >()
+            IOSFlutterLocalNotificationsPlugin>()
         ?.checkPermissions();
     final prefs = await SharedPreferences.getInstance();
     final until = prefs.getInt('scheduled_until');
@@ -223,9 +224,8 @@ class NotificationService {
       batteryOptimized: false,
       supported: true,
       scheduledCount: (await _plugin.pendingNotificationRequests()).length,
-      scheduledUntil: until == null
-          ? null
-          : DateTime.fromMillisecondsSinceEpoch(until),
+      scheduledUntil:
+          until == null ? null : DateTime.fromMillisecondsSinceEpoch(until),
     );
   }
 
@@ -234,14 +234,12 @@ class NotificationService {
     if (_android)
       await _plugin
           .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin
-          >()
+              AndroidFlutterLocalNotificationsPlugin>()
           ?.requestNotificationsPermission();
     if (_ios)
       await _plugin
           .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin
-          >()
+              IOSFlutterLocalNotificationsPlugin>()
           ?.requestPermissions(alert: true, badge: false, sound: true);
     await refreshSchedule();
   }
@@ -251,8 +249,7 @@ class NotificationService {
     if (_android)
       await _plugin
           .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin
-          >()
+              AndroidFlutterLocalNotificationsPlugin>()
           ?.requestExactAlarmsPermission();
     await refreshSchedule();
   }

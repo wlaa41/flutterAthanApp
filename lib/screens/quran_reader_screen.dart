@@ -247,7 +247,7 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
                         16,
                         _currentPlayingAyah != null ? 70 : 16,
                         16,
-                        120,
+                        _isStylusMode ? 240 : 160,
                       ),
                       child: Column(
                         children: [
@@ -295,7 +295,7 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
                     bottom: 16,
                     left: 16,
                     right: 16,
-                    child: _buildStylusToolbar(),
+                    child: SafeArea(top: false, child: _buildStylusToolbar()),
                   ),
                 ],
               ),
@@ -376,8 +376,10 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
           ),
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        spacing: 12,
+        runSpacing: 8,
         children: [
           Text(
             '${widget.surah.revelationType} • ${widget.surah.numberOfAyahs} Verses',
@@ -431,9 +433,12 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Row 1: Mode switcher & tools
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // Wrap tools instead of squeezing touch targets on narrow phones.
+          Wrap(
+            alignment: WrapAlignment.start,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 4,
+            runSpacing: 4,
             children: [
               // Toggle Read vs Draw Mode
               GestureDetector(
@@ -453,6 +458,7 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
                   );
                 },
                 child: Container(
+                  constraints: const BoxConstraints(minHeight: 48),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,
                     vertical: 6,
@@ -583,8 +589,11 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
           // Row 2 (When in Stylus mode): Quick Color Palette
           if (_isStylusMode && _activeTool != DrawingTool.eraser) ...[
             const SizedBox(height: 6),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 4,
+              runSpacing: 4,
               children: [
                 const Text(
                   'Ink: ',
@@ -615,28 +624,49 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
         ? _penColor.value == color.value
         : _highlighterColor.value == color.value;
 
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          if (_activeTool == DrawingTool.pen) {
-            _penColor = color;
-            _canvasKey.currentState?.selectedColor = color;
-          } else {
-            _highlighterColor = color;
-            _canvasKey.currentState?.selectedColor = color;
-          }
-        });
-      },
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 5),
-        width: 22,
-        height: 22,
-        decoration: BoxDecoration(
-          color: color,
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: isSelected ? Colors.white : Colors.white24,
-            width: isSelected ? 2.5 : 1.0,
+    final colorName =
+        {
+          0xFFD97706: 'Gold',
+          0xFFEF4444: 'Coral',
+          0xFF3B82F6: 'Blue',
+          0xFF10B981: 'Green',
+          0xFFFFFFFF: 'White',
+          0xFFFEF08A: 'Yellow',
+          0xFFA7F3D0: 'Mint',
+          0xFFBAE6FD: 'Cyan',
+          0xFFFBCFE8: 'Pink',
+        }[color.toARGB32()] ??
+        'Ink';
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: '$colorName ink',
+      child: TextButton(
+        style: TextButton.styleFrom(
+          minimumSize: const Size(48, 48),
+          padding: const EdgeInsets.all(12),
+        ),
+        onPressed: () {
+          setState(() {
+            if (_activeTool == DrawingTool.pen) {
+              _penColor = color;
+              _canvasKey.currentState?.selectedColor = color;
+            } else {
+              _highlighterColor = color;
+              _canvasKey.currentState?.selectedColor = color;
+            }
+          });
+        },
+        child: Container(
+          width: 22,
+          height: 22,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: isSelected ? Colors.white : Colors.white24,
+              width: isSelected ? 2.5 : 1.0,
+            ),
           ),
         ),
       ),
