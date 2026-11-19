@@ -32,7 +32,8 @@ List<PlannedAlert> planAlerts({
       final name = day.getPrayerName(index);
       void add(DateTime time, int repeat, bool iqama) {
         if (!time.isAfter(now)) return;
-        final dayCode = DateTime.utc(
+        final dayCode =
+            DateTime.utc(
               day.date.year,
               day.date.month,
               day.date.day,
@@ -65,13 +66,19 @@ List<PlannedAlert> planAlerts({
           ..sort((a, b) => a.date.compareTo(b.date));
         if (following.isNotEmpty)
           nextPrayer = following.first.getPrayerDateTime(1);
+        // The final day's Fajr cutoff is unknown. A later refresh supplies the
+        // lookahead day; until then omit its Iqama instead of crossing Fajr.
+        if (nextPrayer == null) continue;
       }
-      for (var repeat = 0;
-          repeat < preferences.iqamaRepeatCount.clamp(1, 5);
-          repeat++) {
+      for (
+        var repeat = 0;
+        repeat < preferences.iqamaRepeatCount.clamp(1, 5);
+        repeat++
+      ) {
         final time = prayer.add(
           Duration(
-            minutes: preferences.iqamaDelayMinutes +
+            minutes:
+                preferences.iqamaDelayMinutes +
                 repeat * preferences.iqamaRepeatIntervalMinutes,
           ),
         );

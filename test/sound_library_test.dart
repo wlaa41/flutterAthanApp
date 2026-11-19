@@ -56,4 +56,65 @@ void main() {
     expect(SoundLibrary.isPcmWave(compressed), isFalse);
     expect(SoundLibrary.isPcmWave(bytes.sublist(0, 25)), isFalse);
   });
+
+  group('Bounded picker stream copy', () {
+    late Directory directory;
+    late File target;
+    setUp(() async {
+      directory = await Directory.systemTemp.createTemp('athan-import-test-');
+      target = File('${directory.path}/audio.wav');
+    });
+    tearDown(() async {
+      if (await target.exists()) await target.delete();
+      await directory.delete();
+    });
+
+    test('Accepts an unknown-length stream exactly at the cap', () async {
+      await SoundLibrary.copyBoundedAudio(
+        Stream.fromIterable([
+          [1, 2],
+          [3, 4],
+        ]),
+        target,
+        byteLimit: 4,
+      );
+      expect(await target.readAsBytes(), [1, 2, 3, 4]);
+    });
+
+    test('Rejects excess bytes and removes the partial file', () async {
+      await expectLater(
+        SoundLibrary.copyBoundedAudio(
+          Stream.fromIterable([
+            [1, 2],
+            [3, 4],
+          ]),
+          target,
+          byteLimit: 3,
+        ),
+        throwsFormatException,
+      );
+      expect(await target.exists(), isFalse);
+    });
+
+    test('Rejects an empty stream without keeping a file', () async {
+      await expectLater(
+        SoundLibrary.copyBoundedAudio(const Stream<List<int>>.empty(), target),
+        throwsFormatException,
+      );
+      expect(await target.exists(), isFalse);
+    });
+
+    test('Removes partial data when a remote file read fails', () async {
+      Stream<List<int>> brokenSource() async* {
+        yield [1, 2];
+        throw StateError('Remote file became unavailable');
+      }
+
+      await expectLater(
+        SoundLibrary.copyBoundedAudio(brokenSource(), target),
+        throwsStateError,
+      );
+      expect(await target.exists(), isFalse);
+    });
+  });
 }

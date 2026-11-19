@@ -28,6 +28,9 @@ void main() {
         final loader = FontLoader('ReviewFont')
           ..addFont(Future.value(ByteData.sublistView(bytes)));
         await loader.load();
+        final icons = FontLoader('MaterialIcons')
+          ..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'));
+        await icons.load();
       });
       // This file is executed by flutter test to capture review screenshots.
       // ignore: invalid_use_of_visible_for_testing_member
@@ -51,6 +54,7 @@ void main() {
         RepaintBoundary(
           key: boundaryKey,
           child: MaterialApp(
+            debugShowCheckedModeBanner: false,
             theme: ThemeData(
               useMaterial3: true,
               fontFamily: 'ReviewFont',
@@ -101,7 +105,7 @@ void main() {
         await tester.scrollUntilVisible(find.text('Quiet at work'), 250);
         await Scrollable.ensureVisible(
           tester.element(find.text('Quiet at work')),
-          alignment: 0,
+          alignment: .05,
         );
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);

@@ -1,7 +1,7 @@
 # Athan & Quran
 
 Flutter prayer reminders with local sound playback, an offline prayer-time fallback,
-Quran reader, and editable work hours. Android 7+ (API 24); iOS15+.
+Quran reader, and editable work hours. Android 7+ (API 24); iOS 15+.
 
 ## Reminders that fit your day
 
@@ -10,7 +10,7 @@ Quran reader, and editable work hours. Android 7+ (API 24); iOS15+.
 - Import an MP3, M4A, or WAV from the system file picker (up to 20 MB / 10 minutes).
   The app keeps a private copy; no broad storage permission is needed.
 - Enable Iqama, set the delay after prayer (1–120 minutes), total reminders (1–5),
-  and spacing (1–30 minutes). Repeats stop before the next prayer.
+  and spacing (1–30 minutes). Repeats stop before sunrise for Fajr or the next prayer.
 - Work hours start with Monday–Friday, 09:00–17:00, and are opt-in. Edit weekdays,
   start/end, and the replacement tone. Overnight shifts belong to the starting day.
   Equal start/end means the entire selected day. Work hours apply to Athan and Iqama
@@ -28,7 +28,8 @@ service. Screen countdowns stop when the app is not active.
 
 Allow **Notifications**, then **Precise alarms** in Settings. Without precise alarm
 access, reminders use an inexact system alarm and a short tone; delivery may be
-late. Built-in quiet tones still apply. Ringer silence, Do Not Disturb, audio focus,
+late. Alerts delayed more than 10 minutes become silent reminders. Built-in quiet
+tones still apply. Ringer silence, Do Not Disturb, audio focus,
 and a disabled playback notification channel are respected. Reopen after an
 Android Force stop or permission revocation. Some manufacturers restrict apps
 further; the Battery settings shortcut provides a manual remedy for late alerts.
@@ -58,6 +59,9 @@ shows actual method names. Compare the chosen method with your local mosque.
 Quran fetches validate the requested chapter and translations; an unavailable
 chapter is never replaced by a different Surah. Only Al-Fatiha and Al-Ikhlas have
 bundled offline text; other chapters need a successful initial download.
+
+The Qibla guide calculates the bearing from the selected city. Its diagram is
+north-up; it does not use a live compass sensor.
 
 ## Development
 

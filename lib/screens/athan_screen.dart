@@ -18,6 +18,8 @@ class AthanScreen extends StatefulWidget {
 class _AthanScreenState extends State<AthanScreen> with WidgetsBindingObserver {
   NotificationHealth? _health;
   bool _refreshing = false;
+  bool _reloadRequested = false;
+  bool _forceReloadRequested = false;
   PrayerTimeModel? _todayPrayer;
   List<PrayerTimeModel> _monthlyPrayers = [];
   bool _isLoading = true;
@@ -42,7 +44,15 @@ class _AthanScreenState extends State<AthanScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _loadPrayerTimes({bool forceRefresh = false}) async {
-    if (_refreshing) return;
+    if (!mounted) return;
+    if (_refreshing) {
+      // A city change or resume can arrive while future alarms are being saved.
+      // Coalesce those requests and hide the obsolete city's timetable.
+      _reloadRequested = true;
+      _forceReloadRequested = _forceReloadRequested || forceRefresh;
+      setState(() => _isLoading = true);
+      return;
+    }
     _refreshing = true;
     setState(() {
       _isLoading = true;
@@ -62,7 +72,7 @@ class _AthanScreenState extends State<AthanScreen> with WidgetsBindingObserver {
         setState(() {
           _monthlyPrayers = monthly;
           _todayPrayer = today;
-          _isLoading = false;
+          _isLoading = _reloadRequested;
         });
       }
       try {
@@ -88,6 +98,12 @@ class _AthanScreenState extends State<AthanScreen> with WidgetsBindingObserver {
       }
     } finally {
       _refreshing = false;
+      if (_reloadRequested && mounted) {
+        final forceNext = _forceReloadRequested;
+        _reloadRequested = false;
+        _forceReloadRequested = false;
+        await _loadPrayerTimes(forceRefresh: forceNext);
+      }
     }
   }
 

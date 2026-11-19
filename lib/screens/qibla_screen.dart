@@ -1,5 +1,7 @@
 import 'dart:math' as math;
+import 'package:adhan_dart/adhan_dart.dart';
 import 'package:flutter/material.dart';
+import '../services/prayer_service.dart';
 
 class QiblaScreen extends StatefulWidget {
   const QiblaScreen({Key? key}) : super(key: key);
@@ -9,8 +11,8 @@ class QiblaScreen extends StatefulWidget {
 }
 
 class _QiblaScreenState extends State<QiblaScreen> {
-  // Qibla direction from London is approximately 119° ESE
-  final double _qiblaAngle = 118.98;
+  double get _qiblaAngle => Qibla.qibla(Coordinates(
+      PrayerService.instance.latitude, PrayerService.instance.longitude));
 
   final List<Map<String, dynamic>> _duas = [
     {
@@ -57,7 +59,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Qibla Compass Card
+          // North-up bearing guide for the selected prayer location.
           Container(
             padding: const EdgeInsets.all(22),
             decoration: BoxDecoration(
@@ -77,11 +79,14 @@ class _QiblaScreenState extends State<QiblaScreen> {
             ),
             child: Column(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 12,
+                  runSpacing: 8,
                   children: [
                     const Text(
-                      'Qibla Direction',
+                      'Qibla bearing',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 18,
@@ -96,7 +101,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        '${_qiblaAngle.toStringAsFixed(1)}° ESE',
+                        '${_qiblaAngle.toStringAsFixed(1)}° from north',
                         style: const TextStyle(
                           color: Colors.black87,
                           fontWeight: FontWeight.bold,
@@ -220,10 +225,11 @@ class _QiblaScreenState extends State<QiblaScreen> {
                 ),
 
                 const SizedBox(height: 14),
-                const Text(
-                  'Calculated for London, United Kingdom towards the Kaaba, Mecca',
+                Text(
+                  'From ${PrayerService.instance.cityName} towards the Kaaba.\n'
+                  'North stays at the top. Use a compass to find true north.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white60, fontSize: 11),
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
                 ),
               ],
             ),

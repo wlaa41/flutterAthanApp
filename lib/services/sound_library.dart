@@ -197,24 +197,11 @@ class SoundLibrary {
     File? copied;
     File? iosCopy;
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final picked = await FilePicker.pickFile(
         type: FileType.custom,
         allowedExtensions: ['mp3', 'm4a', 'wav'],
-        allowMultiple: false,
-        withData: false,
       );
-      if (result == null) return null;
-      final picked = result.files.single;
-      if (picked.path == null) {
-        throw const FormatException(
-          'Save this audio to your phone, then try again.',
-        );
-      }
-      final source = File(picked.path!);
-      final size = await source.length();
-      if (size == 0 || size > maxBytes) {
-        throw const FormatException('Choose an audio file smaller than 20 MB.');
-      }
+      if (picked == null) return null;
       final extension = picked.name.split('.').last.toLowerCase();
       if (!['mp3', 'm4a', 'wav'].contains(extension)) {
         throw const FormatException('Choose an MP3, M4A or WAV file.');
@@ -224,7 +211,10 @@ class SoundLibrary {
       );
       await directory.create(recursive: true);
       final id = 'custom_${DateTime.now().microsecondsSinceEpoch}';
-      copied = await source.copy('${directory.path}/$id.$extension');
+      copied = File('${directory.path}/$id.$extension');
+      // Streams also work with cloud-backed/content URI files that have no
+      // filesystem path or known length. Enforce the cap on actual bytes read.
+      await copyBoundedAudio(picked.readAsByteStream(), copied);
 
       // Validate with the platform decoder, not just the filename extension.
       final validator = AudioPlayer();
@@ -280,6 +270,39 @@ class SoundLibrary {
       rethrow;
     } finally {
       _importing = false;
+    }
+  }
+
+  /// Copies a picker stream with a hard byte cap and backpressure. Partial files
+  /// are removed on empty data, oversized input, I/O failure or stalled reads.
+  static Future<void> copyBoundedAudio(
+    Stream<List<int>> source,
+    File target, {
+    int byteLimit = maxBytes,
+  }) async {
+    var bytes = 0;
+    try {
+      final output = await target.open(mode: FileMode.write);
+      try {
+        await for (final chunk in source.timeout(const Duration(seconds: 30))) {
+          bytes += chunk.length;
+          if (bytes > byteLimit) {
+            throw const FormatException('Choose an audio file up to 20 MB.');
+          }
+          await output.writeFrom(chunk);
+        }
+        await output.flush();
+      } finally {
+        await output.close();
+      }
+      if (bytes == 0) {
+        throw const FormatException(
+          'This audio file is empty. Choose another file.',
+        );
+      }
+    } catch (_) {
+      if (await target.exists()) await target.delete();
+      rethrow;
     }
   }
 

@@ -43,6 +43,18 @@ class NotificationService {
   bool get _ios => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
   bool get _supported => _android || _ios;
 
+  /// iOS content.sound controls background audio independently of the
+  /// foreground presentSound flag. Quiet alerts must leave both disabled.
+  static DarwinNotificationDetails iosDetailsFor(SoundOption sound) {
+    final audible = !sound.isSilent && !sound.isVibrationOnly;
+    return DarwinNotificationDetails(
+      presentAlert: true,
+      presentSound: audible,
+      sound: audible ? sound.iosSound ?? 'beep.wav' : null,
+      threadIdentifier: 'prayer',
+    );
+  }
+
   Future<void> initialize() async {
     if (!_supported) return;
     try {
@@ -127,9 +139,9 @@ class NotificationService {
     );
     final sounds = await SoundLibrary.instance.loadSounds();
     SoundOption sound(String id) => sounds.firstWhere(
-          (s) => s.id == id,
-          orElse: () => SoundCatalog.byId('beep'),
-        );
+      (s) => s.id == id,
+      orElse: () => SoundCatalog.byId('beep'),
+    );
     final events = plan.map((a) {
       final s = sound(a.soundId);
       return {
@@ -165,14 +177,7 @@ class NotificationService {
           a.title,
           a.body,
           tz.TZDateTime.from(a.time, tz.UTC),
-          NotificationDetails(
-            iOS: DarwinNotificationDetails(
-              presentAlert: true,
-              presentSound: s.id != 'silent' && s.id != 'vibrate',
-              sound: s.iosSound ?? 'beep.wav',
-              threadIdentifier: 'prayer',
-            ),
-          ),
+          NotificationDetails(iOS: iosDetailsFor(s)),
           uiLocalNotificationDateInterpretation:
               UILocalNotificationDateInterpretation.absoluteTime,
           androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
@@ -201,8 +206,10 @@ class NotificationService {
         scheduledCount: 0,
       );
     if (_android) {
-      final plugin = _plugin.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>();
+      final plugin = _plugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
       final native =
           await _native.invokeMapMethod<String, dynamic>('health') ?? {};
       return NotificationHealth(
@@ -218,7 +225,8 @@ class NotificationService {
     }
     final permissions = await _plugin
         .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>()
+          IOSFlutterLocalNotificationsPlugin
+        >()
         ?.checkPermissions();
     final prefs = await SharedPreferences.getInstance();
     final until = prefs.getInt('scheduled_until');
@@ -228,8 +236,9 @@ class NotificationService {
       batteryOptimized: false,
       supported: true,
       scheduledCount: (await _plugin.pendingNotificationRequests()).length,
-      scheduledUntil:
-          until == null ? null : DateTime.fromMillisecondsSinceEpoch(until),
+      scheduledUntil: until == null
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch(until),
     );
   }
 
@@ -238,12 +247,14 @@ class NotificationService {
     if (_android)
       await _plugin
           .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
+            AndroidFlutterLocalNotificationsPlugin
+          >()
           ?.requestNotificationsPermission();
     if (_ios)
       await _plugin
           .resolvePlatformSpecificImplementation<
-              IOSFlutterLocalNotificationsPlugin>()
+            IOSFlutterLocalNotificationsPlugin
+          >()
           ?.requestPermissions(alert: true, badge: false, sound: true);
     await refreshSchedule();
   }
@@ -253,7 +264,8 @@ class NotificationService {
     if (_android)
       await _plugin
           .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
+            AndroidFlutterLocalNotificationsPlugin
+          >()
           ?.requestExactAlarmsPermission();
     await refreshSchedule();
   }
@@ -299,12 +311,7 @@ class NotificationService {
         999,
         'Test prayer alert',
         'Uses your current sound settings.',
-        NotificationDetails(
-          iOS: DarwinNotificationDetails(
-            sound: sound.iosSound ?? 'beep.wav',
-            presentSound: sound.id != 'silent' && sound.id != 'vibrate',
-          ),
-        ),
+        NotificationDetails(iOS: iosDetailsFor(sound)),
       );
     }
   }

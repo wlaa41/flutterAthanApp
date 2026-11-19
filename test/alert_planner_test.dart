@@ -4,15 +4,15 @@ import 'package:flutter_pro/models/prayer_time_model.dart';
 import 'package:flutter_pro/services/alert_planner.dart';
 
 PrayerTimeModel day(int date) => PrayerTimeModel(
-      date: DateTime(2026, 11, date),
-      fajr: '06:00',
-      sunrise: '07:30',
-      dhuhr: '12:00',
-      asr: '14:00',
-      maghrib: '16:10',
-      isha: '18:00',
-      timeZoneName: 'Europe/London',
-    );
+  date: DateTime(2026, 11, date),
+  fajr: '06:00',
+  sunrise: '07:30',
+  dhuhr: '12:00',
+  asr: '14:00',
+  maghrib: '16:10',
+  isha: '18:00',
+  timeZoneName: 'Europe/London',
+);
 
 void main() {
   test('work schedule respects weekday and exact boundaries', () {
@@ -106,13 +106,45 @@ void main() {
   );
   test('Fajr Iqama does not spill past sunrise', () {
     final plan = planAlerts(
-        days: [day(19)],
-        preferences:
-            const AlertPreferences(iqamaEnabled: true, iqamaDelayMinutes: 120),
-        enabledPrayers: {1},
-        now: DateTime.utc(2026, 11, 19));
+      days: [day(19)],
+      preferences: const AlertPreferences(
+        iqamaEnabled: true,
+        iqamaDelayMinutes: 120,
+      ),
+      enabledPrayers: {1},
+      now: DateTime.utc(2026, 11, 19),
+    );
     expect(plan.length, 1);
     expect(plan.single.iqama, false);
+  });
+  test('Final-day Isha waits for a known next Fajr cutoff', () {
+    const preferences = AlertPreferences(
+      iqamaEnabled: true,
+      iqamaRepeatCount: 3,
+    );
+    final withoutLookahead = planAlerts(
+      days: [day(19)],
+      preferences: preferences,
+      enabledPrayers: {6},
+      now: DateTime.utc(2026, 11, 19),
+    );
+    expect(withoutLookahead.length, 1);
+    expect(withoutLookahead.single.title, 'Time for Isha');
+
+    final withLookahead = planAlerts(
+      days: [day(19), day(20)],
+      preferences: preferences,
+      enabledPrayers: {6},
+      now: DateTime.utc(2026, 11, 19),
+    );
+    final iqamas = withLookahead.where((alert) => alert.iqama);
+    expect(iqamas.length, 3);
+    expect(
+      iqamas.every(
+        (alert) => alert.time.isBefore(day(20).getPrayerDateTime(1)),
+      ),
+      isTrue,
+    );
   });
   test('persisted preferences round trip and invalid numbers are bounded', () {
     final prefs = AlertPreferences.fromJson({

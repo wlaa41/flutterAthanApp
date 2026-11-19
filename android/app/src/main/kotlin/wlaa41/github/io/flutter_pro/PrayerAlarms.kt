@@ -127,8 +127,12 @@ class PrayerAlarmReceiver : BroadcastReceiver() {
         if (intent.action != "PRAYER_ALERT") { PrayerAlarms.armNext(context); return }
         val event = try { JSONObject(intent.getStringExtra("event") ?: return) } catch (_: Exception) { return }
         if (!PrayerAlarms.consume(context, event)) return
-        // Never play a missed recitation hours later after a powered-off phone returns.
-        if (System.currentTimeMillis() - event.optLong("time") > 10 * 60 * 1000) return
+        // A delayed inexact alarm should leave a useful reminder, never a late recitation.
+        if (System.currentTimeMillis() - event.optLong("time") > 10 * 60 * 1000) {
+            event.put("soundId", "silent").put("body", "This reminder arrived late. Open Athan to check reminder settings.")
+            PrayerAlarms.deliver(context, event, false)
+            return
+        }
         PrayerAlarms.deliver(context, event, PrayerAlarms.exact(context))
     }
 }
@@ -154,7 +158,11 @@ class AthanPlaybackService : Service(), AudioManager.OnAudioFocusChangeListener 
         } else audio.requestAudioFocus(this, AudioManager.STREAM_NOTIFICATION, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
         if (granted != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) { finishWithReminder(event); return START_NOT_STICKY }
         try {
-            player = MediaPlayer().apply {
+            // Store ownership before any configuration can throw so onDestroy
+            // also releases a player whose source or preparation failed.
+            val nextPlayer = MediaPlayer()
+            player = nextPlayer
+            nextPlayer.apply {
                 setAudioAttributes(attributes)
                 setWakeMode(applicationContext, PowerManager.PARTIAL_WAKE_LOCK)
                 val path = event.optString("filePath")
