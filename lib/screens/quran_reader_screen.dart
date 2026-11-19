@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
+
 import '../models/drawing_stroke.dart';
 import '../models/quran_models.dart';
 import '../services/annotation_storage_service.dart';
@@ -11,21 +15,21 @@ import '../widgets/verse_action_sheet.dart';
 class QuranReaderScreen extends StatefulWidget {
   final Surah surah;
 
-  const QuranReaderScreen({
-    Key? key,
-    required this.surah,
-  }) : super(key: key);
+  const QuranReaderScreen({Key? key, required this.surah}) : super(key: key);
 
   @override
   _QuranReaderScreenState createState() => _QuranReaderScreenState();
 }
 
 class _QuranReaderScreenState extends State<QuranReaderScreen> {
-  final GlobalKey<StylusCanvasState> _canvasKey = GlobalKey<StylusCanvasState>();
+  final GlobalKey<StylusCanvasState> _canvasKey =
+      GlobalKey<StylusCanvasState>();
 
   List<Ayah> _ayahs = [];
   List<DrawingStroke> _strokes = [];
   bool _isLoading = true;
+  String? _loadError;
+  StreamSubscription<PlayerState>? _audioSubscription;
   double _fontSize = 24.0;
   bool _isStylusMode = false;
   int? _selectedAyahNumber;
@@ -42,35 +46,61 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
     super.initState();
     _loadSurahAndAnnotations();
 
-    AudioService.instance.playerStateStream.listen((state) {
+    _audioSubscription = AudioService.instance.playerStateStream.listen((
+      state,
+    ) {
       if (mounted) {
         setState(() {
           _currentPlayingAyah = AudioService.instance.currentPlayingAyah;
         });
       }
     });
+    AudioService.instance.lastError.addListener(_showAudioError);
+  }
+
+  void _showAudioError() {
+    if (!mounted) return;
+    final error = AudioService.instance.lastError.value;
+    if (error != null)
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(error)));
   }
 
   Future<void> _loadSurahAndAnnotations() async {
-    setState(() => _isLoading = true);
-
-    final ayahs = await QuranService.instance.getSurahAyahs(widget.surah.number);
-    final strokes = await AnnotationStorageService.instance
-        .loadStrokes('surah_${widget.surah.number}');
-
-    if (mounted) {
-      setState(() {
-        _ayahs = ayahs;
-        _strokes = strokes;
-        _isLoading = false;
-      });
+    setState(() {
+      _isLoading = true;
+      _loadError = null;
+    });
+    try {
+      final ayahs = await QuranService.instance.getSurahAyahs(
+        widget.surah.number,
+      );
+      final strokes = await AnnotationStorageService.instance.loadStrokes(
+        'surah_${widget.surah.number}',
+      );
+      if (ayahs.isEmpty) throw const FormatException('No verses received');
+      if (mounted)
+        setState(() {
+          _ayahs = ayahs;
+          _strokes = strokes;
+        });
+    } catch (_) {
+      if (mounted)
+        setState(
+          () => _loadError =
+              'Unable to load this Surah. Check your connection and try again.',
+        );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   void _onStrokesChanged(List<DrawingStroke> updatedStrokes) {
     _strokes = updatedStrokes;
-    AnnotationStorageService.instance
-        .saveStrokes('surah_${widget.surah.number}', updatedStrokes);
+    AnnotationStorageService.instance.saveStrokes(
+      'surah_${widget.surah.number}',
+      updatedStrokes,
+    );
   }
 
   void _onAyahTapped(Ayah ayah) {
@@ -85,9 +115,10 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
       surah: widget.surah,
       ayah: ayah,
       onHighlightChanged: () {
-        setState(() {});
+        if (mounted) setState(() {});
       },
       onAnnotatePressed: () {
+        if (!mounted) return;
         setState(() {
           _isStylusMode = true;
           _activeTool = DrawingTool.pen;
@@ -98,7 +129,9 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
 
   @override
   void dispose() {
-    AudioService.instance.stop();
+    _audioSubscription?.cancel();
+    AudioService.instance.lastError.removeListener(_showAudioError);
+    unawaited(AudioService.instance.stop().catchError((Object _) {}));
     super.dispose();
   }
 
@@ -110,15 +143,21 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
         return true;
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFFAF8F5), // Traditional cream mushaf paper tone
+        backgroundColor: const Color(
+          0xFFFAF8F5,
+        ), // Traditional cream mushaf paper tone
         appBar: AppBar(
           backgroundColor: const Color(0xFF0F3931),
           elevation: 1,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+            icon: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: Colors.white,
+            ),
             tooltip: 'Return to Surah List',
             onPressed: () async {
               await AudioService.instance.stop();
+              if (!mounted) return;
               Navigator.pop(context);
             },
           ),
@@ -143,7 +182,10 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
           actions: [
             // Tajweed Legend Sheet Button
             IconButton(
-              icon: const Icon(Icons.palette_outlined, color: Color(0xFFC5A059)),
+              icon: const Icon(
+                Icons.palette_outlined,
+                color: Color(0xFFC5A059),
+              ),
               tooltip: 'Tajweed Rules Guide',
               onPressed: () => TajweedText.showTajweedLegendModal(context),
             ),
@@ -156,7 +198,10 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
                 const PopupMenuItem(value: 20.0, child: Text('Small (20px)')),
                 const PopupMenuItem(value: 24.0, child: Text('Medium (24px)')),
                 const PopupMenuItem(value: 28.0, child: Text('Large (28px)')),
-                const PopupMenuItem(value: 34.0, child: Text('Extra Large (34px)')),
+                const PopupMenuItem(
+                  value: 34.0,
+                  child: Text('Extra Large (34px)'),
+                ),
               ],
             ),
           ],
@@ -165,6 +210,24 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
             ? const Center(
                 child: CircularProgressIndicator(
                   valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0F3931)),
+                ),
+              )
+            : _loadError != null
+            ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(_loadError!, textAlign: TextAlign.center),
+                      const SizedBox(height: 16),
+                      FilledButton.icon(
+                        onPressed: _loadSurahAndAnnotations,
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Try again'),
+                      ),
+                    ],
+                  ),
                 ),
               )
             : Stack(
@@ -181,56 +244,61 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
                           ? const NeverScrollableScrollPhysics()
                           : const BouncingScrollPhysics(),
                       padding: EdgeInsets.fromLTRB(
-                          16, _currentPlayingAyah != null ? 70 : 16, 16, 120),
-                    child: Column(
-                      children: [
-                        // Surah Header Banner
-                        _buildSurahHeaderBanner(),
+                        16,
+                        _currentPlayingAyah != null ? 70 : 16,
+                        16,
+                        120,
+                      ),
+                      child: Column(
+                        children: [
+                          // Surah Header Banner
+                          _buildSurahHeaderBanner(),
 
-                        // Bismillah (except Surah At-Tawba #9 and Al-Fatiha #1 where it is Ayah 1)
-                        if (widget.surah.number != 9 && widget.surah.number != 1)
-                          _buildBismillah(),
+                          // Bismillah (except Surah At-Tawba #9 and Al-Fatiha #1 where it is Ayah 1)
+                          if (widget.surah.number != 9 &&
+                              widget.surah.number != 1)
+                            _buildBismillah(),
 
-                        const SizedBox(height: 12),
+                          const SizedBox(height: 12),
 
-                        // Ayahs with Tajweed & Clickable behavior
-                        Wrap(
-                          alignment: WrapAlignment.center,
-                          textDirection: TextDirection.rtl,
-                          spacing: 4,
-                          runSpacing: 8,
-                          children: _ayahs.map((ayah) {
-                            return TajweedText(
-                              ayah: ayah,
-                              fontSize: _fontSize,
-                              isSelected: _selectedAyahNumber == ayah.number,
-                              onTap: () => _onAyahTapped(ayah),
-                            );
-                          }).toList(),
-                        ),
-                      ],
+                          // Ayahs with Tajweed & Clickable behavior
+                          Wrap(
+                            alignment: WrapAlignment.center,
+                            textDirection: TextDirection.rtl,
+                            spacing: 4,
+                            runSpacing: 8,
+                            children: _ayahs.map((ayah) {
+                              return TajweedText(
+                                ayah: ayah,
+                                fontSize: _fontSize,
+                                isSelected: _selectedAyahNumber == ayah.number,
+                                onTap: () => _onAyahTapped(ayah),
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
 
-                // Floating Active Audio Reciter Bar
-                if (_currentPlayingAyah != null)
+                  // Floating Active Audio Reciter Bar
+                  if (_currentPlayingAyah != null)
+                    Positioned(
+                      top: 10,
+                      left: 16,
+                      right: 16,
+                      child: _buildFloatingAudioPlayer(),
+                    ),
+
+                  // Floating Stylus / Highlighter Control Panel
                   Positioned(
-                    top: 10,
+                    bottom: 16,
                     left: 16,
                     right: 16,
-                    child: _buildFloatingAudioPlayer(),
+                    child: _buildStylusToolbar(),
                   ),
-
-                // Floating Stylus / Highlighter Control Panel
-                Positioned(
-                  bottom: 16,
-                  left: 16,
-                  right: 16,
-                  child: _buildStylusToolbar(),
-                ),
-              ],
-            ),
+                ],
+              ),
       ),
     );
   }
@@ -275,12 +343,15 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.stop_circle_rounded,
-                color: Colors.white, size: 26),
+            icon: const Icon(
+              Icons.stop_circle_rounded,
+              color: Colors.white,
+              size: 26,
+            ),
             tooltip: 'Stop Recitation',
             onPressed: () async {
               await AudioService.instance.stop();
-              setState(() => _currentPlayingAyah = null);
+              if (mounted) setState(() => _currentPlayingAyah = null);
             },
           ),
         ],
@@ -382,8 +453,10 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
                   );
                 },
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: _isStylusMode
                         ? const Color(0xFFC5A059)
@@ -488,8 +561,11 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
 
                 // Clear All
                 IconButton(
-                  icon: const Icon(Icons.delete_sweep,
-                      color: Colors.white70, size: 20),
+                  icon: const Icon(
+                    Icons.delete_sweep,
+                    color: Colors.white70,
+                    size: 20,
+                  ),
                   tooltip: 'Clear Page Drawing',
                   onPressed: () {
                     _canvasKey.currentState?.clearAll();
@@ -510,8 +586,10 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text('Ink: ',
-                    style: TextStyle(color: Colors.white60, fontSize: 11)),
+                const Text(
+                  'Ink: ',
+                  style: TextStyle(color: Colors.white60, fontSize: 11),
+                ),
                 if (_activeTool == DrawingTool.pen) ...[
                   _buildColorDot(const Color(0xFFD97706)), // Gold
                   _buildColorDot(const Color(0xFFEF4444)), // Coral

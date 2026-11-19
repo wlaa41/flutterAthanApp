@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'athan_screen.dart';
 import 'qibla_screen.dart';
 import 'quran_index_screen.dart';
@@ -24,10 +25,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
+      body: _screens[_currentIndex],
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -46,7 +44,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           backgroundColor: Colors.white,
           selectedItemColor: const Color(0xFF0F3931),
           unselectedItemColor: Colors.grey.shade400,
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+          selectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 11,
+          ),
           unselectedLabelStyle: const TextStyle(fontSize: 11),
           elevation: 0,
           items: const [

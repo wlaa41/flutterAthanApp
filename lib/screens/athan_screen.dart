@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../models/prayer_time_model.dart';
+import 'settings_screen.dart';
 import '../services/audio_service.dart';
 import '../services/notification_service.dart';
 import '../services/prayer_service.dart';
@@ -13,7 +15,9 @@ class AthanScreen extends StatefulWidget {
   _AthanScreenState createState() => _AthanScreenState();
 }
 
-class _AthanScreenState extends State<AthanScreen> {
+class _AthanScreenState extends State<AthanScreen> with WidgetsBindingObserver {
+  NotificationHealth? _health;
+  bool _refreshing = false;
   PrayerTimeModel? _todayPrayer;
   List<PrayerTimeModel> _monthlyPrayers = [];
   bool _isLoading = true;
@@ -22,23 +26,37 @@ class _AthanScreenState extends State<AthanScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadPrayerTimes();
   }
 
-  Future<void> _loadPrayerTimes() async {
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _loadPrayerTimes();
+  }
+
+  Future<void> _loadPrayerTimes({bool forceRefresh = false}) async {
+    if (_refreshing) return;
+    _refreshing = true;
     setState(() {
       _isLoading = true;
       _errorMessage = '';
     });
 
     try {
-      final now = DateTime.now();
-      final monthly =
-          await PrayerService.instance.getMonthlyPrayers(now.year, now.month);
+      final now = PrayerService.instance.now;
+      final monthly = await PrayerService.instance.getMonthlyPrayers(
+        now.year,
+        now.month,
+        forceRefresh: forceRefresh,
+      );
       final today = await PrayerService.instance.getTodayPrayers();
-
-      // Schedule local notifications for this month using 'smooth' sound
-      NotificationService.instance.schedulePrayers(monthly).catchError((_) {});
 
       if (mounted) {
         setState(() {
@@ -47,137 +65,99 @@ class _AthanScreenState extends State<AthanScreen> {
           _isLoading = false;
         });
       }
+      try {
+        await NotificationService.instance.refreshSchedule();
+        final health = await NotificationService.instance.getHealth();
+        if (mounted) setState(() => _health = health);
+      } catch (_) {
+        if (mounted)
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Prayer times are ready. Check Settings to finish reminder setup.',
+              ),
+            ),
+          );
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'Unable to load prayer times: $e';
+          _errorMessage = 'Prayer times could not be loaded. Please try again.';
         });
       }
+    } finally {
+      _refreshing = false;
     }
   }
 
   void _showMonthlySchedule() {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        final now = DateTime.now();
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(ctx).size.height * 0.85,
-          ),
-          child: Column(
-            children: [
-              Container(
-                width: 44,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
+      useSafeArea: true,
+      builder: (context) => SizedBox(
+        height: MediaQuery.sizeOf(context).height * .85,
+        child: Column(
+          children: [
+            ListTile(
+              title: const Text('Monthly prayer times'),
+              subtitle: Text(PrayerService.instance.cityName),
+              trailing: IconButton(
+                tooltip: 'Close schedule',
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.pop(context),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Monthly Prayer Schedule',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F172A),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: ListView.builder(
+                itemCount: _monthlyPrayers.length,
+                itemBuilder: (context, index) {
+                  final day = _monthlyPrayers[index];
+                  final today = PrayerService.instance.now;
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
                     ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(ctx),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              // Table Header
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0F3931).withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Date', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                    Text('Fajr', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                    Text('Sunrise', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                    Text('Dhuhr', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                    Text('Asr', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                    Text('Maghrib', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                    Text('Isha', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 6),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: _monthlyPrayers.length,
-                  itemBuilder: (context, idx) {
-                    final item = _monthlyPrayers[idx];
-                    final isToday = item.date.day == now.day &&
-                        item.date.month == now.month;
-
-                    return Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
-                      margin: const EdgeInsets.symmetric(vertical: 2),
-                      decoration: BoxDecoration(
-                        color: isToday
-                            ? const Color(0xFFC5A059).withOpacity(0.18)
-                            : (idx.isEven
-                                ? const Color(0xFFF8FAFC)
-                                : Colors.white),
-                        borderRadius: BorderRadius.circular(8),
-                        border: isToday
-                            ? Border.all(color: const Color(0xFFC5A059))
-                            : null,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            '${item.date.day}/${item.date.month}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight:
-                                  isToday ? FontWeight.bold : FontWeight.normal,
-                              color: isToday
-                                  ? const Color(0xFF0F3931)
-                                  : Colors.black87,
-                            ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${day.formattedDate}${day.date.day == today.day && day.date.month == today.month ? ' · Today' : ''}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
                           ),
-                          Text(item.fajr, style: const TextStyle(fontSize: 11)),
-                          Text(item.sunrise, style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                          Text(item.dhuhr, style: const TextStyle(fontSize: 11)),
-                          Text(item.asr, style: const TextStyle(fontSize: 11)),
-                          Text(item.maghrib, style: const TextStyle(fontSize: 11)),
-                          Text(item.isha, style: const TextStyle(fontSize: 11)),
-                        ],
-                      ),
-                    );
-                  },
-                ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 16,
+                          runSpacing: 8,
+                          children: [
+                            for (final index in [1, 2, 3, 4, 5, 6])
+                              Text(
+                                '${day.getPrayerName(index)} ${_time(day, index)}',
+                              ),
+                          ],
+                        ),
+                        const Divider(),
+                      ],
+                    ),
+                  );
+                },
               ),
-            ],
-          ),
-        );
-      },
+            ),
+          ],
+        ),
+      ),
     );
+  }
+
+  String _time(PrayerTimeModel day, int index) {
+    final time = day.getPrayerDateTime(index);
+    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -211,12 +191,16 @@ class _AthanScreenState extends State<AthanScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.cloud_off_rounded, size: 64, color: Colors.grey),
+                const Icon(
+                  Icons.cloud_off_rounded,
+                  size: 64,
+                  color: Colors.grey,
+                ),
                 const SizedBox(height: 16),
                 Text(_errorMessage),
                 const SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: _loadPrayerTimes,
+                  onPressed: () => _loadPrayerTimes(forceRefresh: true),
                   child: const Text('Retry'),
                 ),
               ],
@@ -227,7 +211,7 @@ class _AthanScreenState extends State<AthanScreen> {
     }
 
     final today = _todayPrayer!;
-    final now = DateTime.now();
+    final now = PrayerService.instance.now;
 
     // Check prayer statuses
     final fajrTime = today.getPrayerDateTime(1);
@@ -255,14 +239,46 @@ class _AthanScreenState extends State<AthanScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
-        child: Column(
+        child: ListView(
+          padding: const EdgeInsets.only(bottom: 24),
           children: [
             // Reimagined Hero Countdown Card
             NextPrayerHero(
               today: today,
-              onRefresh: _loadPrayerTimes,
+              onRefresh: () => _loadPrayerTimes(forceRefresh: true),
             ),
 
+            if (_health != null &&
+                (!_health!.notificationsEnabled ||
+                    !_health!.exactAlarmsEnabled))
+              Card(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: ListTile(
+                  leading: const Icon(Icons.notifications_active_outlined),
+                  title: const Text('Finish reminder setup'),
+                  subtitle: Text(
+                    _health!.notificationsEnabled
+                        ? 'Allow precise alarms for timely Athan playback.'
+                        : 'Allow notifications to hear prayer reminders.',
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () async {
+                    await Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const SettingsScreen(),
+                      ),
+                    );
+                    if (mounted) _loadPrayerTimes();
+                  },
+                ),
+              ),
+            if (today.isCalculated)
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                child: Text(
+                  'Offline calculation. Check your mosque timetable for local adjustments.',
+                ),
+              ),
             // Quick Actions Bar
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -286,9 +302,20 @@ class _AthanScreenState extends State<AthanScreen> {
                   Expanded(
                     child: ElevatedButton.icon(
                       icon: const Icon(Icons.volume_up, size: 16),
-                      label: const Text('Test Athan'),
-                      onPressed: () {
-                        AudioService.instance.playAthan();
+                      label: const Text('Play / stop'),
+                      onPressed: () async {
+                        try {
+                          await AudioService.instance.toggleAthan();
+                        } catch (_) {
+                          if (mounted)
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Unable to play this sound. Choose another in Settings.',
+                                ),
+                              ),
+                            );
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF0F3931),
@@ -306,66 +333,66 @@ class _AthanScreenState extends State<AthanScreen> {
             const SizedBox(height: 6),
 
             // Today's Prayer Times List
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.only(bottom: 24),
-                children: [
-                  PrayerRowCard(
-                    prayerIndex: 1,
-                    prayerName: 'Fajr',
-                    prayerArabic: 'الفجر',
-                    time: today.fajr,
-                    icon: Icons.nightlight_round,
-                    isCurrent: currentIdx == 1,
-                    isPassed: now.isAfter(sunriseTime),
-                  ),
-                  PrayerRowCard(
-                    prayerIndex: 2,
-                    prayerName: 'Sunrise',
-                    prayerArabic: 'الشروق',
-                    time: today.sunrise,
-                    icon: Icons.wb_twighlight,
-                    isCurrent: currentIdx == 2,
-                    isPassed: now.isAfter(dhuhrTime),
-                  ),
-                  PrayerRowCard(
-                    prayerIndex: 3,
-                    prayerName: 'Dhuhr',
-                    prayerArabic: 'الظهر',
-                    time: today.dhuhr,
-                    icon: Icons.wb_sunny_rounded,
-                    isCurrent: currentIdx == 3,
-                    isPassed: now.isAfter(asrTime),
-                  ),
-                  PrayerRowCard(
-                    prayerIndex: 4,
-                    prayerName: 'Asr',
-                    prayerArabic: 'العصر',
-                    time: today.asr,
-                    icon: Icons.wb_sunny_outlined,
-                    isCurrent: currentIdx == 4,
-                    isPassed: now.isAfter(maghribTime),
-                  ),
-                  PrayerRowCard(
-                    prayerIndex: 5,
-                    prayerName: 'Maghrib',
-                    prayerArabic: 'المغرب',
-                    time: today.maghrib,
-                    icon: Icons.wb_twilight_rounded,
-                    isCurrent: currentIdx == 5,
-                    isPassed: now.isAfter(ishaTime),
-                  ),
-                  PrayerRowCard(
-                    prayerIndex: 6,
-                    prayerName: 'Isha',
-                    prayerArabic: 'العشاء',
-                    time: today.isha,
-                    icon: Icons.bedtime_rounded,
-                    isCurrent: currentIdx == 6,
-                    isPassed: false,
-                  ),
-                ],
-              ),
+            ListView(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: EdgeInsets.zero,
+              children: [
+                PrayerRowCard(
+                  prayerIndex: 1,
+                  prayerName: 'Fajr',
+                  prayerArabic: 'الفجر',
+                  time: today.fajr,
+                  icon: Icons.nightlight_round,
+                  isCurrent: currentIdx == 1,
+                  isPassed: now.isAfter(sunriseTime),
+                ),
+                PrayerRowCard(
+                  prayerIndex: 2,
+                  prayerName: 'Sunrise',
+                  prayerArabic: 'الشروق',
+                  time: today.sunrise,
+                  icon: Icons.wb_twighlight,
+                  isCurrent: currentIdx == 2,
+                  isPassed: now.isAfter(dhuhrTime),
+                ),
+                PrayerRowCard(
+                  prayerIndex: 3,
+                  prayerName: 'Dhuhr',
+                  prayerArabic: 'الظهر',
+                  time: today.dhuhr,
+                  icon: Icons.wb_sunny_rounded,
+                  isCurrent: currentIdx == 3,
+                  isPassed: now.isAfter(asrTime),
+                ),
+                PrayerRowCard(
+                  prayerIndex: 4,
+                  prayerName: 'Asr',
+                  prayerArabic: 'العصر',
+                  time: today.asr,
+                  icon: Icons.wb_sunny_outlined,
+                  isCurrent: currentIdx == 4,
+                  isPassed: now.isAfter(maghribTime),
+                ),
+                PrayerRowCard(
+                  prayerIndex: 5,
+                  prayerName: 'Maghrib',
+                  prayerArabic: 'المغرب',
+                  time: today.maghrib,
+                  icon: Icons.wb_twilight_rounded,
+                  isCurrent: currentIdx == 5,
+                  isPassed: now.isAfter(ishaTime),
+                ),
+                PrayerRowCard(
+                  prayerIndex: 6,
+                  prayerName: 'Isha',
+                  prayerArabic: 'العشاء',
+                  time: today.isha,
+                  icon: Icons.bedtime_rounded,
+                  isCurrent: currentIdx == 6,
+                  isPassed: false,
+                ),
+              ],
             ),
           ],
         ),

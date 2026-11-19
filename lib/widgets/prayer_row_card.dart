@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
+
 import '../services/notification_service.dart';
 
 class PrayerRowCard extends StatefulWidget {
   final int prayerIndex;
-  final String prayerName;
-  final String prayerArabic;
-  final String time;
+  final String prayerName, prayerArabic, time;
   final IconData icon;
-  final bool isCurrent;
-  final bool isPassed;
-
+  final bool isCurrent, isPassed;
   const PrayerRowCard({
-    Key? key,
+    super.key,
     required this.prayerIndex,
     required this.prayerName,
     required this.prayerArabic,
@@ -19,187 +16,135 @@ class PrayerRowCard extends StatefulWidget {
     required this.icon,
     this.isCurrent = false,
     this.isPassed = false,
-  }) : super(key: key);
-
+  });
   @override
-  _PrayerRowCardState createState() => _PrayerRowCardState();
+  State<PrayerRowCard> createState() => _PrayerRowCardState();
 }
 
 class _PrayerRowCardState extends State<PrayerRowCard> {
-  bool _isAlarmEnabled = true;
-
+  bool _enabled = true;
+  bool _busy = false;
   @override
   void initState() {
     super.initState();
-    _loadAlarmSetting();
+    _load();
   }
 
-  Future<void> _loadAlarmSetting() async {
-    final enabled =
-        await NotificationService.instance.isPrayerEnabled(widget.prayerIndex);
-    if (mounted) {
-      setState(() {
-        _isAlarmEnabled = enabled;
-      });
-    }
+  Future<void> _load() async {
+    final enabled = await NotificationService.instance.isPrayerEnabled(
+      widget.prayerIndex,
+    );
+    if (mounted) setState(() => _enabled = enabled);
   }
 
-  void _toggleAlarm() async {
-    final nextState = !_isAlarmEnabled;
-    await NotificationService.instance
-        .setPrayerEnabled(widget.prayerIndex, nextState);
-    if (mounted) {
-      setState(() {
-        _isAlarmEnabled = nextState;
-      });
+  Future<void> _toggle() async {
+    if (_busy) return;
+    final next = !_enabled;
+    setState(() => _busy = true);
+    try {
+      await NotificationService.instance.setPrayerEnabled(
+        widget.prayerIndex,
+        next,
+      );
+      if (mounted) setState(() => _enabled = next);
+    } catch (_) {
+      await _load();
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Preference saved. Check Settings to refresh reminders.',
+            ),
+          ),
+        );
+    } finally {
+      if (mounted) setState(() => _busy = false);
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-      decoration: BoxDecoration(
-        color: widget.isCurrent
-            ? const Color(0xFF0F3931).withOpacity(0.08)
-            : Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: widget.isCurrent
-              ? const Color(0xFFC5A059)
-              : Colors.grey.shade200,
-          width: widget.isCurrent ? 1.8 : 1.0,
-        ),
-        boxShadow: widget.isCurrent
-            ? [
-                BoxShadow(
-                  color: const Color(0xFFC5A059).withOpacity(0.18),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ]
-            : [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.02),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-      ),
+  Widget build(BuildContext context) => Card(
+    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+    color: widget.isCurrent ? const Color(0xFFE8F0EC) : null,
+    child: Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Prayer Icon with circular background
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: widget.isCurrent
-                  ? const Color(0xFF0F3931)
-                  : (widget.isPassed
-                      ? Colors.grey.shade200
-                      : const Color(0xFFF1F5F9)),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              widget.icon,
-              color: widget.isCurrent
-                  ? const Color(0xFFC5A059)
-                  : (widget.isPassed ? Colors.grey : const Color(0xFF0F766E)),
-              size: 20,
-            ),
-          ),
-
-          const SizedBox(width: 14),
-
-          // Name and Arabic
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(
                       widget.prayerName,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: widget.isCurrent
-                            ? FontWeight.bold
-                            : FontWeight.w600,
-                        color: widget.isPassed
-                            ? Colors.grey.shade600
-                            : const Color(0xFF0F172A),
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    if (widget.isCurrent) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFC5A059),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Text(
-                          'NOW',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                    Text(
+                      widget.prayerArabic,
+                      textDirection: TextDirection.rtl,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Color(0xFF475569),
                       ),
-                    ],
+                    ),
                   ],
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  widget.prayerArabic,
-                  style: TextStyle(
-                    fontFamily: 'serif',
-                    fontSize: 12,
-                    color: Colors.grey.shade500,
-                  ),
+                const SizedBox(height: 4),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(
+                      widget.time,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (widget.isCurrent)
+                      const Text(
+                        'Current prayer',
+                        style: TextStyle(color: Color(0xFF0F3931)),
+                      ),
+                    if (widget.prayerIndex == 2)
+                      const Text(
+                        'No Athan',
+                        style: TextStyle(color: Color(0xFF475569)),
+                      ),
+                  ],
                 ),
               ],
             ),
           ),
-
-          // Prayer Time
-          Text(
-            widget.time,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: widget.isCurrent
-                  ? const Color(0xFF0F3931)
-                  : (widget.isPassed
-                      ? Colors.grey.shade500
-                      : const Color(0xFF1E293B)),
-              letterSpacing: 0.5,
-            ),
-          ),
-
-          const SizedBox(width: 10),
-
-          // Notification Toggle Button (skip for sunrise)
           if (widget.prayerIndex != 2)
             IconButton(
-              icon: Icon(
-                _isAlarmEnabled
-                    ? Icons.notifications_active_rounded
-                    : Icons.notifications_off_outlined,
-                color: _isAlarmEnabled
-                    ? const Color(0xFF0F766E)
-                    : Colors.grey.shade400,
-                size: 20,
-              ),
-              onPressed: _toggleAlarm,
-              tooltip: _isAlarmEnabled ? 'Mute Athan' : 'Enable Athan',
-            )
-          else
-            const SizedBox(width: 48),
+              tooltip:
+                  '${_enabled ? 'Mute' : 'Enable'} ${widget.prayerName} and its Iqama reminders',
+              onPressed: _busy ? null : _toggle,
+              icon: _busy
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Icon(
+                      _enabled
+                          ? Icons.notifications_active_outlined
+                          : Icons.notifications_off_outlined,
+                    ),
+              color: const Color(0xFF0F3931),
+            ),
         ],
       ),
-    );
-  }
+    ),
+  );
 }
