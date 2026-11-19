@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.1.0-rc.5 (build 7)
+
+- Improved navigation label contrast and size after inspecting the Android release
+  app on an emulator.
+- Allowed ten minutes for the iPhone simulator's initial boot; the app must still
+  stay alive for 15 seconds and produce a screenshot.
+- Recorded live fetch checks, emulator coverage and physical-device limitations.
+- Validation: the navigation regression passes. The preceding checkpoint passed
+  all 69 tests, analysis, Android release and iOS compilation; this checkpoint's CI
+  records final platform and iPhone startup results.
+
 ## 2.1.0-rc.4 (build 6)
 
 - Added a real iPhone simulator startup check after the CI build: launch the app,

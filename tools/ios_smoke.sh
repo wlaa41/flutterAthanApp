@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Run on a Mac after: flutter build ios --simulator --debug --no-codesign
-# CI should give this step a five-minute timeout. This checks startup only.
+# Allow ten minutes for a fresh simulator's first boot. This checks startup only.
 set -euo pipefail
 
 if [[ "$(uname -s)" != Darwin ]]; then

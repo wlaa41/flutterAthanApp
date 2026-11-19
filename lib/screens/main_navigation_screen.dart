@@ -43,12 +43,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.white,
           selectedItemColor: const Color(0xFF0F3931),
-          unselectedItemColor: Colors.grey.shade400,
+          unselectedItemColor: const Color(0xFF52615D),
           selectedLabelStyle: const TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 11,
+            fontSize: 12,
           ),
-          unselectedLabelStyle: const TextStyle(fontSize: 11),
+          unselectedLabelStyle: const TextStyle(fontSize: 12),
           elevation: 0,
           items: const [
             BottomNavigationBarItem(

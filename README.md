@@ -75,6 +75,7 @@ flutter test
 flutter build apk --debug
 # macOS only
 flutter build ios --simulator --debug --no-codesign
+bash tools/ios_smoke.sh
 ```
 
 CI runs analysis/tests and creates a preview APK for each pull request. It does not

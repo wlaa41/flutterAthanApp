@@ -65,7 +65,7 @@ jobs:
       - name: Build iOS simulator app (no signing)
         run: flutter build ios --simulator --debug --no-codesign
       - name: Launch iPhone app and verify startup
-        timeout-minutes: 5
+        timeout-minutes: 10
         run: bash tools/ios_smoke.sh
       - name: Save iPhone startup screenshot
         uses: actions/upload-artifact@v4

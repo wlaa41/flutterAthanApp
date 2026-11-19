@@ -1,5 +1,39 @@
 # Verification
 
+## Versioned checkpoints
+
+Each checkpoint is pushed on `codex/athan-reliability` with a matching Git tag.
+
+| Version | Completed review work |
+| --- | --- |
+| `v2.1.0-rc.1` / build 3 | Imports, iOS silent alerts, playback cleanup, Iqama cutoffs, city refresh |
+| `v2.1.0-rc.2` / build 4 | Calendar snapshots and asynchronous city-change regressions |
+| `v2.1.0-rc.3` / build 5 | Android plugin compatibility; both platform builds pass |
+| `v2.1.0-rc.4` / build 6 | Automated iPhone startup check and Android dependency caching |
+| `v2.1.0-rc.5` / build 7 | Actual-screen navigation contrast, simulator startup allowance, verification record |
+
+## Evidence and scope
+
+- CI runs all 69 unit/widget tests, static analysis, an Android release APK build,
+  and an unsigned iOS simulator build. The iPhone startup script installs/launches
+  the built app, checks its process for 15 seconds, and saves a screenshot. A fresh
+  simulator has up to ten minutes to boot and complete that check.
+- The Android release APK from rc.3 was checksum-verified, installed and launched
+  on an Android 14 x64 emulator. It correctly displayed the offline-calculation
+  fallback and reminder setup while notification/exact-alarm access was denied.
+  No app crash was observed during launch. System UI/Google-service ANRs on this
+  test emulator delayed further interaction; they are not counted as app failures
+  or as passed delivery checks.
+- Live endpoint probes on 19 November 2026 returned HTTP 200: Aladhan supplied all
+  30 November dates for London in `Europe/London`; the Quran service returned
+  Surah 2 with all 286 verses in both requested editions.
+- Narrow-screen/large-text widget checks and captured settings layouts pass.
+  The navigation regression also passes after the contrast/label-size change.
+- Final CI and emulator outcomes are recorded in
+  [PR #1](https://github.com/wlaa41/flutterAthanApp/pull/1) and its linked checks.
+  APK previews retain the repository's debug-signing setup; they are not store
+  releases. No physical-phone power measurement has been performed.
+
 ## Five review passes
 
 1. **Existing behaviour audit:** traced fetch/cache paths, Android manifest,
