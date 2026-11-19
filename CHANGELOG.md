@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.0-rc.3 (build 5)
+
+- Restored Flutter's standard Android project evaluation order so the maintained
+  file-picker plugin can access the Flutter SDK configuration.
+- Excluded generated Android build diagnostics from version control.
+- Validation: the previous checkpoint passed CI analysis and tests; native builds
+  validate this configuration change in the checkpoint's CI run.
+
 ## 2.1.0-rc.2 (build 4)
 
 - Calendar scheduling now uses one location/method snapshot for every month. A

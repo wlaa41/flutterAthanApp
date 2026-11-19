@@ -10,6 +10,12 @@ subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
 }
 
+// Flutter adds its SDK extension to plugin projects while configuring :app.
+// Keep the template's evaluation order for plugins that read that extension.
+subprojects {
+    project.evaluationDependsOn(':app')
+}
+
 subprojects { project ->
     def setNamespace = {
         if (project.hasProperty('android')) {
