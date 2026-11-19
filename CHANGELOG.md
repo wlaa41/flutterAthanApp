@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.1.0-rc.4 (build 6)
+
+- Added a real iPhone simulator startup check after the CI build: launch the app,
+  check it stays alive, capture a screenshot, and shut down the test simulator.
+- Added Gradle dependency caching to speed up later verification loops.
+- Validation: rc.3 passed all 69 tests, analysis, Android release APK compilation
+  and iOS simulator compilation. The new smoke script passes shell syntax checks;
+  its first runtime result is recorded in this checkpoint's CI.
+
 ## 2.1.0-rc.3 (build 5)
 
 - Restored Flutter's standard Android project evaluation order so the maintained

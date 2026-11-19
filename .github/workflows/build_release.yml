@@ -25,6 +25,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+          cache: gradle
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -63,6 +64,17 @@ jobs:
         run: flutter pub get
       - name: Build iOS simulator app (no signing)
         run: flutter build ios --simulator --debug --no-codesign
+      - name: Launch iPhone app and verify startup
+        timeout-minutes: 5
+        run: bash tools/ios_smoke.sh
+      - name: Save iPhone startup screenshot
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: athan-iphone-startup-${{ github.sha }}
+          path: build/review/ios-launch.png
+          if-no-files-found: ignore
+          retention-days: 14
 
 # Android previews use the project's debug signing key. Production signing and
 # publishing are separate deliberate steps; this workflow never overwrites v2.0.0.
