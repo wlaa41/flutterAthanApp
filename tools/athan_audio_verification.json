@@ -1,0 +1,59 @@
+{
+  "encoder": "9.0.2-essentials_build-www.gyan.dev",
+  "recordings": [
+    {
+      "id": "mishary_alafasy",
+      "duration_seconds": 240.753,
+      "mp3_bytes": 2889918,
+      "mp3_sha256": "2963ff793d163e22a63183815fe1743f8ed0aac46ffe091ac82defe38a6e5bcc",
+      "ios_seconds": 28.0,
+      "ios_sha256": "cbe83c8c0b3aac8ae8da6229ecd9e3f0f8fd92ddbbbd0e6712a57ec33824c28f",
+      "android_copy_matches": true
+    },
+    {
+      "id": "makkah_ali_mulla",
+      "duration_seconds": 244.375,
+      "mp3_bytes": 2933177,
+      "mp3_sha256": "206b8558e768c1998f3be7d08ac4a6b5274d6e32fad400080bd69286283de16b",
+      "ios_seconds": 28.0,
+      "ios_sha256": "266c72d0afd048467379deb86e854e13adf37fde0e8f55fe85e910bec9854c64",
+      "android_copy_matches": true
+    },
+    {
+      "id": "abdul_basit",
+      "duration_seconds": 187.115,
+      "mp3_bytes": 2246052,
+      "mp3_sha256": "8750f44ef66205a91acdbfdd5f5f113d46b6e18563c7d5fd4a1af2a00c371b71",
+      "ios_seconds": 28.0,
+      "ios_sha256": "e2b544cb50534017cbd0743b1969ab08b8e144dadd23f03a28419a506579ffa3",
+      "android_copy_matches": true
+    },
+    {
+      "id": "minshawi",
+      "duration_seconds": 246.935,
+      "mp3_bytes": 2963897,
+      "mp3_sha256": "2c38d1aa994afd69f3502859d316a55adc0b07542a1516c99e46148a7d0e9873",
+      "ios_seconds": 28.0,
+      "ios_sha256": "2efb976c7f4138d4c13151008eb5a0677ba00d887f1ff346da52368c2f4766e0",
+      "android_copy_matches": true
+    },
+    {
+      "id": "nasser_al_qatami",
+      "duration_seconds": 132.075,
+      "mp3_bytes": 1585572,
+      "mp3_sha256": "ba8aea3544b3f358120145b3ef82e80ac34bc3ed9eb7f9743f951d89c34a6643",
+      "ios_seconds": 28.0,
+      "ios_sha256": "ba8277148f2592224383f704e0f7cde34dd0b2e3f069437771ed0977ceb671dd",
+      "android_copy_matches": true
+    },
+    {
+      "id": "madinah",
+      "duration_seconds": 186.577,
+      "mp3_bytes": 2239782,
+      "mp3_sha256": "9949c0148d568d6bac78ba37754b5d5ada8a524d404b8eee3968f779b555ec60",
+      "ios_seconds": 28.0,
+      "ios_sha256": "b89ba2fed0b9d7399f1b31836f1c0fda2fd5089d14b9985e494862bece59a2b7",
+      "android_copy_matches": true
+    }
+  ]
+}

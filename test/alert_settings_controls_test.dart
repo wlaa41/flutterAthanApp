@@ -31,8 +31,9 @@ void main() {
       MaterialApp(
         theme: ThemeData.dark(useMaterial3: true),
         builder: (context, child) => MediaQuery(
-          data: MediaQuery.of(context)
-              .copyWith(textScaler: const TextScaler.linear(2)),
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: const TextScaler.linear(2)),
           child: child!,
         ),
         home: const SettingsScreen(),
@@ -48,6 +49,20 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(find.text('Calculation method'), findsOneWidget);
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Reminders'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Time between reminders'),
+      250,
+      maxScrolls: 60,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Time between reminders'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Phone setup'));
+    await tester.pumpAndSettle();
+    expect(find.text('Reminder readiness'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('quiet hours persist from the settings screen', (tester) async {
@@ -55,6 +70,8 @@ void main() {
     debugDefaultTargetPlatformOverride = TargetPlatform.linux;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
     await tester.pumpWidget(const MaterialApp(home: SettingsScreen()));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Reminders'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.text('Use a quieter reminder'), 300);
     await tester.tap(find.text('Use a quieter reminder'));
@@ -100,6 +117,13 @@ void main() {
     expect(original, {1, 2, 3, 4, 5});
     await tester.tap(find.text('Sat'));
     expect(changed, {1, 2, 3, 4, 5, 6});
+    await tester.tap(find.text('Weekend'));
+    expect(changed, {6, 7});
+    expect(original, {1, 2, 3, 4, 5});
+    await tester.tap(find.text('Every day'));
+    expect(changed, {1, 2, 3, 4, 5, 6, 7});
+    await tester.tap(find.text('Weekdays'));
+    expect(changed, {1, 2, 3, 4, 5});
   });
 
   testWidgets('quiet time picker allows cancel without changing the schedule', (
@@ -188,7 +212,7 @@ void main() {
     );
     await tester.pumpWidget(build(1320));
     expect(
-      find.text('Matching times mean quiet all day on your selected days.'),
+      find.text('Quieter reminders all day on your selected days.'),
       findsOneWidget,
     );
   });
@@ -209,8 +233,9 @@ void main() {
         MaterialApp(
           theme: ThemeData.dark(useMaterial3: true),
           builder: (context, child) => MediaQuery(
-            data: MediaQuery.of(context)
-                .copyWith(textScaler: const TextScaler.linear(2)),
+            data: MediaQuery.of(
+              context,
+            ).copyWith(textScaler: const TextScaler.linear(2)),
             child: child!,
           ),
           home: Scaffold(
@@ -226,6 +251,7 @@ void main() {
                     onWeekdaysChanged: (_) {},
                     onStartChanged: (_) {},
                     onEndChanged: (_) {},
+                    onAllDayChanged: (_) {},
                   ),
                   const SizedBox(height: 24),
                   ReminderTimingEditor(

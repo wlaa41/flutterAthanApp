@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../models/prayer_time_model.dart';
 import 'settings_screen.dart';
-import '../services/audio_service.dart';
 import '../services/notification_service.dart';
 import '../services/prayer_service.dart';
 import '../widgets/next_prayer_hero.dart';
@@ -105,6 +104,17 @@ class _AthanScreenState extends State<AthanScreen> with WidgetsBindingObserver {
         await _loadPrayerTimes(forceRefresh: forceNext);
       }
     }
+  }
+
+  Future<void> _openSettings({
+    SettingsSection section = SettingsSection.essentials,
+  }) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => SettingsScreen(initialSection: section),
+      ),
+    );
+    if (mounted) await _loadPrayerTimes();
   }
 
   void _showMonthlySchedule() {
@@ -265,6 +275,7 @@ class _AthanScreenState extends State<AthanScreen> with WidgetsBindingObserver {
             ),
 
             if (_health != null &&
+                _health!.supported &&
                 (!_health!.notificationsEnabled ||
                     !_health!.exactAlarmsEnabled))
               Card(
@@ -278,14 +289,7 @@ class _AthanScreenState extends State<AthanScreen> with WidgetsBindingObserver {
                         : 'Allow notifications to hear prayer reminders.',
                   ),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () async {
-                    await Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const SettingsScreen(),
-                      ),
-                    );
-                    if (mounted) _loadPrayerTimes();
-                  },
+                  onTap: () => _openSettings(section: SettingsSection.phone),
                 ),
               ),
             if (today.isCalculated)
@@ -298,47 +302,33 @@ class _AthanScreenState extends State<AthanScreen> with WidgetsBindingObserver {
             // Quick Actions Bar
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: Row(
+              child: Wrap(
+                spacing: 10,
+                runSpacing: 8,
                 children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Icons.calendar_month, size: 16),
-                      label: const Text('Month Schedule'),
-                      onPressed: _showMonthlySchedule,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF0F3931),
-                        side: const BorderSide(color: Color(0xFF0F3931)),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.calendar_month, size: 20),
+                    label: const Text('Monthly times'),
+                    onPressed: _showMonthlySchedule,
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(48, 48),
+                      foregroundColor: const Color(0xFF0F3931),
+                      side: const BorderSide(color: Color(0xFF0F3931)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.volume_up, size: 16),
-                      label: const Text('Play / stop'),
-                      onPressed: () async {
-                        try {
-                          await AudioService.instance.toggleAthan();
-                        } catch (_) {
-                          if (mounted)
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Unable to play this sound. Choose another in Settings.',
-                                ),
-                              ),
-                            );
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0F3931),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                  FilledButton.icon(
+                    icon: const Icon(Icons.tune_rounded, size: 20),
+                    label: const Text('Sounds & setup'),
+                    onPressed: () => _openSettings(),
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(48, 48),
+                      backgroundColor: const Color(0xFF0F3931),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                   ),

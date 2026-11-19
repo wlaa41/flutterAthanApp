@@ -119,6 +119,11 @@ class _PrayerRowCardState extends State<PrayerRowCard> {
                       const Text(
                         'No Athan',
                         style: TextStyle(color: Color(0xFF475569)),
+                      )
+                    else
+                      Text(
+                        _enabled ? 'Reminders on' : 'Reminders off',
+                        style: const TextStyle(color: Color(0xFF475569)),
                       ),
                   ],
                 ),
@@ -126,22 +131,25 @@ class _PrayerRowCardState extends State<PrayerRowCard> {
             ),
           ),
           if (widget.prayerIndex != 2)
-            IconButton(
-              tooltip:
-                  '${_enabled ? 'Mute' : 'Enable'} ${widget.prayerName} and its Iqama reminders',
-              onPressed: _busy ? null : _toggle,
-              icon: _busy
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Icon(
-                      _enabled
-                          ? Icons.notifications_active_outlined
-                          : Icons.notifications_off_outlined,
-                    ),
-              color: const Color(0xFF0F3931),
+            Semantics(
+              toggled: _enabled,
+              child: IconButton(
+                tooltip:
+                    '${_enabled ? 'Mute' : 'Enable'} ${widget.prayerName} and its Iqama reminders',
+                onPressed: _busy ? null : _toggle,
+                icon: _busy
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Icon(
+                        _enabled
+                            ? Icons.notifications_active_outlined
+                            : Icons.notifications_off_outlined,
+                      ),
+                color: const Color(0xFF0F3931),
+              ),
             ),
         ],
       ),

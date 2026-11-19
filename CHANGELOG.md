@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.1.0-rc.8 (build 10)
+
+- Split Settings into Basics, Reminders and Phone setup, with city and sound choices
+  first and direct home-screen shortcuts. Prayer rows show reminder on/muted state.
+- Choose, preview and import audio in one sound picker. Selection is applied only
+  with Use sound; imported files remain in the library when the picker is cancelled.
+- Added weekday/weekend/every-day shortcuts and explicit All day / Set hours choices
+  for a beep on selected days. Existing schedules and sound preferences are preserved.
+- Added more named Athan recordings with bundled offline playback, short iPhone
+  notification excerpts and accessible audio credits (see asset/AUDIO_SOURCES.md).
+- Version/build advanced for in-place updates using the existing trusted CI signing key.
+- Validation: 83 tests passed; analysis reports 57 infos, no warnings/errors. Phone
+  layouts inspected; audio decodes and Android/iPhone asset mappings verified.
+
 ## 2.1.0-rc.7 (build 9)
 
 - Stabilized trusted preview signing with a private GitHub Actions secret and a

@@ -1,0 +1,53 @@
+ATHAN AUDIO CREDITS
+
+All bundled recordings play offline. Full recordings are available for previews
+and Android reminders. iPhone notifications use 28-second opening excerpts with
+a one-second fade. Recordings were converted to mono MP3 and PCM WAV.
+
+FEATURED RECITERS
+Mishary Rashid Alafasy - Kuwait
+Ali ibn Ahmad Mulla - Makkah
+Abdul Basit Abdus Samad - Egypt
+Muhammad Siddiq Al-Minshawi - Egypt
+Nasser Al Qatami - Saudi Arabia
+
+Source collection: https://github.com/Kiwifu/adhan-mp3
+Source revision: b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b
+Recording identities follow the source collection's attribution.
+The repository About statement, checked 19 November 2026, says:
+"Free for Islamic apps, prayer-time software, and personal use."
+This is the collection publisher's permission statement, not a Creative Commons
+or public-domain dedication. No endorsement by the performers is implied.
+Exact source filenames, links and checksums are recorded in the app's source
+repository at tools/athan_audio_manifest.json.
+
+MADINAH - PROPHET'S MOSQUE
+Recorded by ejaz215; the muezzin is not identified by the source.
+Source: https://commons.wikimedia.org/wiki/File:33937_ejaz215_call-to-prayer-from-the-prophet-s-mo.ogg
+Original: https://freesound.org/people/ejaz215/sounds/33937/
+License: Creative Commons Attribution 3.0 Unported
+https://creativecommons.org/licenses/by/3.0/
+Converted from Ogg to MP3; iPhone version is a 28-second faded excerpt.
+
+BEAUTIFUL ATHAN
+Creator: Adam-synagda
+Source: https://commons.wikimedia.org/wiki/File:Beautiful_adhan.ogg
+License: CC0 1.0
+https://creativecommons.org/publicdomain/zero/1.0/
+Converted from Ogg to MP3; iPhone version is a 28-second faded excerpt.
+
+IQAMA RECITATION
+Creator: Aishatu98
+Source: https://commons.wikimedia.org/wiki/File:Iqamah.ogg
+License: CC0 1.0
+https://creativecommons.org/publicdomain/zero/1.0/
+Converted from Ogg to MP3; iPhone version is a 28-second faded excerpt.
+
+SOFT BEEP, DOUBLE BEEP AND GENTLE CHIME
+Original synthesized tones created for Athan, dedicated under CC0 1.0.
+https://creativecommons.org/publicdomain/zero/1.0/
+
+CLASSIC ATHAN
+Original recording inherited from this application's repository (smooth.mp3).
+No new performer attribution or license assertion is made.
+iPhone notifications use the gentle chime for this selection.

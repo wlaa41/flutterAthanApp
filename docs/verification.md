@@ -1,5 +1,24 @@
 # Verification
 
+## 2.1.0-rc.8 / build 10 — 19 November 2026
+
+- Local Flutter 3.50.0 / Dart 3.14.0: all **83 unit/widget tests passed**.
+- Static analysis passed with **57 informational findings, no warnings or errors**.
+  These include the SDK's Material import deprecation; this update does not migrate
+  the application's UI framework.
+- Settings/sound-picker screenshots were rendered and inspected at phone size;
+  large-text checks cover 2× text, narrow screens and landscape.
+- A settings-to-planner test enables weekend/all-day beep, reloads saved settings,
+  and verifies weekday Athan/Iqama sounds remain unchanged. Custom hour restoration,
+  selection/cancellation, imports and preview lifecycle races are covered.
+- Six additional recordings fully decode; all Android copies match their preview
+  assets. iPhone excerpts are mono PCM16 WAVs lasting 28 seconds. Source and output
+  checksums are in `tools/athan_audio_manifest.json` and
+  `tools/athan_audio_verification.json`.
+- Android signing/build and iPhone simulator results are recorded by the workflow
+  for the published commit. These local results do not claim physical-phone audio,
+  locked-screen delivery or battery testing of rc.8.
+
 ## Versioned checkpoints
 
 Each checkpoint is pushed on `codex/athan-reliability` with a matching Git tag.

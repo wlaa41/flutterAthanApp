@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_pro/services/sound_library.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,10 +9,21 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('Every preview and iOS alert sound is bundled locally', () async {
+  test('Every platform maps to the correct bundled sound', () async {
+    expect(
+      SoundCatalog.builtIns.map((sound) => sound.id).toSet(),
+      hasLength(SoundCatalog.builtIns.length),
+    );
     for (final sound in SoundCatalog.builtIns) {
       if (sound.assetPath != null) {
-        expect(await File(sound.assetPath!).length(), greaterThan(44));
+        final preview = await File(sound.assetPath!).readAsBytes();
+        expect(preview.length, greaterThan(44));
+        expect(sound.androidResource, isNotNull, reason: sound.id);
+        final extension = sound.assetPath!.split('.').last;
+        final android = await File(
+          'android/app/src/main/res/raw/${sound.androidResource}.$extension',
+        ).readAsBytes();
+        expect(listEquals(preview, android), isTrue, reason: sound.id);
       }
       if (sound.iosSound != null) {
         final bytes = await File('asset/${sound.iosSound}').readAsBytes();

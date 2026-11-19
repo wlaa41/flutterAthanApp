@@ -53,15 +53,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.access_time_filled_rounded),
-              label: 'Prayer Times',
+              label: 'Prayers',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.menu_book_rounded),
-              label: 'Holy Quran',
+              label: 'Quran',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.explore_rounded),
-              label: 'Qibla & Duas',
+              label: 'Qibla',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.settings_rounded),

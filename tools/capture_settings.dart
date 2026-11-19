@@ -19,7 +19,8 @@ void main() {
     testWidgets('capture settings at text scale $scale', (tester) async {
       // Widget tests default to the square Ahem test font. Load a real local font
       // for human review; REVIEW_FONT can point to any installed TTF on other OSes.
-      final fontPath = Platform.environment['REVIEW_FONT'] ??
+      final fontPath =
+          Platform.environment['REVIEW_FONT'] ??
           (Platform.isWindows
               ? 'C:/Windows/Fonts/segoeui.ttf'
               : '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf');
@@ -75,8 +76,9 @@ void main() {
               ),
             ),
             builder: (context, child) => MediaQuery(
-              data: MediaQuery.of(context)
-                  .copyWith(textScaler: TextScaler.linear(scale)),
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: TextScaler.linear(scale)),
               child: child!,
             ),
             home: const SettingsScreen(),
@@ -94,22 +96,31 @@ void main() {
           final image = await boundary.toImage(pixelRatio: 1);
           final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
           await Directory('build/review').create(recursive: true);
-          await File('build/review/$name.png')
-              .writeAsBytes(bytes!.buffer.asUint8List());
+          await File(
+            'build/review/$name.png',
+          ).writeAsBytes(bytes!.buffer.asUint8List());
           image.dispose();
         });
       }
 
       await capture(scale == 1 ? 'settings-phone' : 'settings-large-text');
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Reminders'));
+      await tester.pumpAndSettle();
+      await capture(
+        scale == 1 ? 'settings-quiet' : 'settings-quiet-large-text',
+      );
       if (scale == 1) {
-        await tester.scrollUntilVisible(find.text('Quiet at work'), 250);
-        await Scrollable.ensureVisible(
-          tester.element(find.text('Quiet at work')),
-          alignment: .05,
+        await tester.tap(find.widgetWithText(ChoiceChip, 'Basics'));
+        await tester.pumpAndSettle();
+        await tester.scrollUntilVisible(
+          find.text('Choose or add a sound'),
+          200,
         );
+        await tester.tap(find.text('Choose or add a sound'));
+        await tester.pumpAndSettle();
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
-        await capture('settings-quiet');
+        await capture('sound-picker');
       }
     });
   }

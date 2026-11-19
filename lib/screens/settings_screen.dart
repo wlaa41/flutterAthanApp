@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:just_audio/just_audio.dart';
 
 import '../models/alert_preferences.dart';
 import '../services/audio_service.dart';
@@ -7,9 +9,17 @@ import '../services/notification_service.dart';
 import '../services/prayer_service.dart';
 import '../services/sound_library.dart';
 import '../widgets/alert_settings_controls.dart';
+import '../widgets/sound_picker_sheet.dart';
+
+enum SettingsSection { essentials, reminders, phone }
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  const SettingsScreen({
+    super.key,
+    this.initialSection = SettingsSection.essentials,
+  });
+
+  final SettingsSection initialSection;
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
@@ -19,6 +29,10 @@ class _SettingsScreenState extends State<SettingsScreen>
   AlertPreferences? _preferences;
   NotificationHealth? _health;
   List<SoundOption> _sounds = [];
+  late SettingsSection _selectedSection;
+  final _scrollController = ScrollController();
+  int _timedQuietStart = 540;
+  int _timedQuietEnd = 1020;
   bool _busy = false;
   bool _previewStarted = false;
   bool _listeningAudioErrors = false;
@@ -30,6 +44,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   @override
   void initState() {
     super.initState();
+    _selectedSection = widget.initialSection;
     WidgetsBinding.instance.addObserver(this);
     _load();
   }
@@ -37,6 +52,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _scrollController.dispose();
     if (_listeningAudioErrors) {
       AudioService.instance.lastError.removeListener(_audioErrorChanged);
     }
@@ -57,7 +73,8 @@ class _SettingsScreenState extends State<SettingsScreen>
     } catch (_) {
       if (mounted)
         setState(
-          () => _error = 'Reminders could not be updated. Check permissions, then tap Refresh reminders.',
+          () => _error =
+              'Reminders could not be updated. Check permissions, then tap Refresh reminders.',
         );
     }
   }
@@ -71,6 +88,10 @@ class _SettingsScreenState extends State<SettingsScreen>
         _preferences = preferences;
         _sounds = sounds;
         _error = null;
+        if (preferences.quietStartMinute != preferences.quietEndMinute) {
+          _timedQuietStart = preferences.quietStartMinute;
+          _timedQuietEnd = preferences.quietEndMinute;
+        }
       });
       await _loadHealth();
     } catch (_) {
@@ -193,191 +214,73 @@ class _SettingsScreenState extends State<SettingsScreen>
                 alignment: Alignment.topCenter,
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 680),
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+                  child: Column(
                     children: [
-                      Text(
-                        'Your prayers. Your routine.',
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Changes save automatically. Pick your sound, then set the reminders that suit your day.',
-                      ),
-                      if (_busy) ...[
-                        const SizedBox(height: 12),
-                        const LinearProgressIndicator(
-                          semanticsLabel: 'Updating reminders',
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
+                          children: [
+                            _category(
+                              SettingsSection.essentials,
+                              'Basics',
+                              Icons.tune,
+                            ),
+                            _category(
+                              SettingsSection.reminders,
+                              'Reminders',
+                              Icons.notifications_outlined,
+                            ),
+                            _category(
+                              SettingsSection.phone,
+                              'Phone setup',
+                              Icons.verified_outlined,
+                            ),
+                          ],
                         ),
-                      ],
-                      if (_error != null) ...[
-                        const SizedBox(height: 12),
-                        _notice(_error!, Icons.error_outline),
-                      ],
-                      const SizedBox(height: 20),
-                      if (_health != null &&
-                          _health!.supported &&
-                          (!_health!.notificationsEnabled ||
-                              (_android && !_health!.exactAlarmsEnabled)))
-                        _setupBanner(_health!),
-                      _section(
-                        title: 'Athan sound',
-                        icon: Icons.volume_up_outlined,
-                        children: [
-                          _soundTile(
-                            'Your Athan',
-                            prefs.athanSoundId,
-                            () => _chooseSound(false),
-                          ),
-                          _previewButtons(prefs.athanSoundId),
-                          const Divider(height: 24),
-                          ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: const Icon(Icons.audio_file_outlined),
-                            title: const Text('Add your own audio'),
-                            subtitle: const Text(
-                              'Choose an Athan or Iqama file from your phone.',
-                            ),
-                            trailing: const Icon(Icons.add),
-                            onTap: _busy ? null : _importSound,
-                          ),
-                          if (_ios)
-                            const Padding(
-                              padding: EdgeInsets.only(top: 8),
-                              child: Text(
-                                'On iPhone, Beautiful Athan and Iqama use short opening excerpts; Classic Athan uses a chime. Imported audio needs a PCM WAV under 30 seconds for alerts; other files use a beep. Previews play the full recording.',
-                              ),
-                            ),
-                        ],
                       ),
-                      _section(
-                        title: 'Iqama reminders',
-                        icon: Icons.notifications_active_outlined,
-                        children: [
-                          SwitchListTile.adaptive(
-                            contentPadding: EdgeInsets.zero,
-                            title: const Text('Remind me for Iqama'),
-                            subtitle: const Text(
-                              'An extra reminder after each enabled prayer.',
+                      if (_busy)
+                        const LinearProgressIndicator(
+                          semanticsLabel: 'Saving and updating reminders',
+                        ),
+                      Expanded(
+                        child: ListView(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: Text(switch (_selectedSection) {
+                                SettingsSection.essentials =>
+                                  'Your city and your Athan. Changes save automatically.',
+                                SettingsSection.reminders =>
+                                  'Choose when to beep and when to hear the full Athan. Changes save automatically.',
+                                SettingsSection.phone =>
+                                  'Check permissions and send a test reminder.',
+                              }),
                             ),
-                            value: prefs.iqamaEnabled,
-                            onChanged: _busy
-                                ? null
-                                : (value) => _save(
-                                    prefs.copyWith(iqamaEnabled: value),
-                                  ),
-                          ),
-                          if (prefs.iqamaEnabled) ...[
-                            const Divider(height: 24),
-                            ReminderTimingEditor(
-                              delayMinutes: prefs.iqamaDelayMinutes,
-                              repeatCount: prefs.iqamaRepeatCount,
-                              intervalMinutes: prefs.iqamaRepeatIntervalMinutes,
-                              enabled: !_busy,
-                              onDelayChanged: (value) => _save(
-                                prefs.copyWith(iqamaDelayMinutes: value),
-                              ),
-                              onRepeatChanged: (value) => _save(
-                                prefs.copyWith(iqamaRepeatCount: value),
-                              ),
-                              onIntervalChanged: (value) => _save(
-                                prefs.copyWith(
-                                  iqamaRepeatIntervalMinutes: value,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            _soundTile(
-                              'Iqama sound',
-                              prefs.iqamaSoundId,
-                              () => _chooseSound(true),
-                            ),
-                            _previewButtons(prefs.iqamaSoundId),
+                            if (_error != null) ...[
+                              _notice(_error!, Icons.error_outline),
+                              const SizedBox(height: 12),
+                            ],
+                            if (_selectedSection ==
+                                SettingsSection.essentials) ...[
+                              _locationSection(prefs),
+                              _athanSection(prefs),
+                              if (_needsSetup) _setupBanner(_health!),
+                            ],
+                            if (_selectedSection ==
+                                SettingsSection.reminders) ...[
+                              _quietSection(prefs),
+                              _iqamaSection(prefs),
+                            ],
+                            if (_selectedSection == SettingsSection.phone) ...[
+                              if (_needsSetup) _setupBanner(_health!),
+                              _permissionSection(),
+                            ],
                           ],
-                        ],
-                      ),
-                      _section(
-                        title: 'Quiet at work',
-                        icon: Icons.work_outline,
-                        children: [
-                          SwitchListTile.adaptive(
-                            contentPadding: EdgeInsets.zero,
-                            title: const Text('Use a quieter reminder'),
-                            subtitle: Text(
-                              prefs.quietEnabled
-                                  ? 'Replaces both Athan and Iqama during these hours.'
-                                  : 'Start with Monday–Friday, 9 am–5 pm. Change any time.',
-                            ),
-                            value: prefs.quietEnabled,
-                            onChanged: _busy
-                                ? null
-                                : (value) => _save(
-                                    prefs.copyWith(quietEnabled: value),
-                                  ),
-                          ),
-                          if (prefs.quietEnabled) ...[
-                            const Divider(height: 24),
-                            QuietScheduleEditor(
-                              weekdays: prefs.quietWeekdays,
-                              startMinute: prefs.quietStartMinute,
-                              endMinute: prefs.quietEndMinute,
-                              enabled: !_busy,
-                              onWeekdaysChanged: (value) =>
-                                  _save(prefs.copyWith(quietWeekdays: value)),
-                              onStartChanged: (value) => _save(
-                                prefs.copyWith(quietStartMinute: value),
-                              ),
-                              onEndChanged: (value) =>
-                                  _save(prefs.copyWith(quietEndMinute: value)),
-                            ),
-                            ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              title: const Text('During quiet hours'),
-                              subtitle: Text(_quietLabel(prefs.quietSoundId)),
-                              trailing: const Icon(Icons.chevron_right),
-                              onTap: _busy ? null : _chooseQuietSound,
-                            ),
-                            if (prefs.quietSoundId != 'silent' &&
-                                prefs.quietSoundId != 'vibrate')
-                              _previewButtons(prefs.quietSoundId),
-                            Text(
-                              'Uses the time in ${PrayerService.instance.cityName}.',
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ],
-                        ],
-                      ),
-                      _permissionSection(),
-                      _section(
-                        title: 'Location & prayer times',
-                        icon: Icons.location_on_outlined,
-                        children: [
-                          ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            title: const Text('City'),
-                            subtitle: Text(PrayerService.instance.cityName),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap: _busy ? null : _selectCity,
-                          ),
-                          ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            title: const Text('Calculation method'),
-                            subtitle: Text(
-                              PrayerService.calculationMethods[PrayerService
-                                      .instance
-                                      .calculationMethod] ??
-                                  'Custom method',
-                            ),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap: _busy ? null : _selectMethod,
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.only(top: 8),
-                            child: Text(
-                              'No background location tracking. Saved times work offline; check your local mosque when choosing a calculation method.',
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ],
                   ),
@@ -386,6 +289,177 @@ class _SettingsScreenState extends State<SettingsScreen>
       ),
     );
   }
+
+  bool get _needsSetup =>
+      _health != null &&
+      _health!.supported &&
+      (!_health!.notificationsEnabled ||
+          (_android && !_health!.exactAlarmsEnabled));
+
+  Widget _category(SettingsSection section, String label, IconData icon) =>
+      ChoiceChip(
+        avatar: Icon(icon, size: 18),
+        showCheckmark: false,
+        label: Text(label),
+        selected: _selectedSection == section,
+        onSelected: _busy
+            ? null
+            : (_) {
+                if (_previewStarted) _stopAudio(showError: false);
+                setState(() => _selectedSection = section);
+                if (_scrollController.hasClients) _scrollController.jumpTo(0);
+              },
+      );
+
+  Widget _locationSection(AlertPreferences prefs) => _section(
+    title: 'Location & prayer times',
+    icon: Icons.location_on_outlined,
+    children: [
+      ListTile(
+        contentPadding: EdgeInsets.zero,
+        title: const Text('City'),
+        subtitle: Text(PrayerService.instance.cityName),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: _busy ? null : _selectCity,
+      ),
+      ListTile(
+        contentPadding: EdgeInsets.zero,
+        title: const Text('Calculation method'),
+        subtitle: Text(
+          PrayerService.calculationMethods[PrayerService
+                  .instance
+                  .calculationMethod] ??
+              'Custom method',
+        ),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: _busy ? null : _selectMethod,
+      ),
+      const Padding(
+        padding: EdgeInsets.only(top: 8),
+        child: Text(
+          'No background location tracking. Saved times work offline; check your local mosque when choosing a calculation method.',
+        ),
+      ),
+    ],
+  );
+
+  Widget _athanSection(AlertPreferences prefs) => _section(
+    title: 'Athan sound',
+    icon: Icons.volume_up_outlined,
+    children: [
+      _soundTile(
+        'Choose or add a sound',
+        prefs.athanSoundId,
+        () => _chooseSound(false),
+      ),
+      TextButton.icon(
+        onPressed: _showAudioCredits,
+        icon: const Icon(Icons.info_outline, size: 18),
+        label: const Text('Audio credits'),
+      ),
+      if (_ios)
+        const Padding(
+          padding: EdgeInsets.only(top: 8),
+          child: Text(
+            'On iPhone, recitations use short opening excerpts; Classic Athan uses a chime. Imported audio needs a PCM WAV under 30 seconds for alerts; other files use a beep. Previews play the full recording.',
+          ),
+        ),
+    ],
+  );
+
+  Widget _quietSection(AlertPreferences prefs) => _section(
+    title: 'Beep on chosen days',
+    icon: Icons.work_outline,
+    children: [
+      SwitchListTile.adaptive(
+        contentPadding: EdgeInsets.zero,
+        title: const Text('Use a quieter reminder'),
+        subtitle: Text(
+          prefs.quietEnabled
+              ? 'Applies to Athan and Iqama. Other times keep your usual sounds.'
+              : 'Choose days for a soft beep instead of the full Athan.',
+        ),
+        value: prefs.quietEnabled,
+        onChanged: _busy
+            ? null
+            : (value) => _save(prefs.copyWith(quietEnabled: value)),
+      ),
+      if (prefs.quietEnabled) ...[
+        const Divider(height: 24),
+        QuietScheduleEditor(
+          weekdays: prefs.quietWeekdays,
+          startMinute: prefs.quietStartMinute,
+          endMinute: prefs.quietEndMinute,
+          enabled: !_busy,
+          onAllDayChanged: (allDay) {
+            if (allDay == (prefs.quietStartMinute == prefs.quietEndMinute))
+              return;
+            if (allDay && prefs.quietStartMinute != prefs.quietEndMinute) {
+              _timedQuietStart = prefs.quietStartMinute;
+              _timedQuietEnd = prefs.quietEndMinute;
+            }
+            _save(
+              prefs.copyWith(
+                quietStartMinute: allDay ? 0 : _timedQuietStart,
+                quietEndMinute: allDay ? 0 : _timedQuietEnd,
+              ),
+            );
+          },
+          onWeekdaysChanged: (value) =>
+              _save(prefs.copyWith(quietWeekdays: value)),
+          onStartChanged: (value) =>
+              _save(prefs.copyWith(quietStartMinute: value)),
+          onEndChanged: (value) => _save(prefs.copyWith(quietEndMinute: value)),
+        ),
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Sound on these days'),
+          subtitle: Text(_quietLabel(prefs.quietSoundId)),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: _busy ? null : _chooseQuietSound,
+        ),
+        if (prefs.quietSoundId != 'silent' && prefs.quietSoundId != 'vibrate')
+          _previewButtons(prefs.quietSoundId),
+        Text(
+          'Uses the time in ${PrayerService.instance.cityName}.',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ],
+    ],
+  );
+
+  Widget _iqamaSection(AlertPreferences prefs) => _section(
+    title: 'Iqama reminders',
+    icon: Icons.notifications_active_outlined,
+    children: [
+      SwitchListTile.adaptive(
+        contentPadding: EdgeInsets.zero,
+        title: const Text('Remind me for Iqama'),
+        subtitle: const Text('An extra reminder after each enabled prayer.'),
+        value: prefs.iqamaEnabled,
+        onChanged: _busy
+            ? null
+            : (value) => _save(prefs.copyWith(iqamaEnabled: value)),
+      ),
+      if (prefs.iqamaEnabled) ...[
+        const Divider(height: 24),
+        ReminderTimingEditor(
+          delayMinutes: prefs.iqamaDelayMinutes,
+          repeatCount: prefs.iqamaRepeatCount,
+          intervalMinutes: prefs.iqamaRepeatIntervalMinutes,
+          enabled: !_busy,
+          onDelayChanged: (value) =>
+              _save(prefs.copyWith(iqamaDelayMinutes: value)),
+          onRepeatChanged: (value) =>
+              _save(prefs.copyWith(iqamaRepeatCount: value)),
+          onIntervalChanged: (value) =>
+              _save(prefs.copyWith(iqamaRepeatIntervalMinutes: value)),
+        ),
+        const SizedBox(height: 8),
+        _soundTile('Iqama sound', prefs.iqamaSoundId, () => _chooseSound(true)),
+      ],
+    ],
+  );
 
   Widget _section({
     required String title,
@@ -407,8 +481,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                   header: true,
                   child: Text(
                     title,
-                    style: Theme.of(context).textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -468,7 +543,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                         _previewStarted = true;
                         await AudioService.instance.playSound(_sound(soundId));
                       },
-                      failure: 'This audio could not play. Try another sound or add the file again.',
+                      failure:
+                          'This audio could not play. Try another sound or add the file again.',
                     ),
             ),
             TextButton.icon(
@@ -523,7 +599,9 @@ class _SettingsScreenState extends State<SettingsScreen>
           if (_android) ...[
             _statusTile(
               'On-time alarms',
-              health.exactAlarmsEnabled ? 'Allowed' : 'Allow precise timing for full recordings. Without it, phone tones may arrive late.',
+              health.exactAlarmsEnabled
+                  ? 'Allowed'
+                  : 'Allow precise timing for full recordings. Without it, phone tones may arrive late.',
               health.exactAlarmsEnabled,
               () => _run(() async {
                 await NotificationService.instance
@@ -571,7 +649,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                         NotificationService.instance.testNotification,
                         success:
                             'Test sent. Check your phone’s notification panel.',
-                        failure: 'The test could not be sent. Check notification permissions.',
+                        failure:
+                            'The test could not be sent. Check notification permissions.',
                       ),
               ),
               TextButton(
@@ -664,83 +743,62 @@ class _SettingsScreenState extends State<SettingsScreen>
       );
 
   Future<void> _chooseSound(bool iqama) async {
-    final prefs = _preferences!;
-    final selectedId = iqama ? prefs.iqamaSoundId : prefs.athanSoundId;
-    final sounds = _sounds.where(
-      (sound) =>
-          sound.kind == SoundKind.custom ||
-          sound.kind == SoundKind.tone ||
-          sound.kind == (iqama ? SoundKind.iqama : SoundKind.athan),
+    await _stopAudio();
+    if (!mounted) return;
+    final selected = await showModalBottomSheet<SoundOption>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => SoundPickerSheet(
+        sounds: _sounds,
+        selectedId: iqama
+            ? _preferences!.iqamaSoundId
+            : _preferences!.athanSoundId,
+        iqama: iqama,
+        isIOS: _ios,
+        playbackError: AudioService.instance.lastError,
+        onPreview: (sound) async {
+          _previewStarted = true;
+          await AudioService.instance.playSound(sound);
+        },
+        onStop: () => AudioService.instance.stop(),
+        isPlayingStream: AudioService.instance.playerStateStream.map(
+          (state) =>
+              state.playing &&
+              state.processingState != ProcessingState.completed,
+        ),
+        onImport: () async {
+          final sound = await SoundLibrary.instance.importSound();
+          if (sound != null && mounted) {
+            setState(() => _sounds = [..._sounds, sound]);
+          }
+          return sound;
+        },
+      ),
     );
-    final selected = await _sheet<String>(
-      iqama ? 'Choose Iqama sound' : 'Choose Athan',
-      [
-        for (final sound in sounds)
-          ListTile(
-            title: Text(sound.name),
-            subtitle: Text(
-              _ios && sound.isVibrationOnly
-                  ? 'Silent alert; vibration follows iPhone settings'
-                  : sound.description,
-            ),
-            selected: sound.id == selectedId,
-            leading: Icon(
-              sound.id == selectedId
-                  ? Icons.check_circle
-                  : Icons.music_note_outlined,
-            ),
-            onTap: () => Navigator.pop(context, sound.id),
-          ),
-      ],
+    await _stopAudio();
+    if (selected == null || !mounted) return;
+    await _save(
+      iqama
+          ? _preferences!.copyWith(iqamaSoundId: selected.id)
+          : _preferences!.copyWith(athanSoundId: selected.id),
     );
-    if (selected != null && mounted) {
-      await _stopAudio();
-      await _save(
-        iqama
-            ? prefs.copyWith(iqamaSoundId: selected)
-            : prefs.copyWith(athanSoundId: selected),
-      );
-    }
   }
 
-  Future<void> _importSound() => _run(
-    () async {
-      final sound = await SoundLibrary.instance.importSound();
-      if (sound == null) return;
-      final sounds = await SoundLibrary.instance.loadSounds();
+  Future<void> _showAudioCredits() async {
+    try {
+      final credits = await rootBundle.loadString('asset/AUDIO_CREDITS.txt');
       if (!mounted) return;
-      setState(() => _sounds = sounds);
-      final useFor = await _sheet<String>('Use ${sound.name} for', [
-        ListTile(
-          title: const Text('Athan'),
-          leading: const Icon(Icons.volume_up_outlined),
-          onTap: () => Navigator.pop(context, 'athan'),
-        ),
-        ListTile(
-          title: const Text('Iqama'),
-          leading: const Icon(Icons.notifications_active_outlined),
-          onTap: () => Navigator.pop(context, 'iqama'),
-        ),
-        ListTile(
-          title: const Text('Keep in my sound library'),
-          leading: const Icon(Icons.library_music_outlined),
-          onTap: () => Navigator.pop(context, 'library'),
+      await _sheet<void>('Audio credits', [
+        Padding(
+          padding: const EdgeInsets.all(12),
+          child: SelectableText(credits),
         ),
       ]);
-      if (!mounted) return;
-      if (useFor == 'athan' || useFor == 'iqama') {
-        final next = useFor == 'athan'
-            ? _preferences!.copyWith(athanSoundId: sound.id)
-            : _preferences!.copyWith(iqamaSoundId: sound.id);
-        await next.save();
-        if (mounted) setState(() => _preferences = next);
-        await NotificationService.instance.refreshSchedule();
-        await _loadHealth();
-      }
-      if (mounted) _message('Audio added to your sound library.');
-    },
-    failure: 'Could not add that audio. Choose a playable MP3, M4A or WAV file under 20 MB and up to 10 minutes.',
-  );
+    } catch (_) {
+      if (mounted) _message('Audio credits could not be opened. Try again.');
+    }
+  }
 
   Future<void> _chooseQuietSound() async {
     const labels = {
@@ -840,6 +898,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                         await NotificationService.instance
                             .requestExactAlarmPermission();
                       }
+                      await NotificationService.instance.refreshSchedule();
                       await _loadHealth();
                     }),
               child: Text(

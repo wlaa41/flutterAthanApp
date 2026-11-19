@@ -21,3 +21,39 @@ notification sounds must be under 30 seconds, so the new recordings use the
 explicitly labelled excerpts; Classic Athan uses the gentle chime on iOS.
 Imported PCM WAV files under 30 seconds can be used directly by iOS notifications;
 other imports use a short beep there and remain available for full previews.
+
+## Featured recordings added 19 November 2026
+
+Six additional recordings are bundled for offline playback. They are presented
+by name and source, without a claim to a current popularity or trending ranking.
+
+| Asset / Android resource | Attribution | Source and permission |
+| --- | --- | --- |
+| `mishary_alafasy.mp3` | Mishary Rashid Alafasy, Kuwait | Kiwifu collection, recording 1 |
+| `makkah_ali_mulla.mp3` | Ali ibn Ahmad Mulla, associated with Al-Haram Al-Maki | Kiwifu collection, HQ recording |
+| `abdul_basit.mp3` | Abdul Basit Abdus Samad, Egypt | Kiwifu collection, recording 3 |
+| `minshawi.mp3` | Muhammad Siddiq Al-Minshawi, Egypt | Kiwifu collection, Egypt recording 2 |
+| `nasser_al_qatami.mp3` | Nasser Al Qatami, Saudi Arabia | Kiwifu collection, recording 1 |
+| `madinah.mp3` | Prophet's Mosque recording by ejaz215; muezzin unidentified | [Wikimedia Commons source](https://commons.wikimedia.org/wiki/File:33937_ejaz215_call-to-prayer-from-the-prophet-s-mo.ogg), [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) |
+
+The [Kiwifu/adhan-mp3 collection](https://github.com/Kiwifu/adhan-mp3) repository
+About description states: **“Free for Islamic apps, prayer-time software, and
+personal use.”** That statement was checked on 19 November 2026. It is a
+repository-publisher statement, not a standard open-content license; neither a
+Creative Commons license nor public-domain status is asserted. The collection
+does not provide an individual rights-holder license for each named performer.
+Attribution follows the collection's filenames and README; identity has not been
+independently authenticated. The pinned source revision is
+`b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b`. The About description is repository
+metadata and is not part of that Git revision.
+
+Exact filenames, source URLs, Git blob hashes and SHA-256 checksums are preserved
+in `tools/athan_audio_manifest.json`. In-app attribution is in
+`asset/AUDIO_CREDITS.txt`, exposed through Settings.
+
+`tools/prepare_featured_audio.py` uses `imageio-ffmpeg==0.8.1` to verify original
+checksums, decode each complete source, convert full recordings to mono 44.1 kHz
+96 kbps MP3, and produce 28-second mono 22.05 kHz 16-bit PCM notification excerpts
+with a one-second fade. No words are added or reordered. Android copies match
+the full MP3 assets byte-for-byte. Conversion results, decoded durations and
+output hashes are recorded in `tools/athan_audio_verification.json`.

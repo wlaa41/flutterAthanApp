@@ -1,0 +1,88 @@
+{
+  "source_revision": "b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b",
+  "recordings": [
+    {
+      "id": "mishary_alafasy",
+      "name": "Mishary Rashid Alafasy",
+      "performer": "Mishary Rashid Alafasy",
+      "url": "https://raw.githubusercontent.com/Kiwifu/adhan-mp3/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/Mishary_Rashid_Alafasy_1_-_Kuwait_(%D9%85%D8%B4%D8%A7%D8%B1%D9%8A_%D8%B1%D8%A7%D8%B4%D8%AF_%D8%A7%D9%84%D8%B9%D9%81%D8%A7%D8%B3%D9%8A_-_%D8%A7%D9%84%D9%83%D9%88%D9%8A%D8%AA).mp3",
+      "source_page": "https://github.com/Kiwifu/adhan-mp3/blob/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/Mishary_Rashid_Alafasy_1_-_Kuwait_(%D9%85%D8%B4%D8%A7%D8%B1%D9%8A_%D8%B1%D8%A7%D8%B4%D8%AF_%D8%A7%D9%84%D8%B9%D9%81%D8%A7%D8%B3%D9%8A_-_%D8%A7%D9%84%D9%83%D9%88%D9%8A%D8%AA).mp3",
+      "source_filename": "Mishary_Rashid_Alafasy_1_-_Kuwait_(مشاري_راشد_العفاسي_-_الكويت).mp3",
+      "git_blob_sha1": "d9db83fa921a6669f8750044f83ce56bbccecaa3",
+      "permission": "Repository About statement: Free for Islamic apps, prayer-time software, and personal use.",
+      "source_revision": "b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b",
+      "sha256": "7889fb396f7d29debf1258c4d522d43fe680c786a9d9f06d4542d22cebe58fb8",
+      "bytes": 1931082,
+      "checked_on": "2026-11-19"
+    },
+    {
+      "id": "makkah_ali_mulla",
+      "name": "Makkah · Ali Mulla",
+      "performer": "Ali ibn Ahmad Mulla",
+      "url": "https://raw.githubusercontent.com/Kiwifu/adhan-mp3/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/Ali_Ibn_Ahmad_Mala_-_HQ_(%D8%B9%D9%84%D9%8A_%D8%A8%D9%86_%D8%A3%D8%AD%D9%85%D8%AF_%D9%85%D9%84%D8%A7).mp3",
+      "source_page": "https://github.com/Kiwifu/adhan-mp3/blob/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/Ali_Ibn_Ahmad_Mala_-_HQ_(%D8%B9%D9%84%D9%8A_%D8%A8%D9%86_%D8%A3%D8%AD%D9%85%D8%AF_%D9%85%D9%84%D8%A7).mp3",
+      "source_filename": "Ali_Ibn_Ahmad_Mala_-_HQ_(علي_بن_أحمد_ملا).mp3",
+      "git_blob_sha1": "ccf0c757c0ba22072f142e9999f9ecfd47fc268b",
+      "permission": "Repository About statement: Free for Islamic apps, prayer-time software, and personal use.",
+      "source_revision": "b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b",
+      "sha256": "bbb947d2ad28c085481658f219b1f2c2f9b94b94dc7380e121f5dacaca0d0f6b",
+      "bytes": 3914232,
+      "checked_on": "2026-11-19"
+    },
+    {
+      "id": "abdul_basit",
+      "name": "Abdul Basit Abdus Samad",
+      "performer": "Abdul Basit Abdus Samad",
+      "url": "https://raw.githubusercontent.com/Kiwifu/adhan-mp3/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/Abdulbasit_Abdusamad_3_-_Egypt_(%D8%B9%D8%A8%D8%AF_%D8%A7%D9%84%D8%A8%D8%A7%D8%B3%D8%B7_%D8%B9%D8%A8%D8%AF_%D8%A7%D9%84%D8%B5%D9%85%D8%AF_-_%D9%85%D8%B5%D8%B1).mp3",
+      "source_page": "https://github.com/Kiwifu/adhan-mp3/blob/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/Abdulbasit_Abdusamad_3_-_Egypt_(%D8%B9%D8%A8%D8%AF_%D8%A7%D9%84%D8%A8%D8%A7%D8%B3%D8%B7_%D8%B9%D8%A8%D8%AF_%D8%A7%D9%84%D8%B5%D9%85%D8%AF_-_%D9%85%D8%B5%D8%B1).mp3",
+      "source_filename": "Abdulbasit_Abdusamad_3_-_Egypt_(عبد_الباسط_عبد_الصمد_-_مصر).mp3",
+      "git_blob_sha1": "2a106e5bf3f9dac81e447d8cbb8ce43340353551",
+      "permission": "Repository About statement: Free for Islamic apps, prayer-time software, and personal use.",
+      "source_revision": "b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b",
+      "sha256": "b18b7becd78d9d5ac5e9b79c3c831682b5aeaeed307ba45a82a382ce43e4cc90",
+      "bytes": 4495998,
+      "checked_on": "2026-11-19"
+    },
+    {
+      "id": "minshawi",
+      "name": "Muhammad Siddiq Al-Minshawi",
+      "performer": "Muhammad Siddiq Al-Minshawi",
+      "url": "https://raw.githubusercontent.com/Kiwifu/adhan-mp3/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/Mohamed_Siddiq_El-Minshawi_-_Egypt_2_(%D9%85%D8%AD%D9%85%D8%AF_%D8%B5%D8%AF%D9%8A%D9%82_%D8%A7%D9%84%D9%85%D9%86%D8%B4%D8%A7%D9%88%D9%8A_-_%D9%85%D8%B5%D8%B1).mp3",
+      "source_page": "https://github.com/Kiwifu/adhan-mp3/blob/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/Mohamed_Siddiq_El-Minshawi_-_Egypt_2_(%D9%85%D8%AD%D9%85%D8%AF_%D8%B5%D8%AF%D9%8A%D9%82_%D8%A7%D9%84%D9%85%D9%86%D8%B4%D8%A7%D9%88%D9%8A_-_%D9%85%D8%B5%D8%B1).mp3",
+      "source_filename": "Mohamed_Siddiq_El-Minshawi_-_Egypt_2_(محمد_صديق_المنشاوي_-_مصر).mp3",
+      "git_blob_sha1": "f9d15ca176f22c45c1545dfb98e7277a37032a1b",
+      "permission": "Repository About statement: Free for Islamic apps, prayer-time software, and personal use.",
+      "source_revision": "b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b",
+      "sha256": "c3f91aa3fb93b9e8ce7f9ec5c6f406be67a1fc459def8bd91a5093fb44c66580",
+      "bytes": 3955074,
+      "checked_on": "2026-11-19"
+    },
+    {
+      "id": "nasser_al_qatami",
+      "name": "Nasser Al Qatami",
+      "performer": "Nasser Al Qatami",
+      "url": "https://raw.githubusercontent.com/Kiwifu/adhan-mp3/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/Nasser_Al_Qatami_1_-_Saudi_Arabia_(%D9%86%D8%A7%D8%B5%D8%B1_%D8%A7%D9%84%D9%82%D8%B7%D8%A7%D9%85%D9%8A_-_%D8%A7%D9%84%D9%85%D9%85%D9%84%D9%83%D8%A9_%D8%A7%D9%84%D8%B9%D8%B1%D8%A8%D9%8A%D8%A9_%D8%A7%D9%84%D8%B3%D8%B9%D9%88%D8%AF%D9%8A%D8%A9).mp3",
+      "source_page": "https://github.com/Kiwifu/adhan-mp3/blob/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/Nasser_Al_Qatami_1_-_Saudi_Arabia_(%D9%86%D8%A7%D8%B5%D8%B1_%D8%A7%D9%84%D9%82%D8%B7%D8%A7%D9%85%D9%8A_-_%D8%A7%D9%84%D9%85%D9%85%D9%84%D9%83%D8%A9_%D8%A7%D9%84%D8%B9%D8%B1%D8%A8%D9%8A%D8%A9_%D8%A7%D9%84%D8%B3%D8%B9%D9%88%D8%AF%D9%8A%D8%A9).mp3",
+      "source_filename": "Nasser_Al_Qatami_1_-_Saudi_Arabia_(ناصر_القطامي_-_المملكة_العربية_السعودية).mp3",
+      "git_blob_sha1": "7f09b9e2027d08eb177df23e18f1036a7074441b",
+      "permission": "Repository About statement: Free for Islamic apps, prayer-time software, and personal use.",
+      "source_revision": "b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b",
+      "sha256": "77c9e53d0ad753d61fd0122d211291892e826a64c139422dc274c968c860c3cc",
+      "bytes": 2117341,
+      "checked_on": "2026-11-19"
+    },
+    {
+      "id": "madinah",
+      "name": "Madinah · Prophet’s Mosque",
+      "performer": "Muezzin not identified; recorded by ejaz215",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/7c/33937_ejaz215_call-to-prayer-from-the-prophet-s-mo.ogg",
+      "source_page": "https://commons.wikimedia.org/wiki/File:33937_ejaz215_call-to-prayer-from-the-prophet-s-mo.ogg",
+      "source_filename": "33937_ejaz215_call-to-prayer-from-the-prophet-s-mo.ogg",
+      "permission": "Creative Commons Attribution 3.0 Unported",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "sha256": "4d0fabe0e0ef52186646a256220f74a972ba698ac269165fed5d52de3202d656",
+      "bytes": 2974689,
+      "checked_on": "2026-11-19"
+    }
+  ]
+}

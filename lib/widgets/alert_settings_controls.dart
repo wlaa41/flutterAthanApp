@@ -11,6 +11,7 @@ class QuietScheduleEditor extends StatelessWidget {
     required this.onWeekdaysChanged,
     required this.onStartChanged,
     required this.onEndChanged,
+    this.onAllDayChanged,
   });
 
   final Set<int> weekdays;
@@ -20,6 +21,14 @@ class QuietScheduleEditor extends StatelessWidget {
   final ValueChanged<Set<int>> onWeekdaysChanged;
   final ValueChanged<int> onStartChanged;
   final ValueChanged<int> onEndChanged;
+
+  /// Applies both endpoints atomically when switching the schedule mode.
+  final ValueChanged<bool>? onAllDayChanged;
+  static const _presets = {
+    'Weekdays': {1, 2, 3, 4, 5},
+    'Weekend': {6, 7},
+    'Every day': {1, 2, 3, 4, 5, 6, 7},
+  };
   static const _days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   static const _fullDays = [
     'Monday',
@@ -47,11 +56,30 @@ class QuietScheduleEditor extends StatelessWidget {
   Widget build(BuildContext context) {
     final start = TimeOfDay(hour: startMinute ~/ 60, minute: startMinute % 60);
     final end = TimeOfDay(hour: endMinute ~/ 60, minute: endMinute % 60);
+    final allDay = startMinute == endMinute;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Quiet days', style: Theme.of(context).textTheme.titleSmall),
         const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 4,
+          children: [
+            for (final preset in _presets.entries)
+              ChoiceChip(
+                label: Text(preset.key),
+                selected:
+                    weekdays.length == preset.value.length &&
+                    weekdays.containsAll(preset.value),
+                materialTapTargetSize: MaterialTapTargetSize.padded,
+                onSelected: !enabled
+                    ? null
+                    : (_) => onWeekdaysChanged(Set<int>.from(preset.value)),
+              ),
+          ],
+        ),
+        const SizedBox(height: 4),
         Wrap(
           spacing: 8,
           runSpacing: 4,
@@ -80,26 +108,50 @@ class QuietScheduleEditor extends StatelessWidget {
             child: Text('Select at least one day to use quiet hours.'),
           ),
         const SizedBox(height: 8),
-        Wrap(
-          spacing: 12,
-          runSpacing: 8,
-          children: [
-            OutlinedButton.icon(
-              icon: const Icon(Icons.schedule),
-              label: Text('From ${start.format(context)}'),
-              onPressed: enabled
-                  ? () => _pickTime(context, startMinute, onStartChanged)
-                  : null,
-            ),
-            OutlinedButton.icon(
-              icon: const Icon(Icons.schedule),
-              label: Text('Until ${end.format(context)}'),
-              onPressed: enabled
-                  ? () => _pickTime(context, endMinute, onEndChanged)
-                  : null,
-            ),
-          ],
-        ),
+        if (onAllDayChanged != null) ...[
+          Text('When', style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              ChoiceChip(
+                label: const Text('All day'),
+                selected: allDay,
+                materialTapTargetSize: MaterialTapTargetSize.padded,
+                onSelected: !enabled ? null : (_) => onAllDayChanged!(true),
+              ),
+              ChoiceChip(
+                label: const Text('Set hours'),
+                selected: !allDay,
+                materialTapTargetSize: MaterialTapTargetSize.padded,
+                onSelected: !enabled ? null : (_) => onAllDayChanged!(false),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+        ],
+        if (!allDay || onAllDayChanged == null)
+          Wrap(
+            spacing: 12,
+            runSpacing: 8,
+            children: [
+              OutlinedButton.icon(
+                icon: const Icon(Icons.schedule),
+                label: Text('From ${start.format(context)}'),
+                onPressed: enabled
+                    ? () => _pickTime(context, startMinute, onStartChanged)
+                    : null,
+              ),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.schedule),
+                label: Text('Until ${end.format(context)}'),
+                onPressed: enabled
+                    ? () => _pickTime(context, endMinute, onEndChanged)
+                    : null,
+              ),
+            ],
+          ),
         if (endMinute < startMinute)
           const Padding(
             padding: EdgeInsets.only(top: 8),
@@ -107,12 +159,10 @@ class QuietScheduleEditor extends StatelessWidget {
               'Finishes the next morning. Choose the days your quiet hours start.',
             ),
           ),
-        if (endMinute == startMinute)
+        if (allDay)
           const Padding(
             padding: EdgeInsets.only(top: 8),
-            child: Text(
-              'Matching times mean quiet all day on your selected days.',
-            ),
+            child: Text('Quieter reminders all day on your selected days.'),
           ),
       ],
     );

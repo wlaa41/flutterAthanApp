@@ -5,16 +5,22 @@ Quran reader, and editable work hours. Android 7+ (API 24); iOS 15+.
 
 ## Reminders that fit your day
 
-- Choose Classic Athan, Beautiful Athan, an Iqama recitation, soft beep, double beep,
-  chime, vibration, or silence. Recordings and tones are bundled, not streamed.
-- Import an MP3, M4A, or WAV from the system file picker (up to 20 MB / 10 minutes).
-  The app keeps a private copy; no broad storage permission is needed.
+- Choose Classic Athan, Beautiful Athan, Mishary Alafasy, Makkah (Ali Mulla),
+  Madinah, Abdul Basit, Minshawi, or Nasser Al Qatami, plus an Iqama recitation,
+  soft beep, double beep, chime, vibration, or silence. Recordings and tones are
+  bundled, not streamed. Audio credits are available in Settings.
+- Open **Settings → Basics → Choose or add a sound** to compare recordings, preview
+  them, and add an MP3, M4A, or WAV from your phone (up to 20 MB / 10 minutes).
+  Tap **Use sound** to apply your choice. Cancelling keeps your previous choice;
+  imported files remain in your private sound library.
 - Enable Iqama, set the delay after prayer (1–120 minutes), total reminders (1–5),
   and spacing (1–30 minutes). Repeats stop before sunrise for Fajr or the next prayer.
-- Work hours start with Monday–Friday, 09:00–17:00, and are opt-in. Edit weekdays,
-  start/end, and the replacement tone. Overnight shifts belong to the starting day.
-  Equal start/end means the entire selected day. Work hours apply to Athan and Iqama
-  at each alert's time in the selected city's timezone.
+- For a beep on specific days: **Settings → Reminders → Beep on chosen days**.
+  Turn on **Use a quieter reminder**, select your days (or Weekdays / Weekend /
+  Every day), then choose **All day** or **Set hours**. Soft beep is the default;
+  other days and hours keep your usual sounds. Applies to Athan and Iqama in the
+  selected city's timezone. Existing schedules are preserved; the initial optional
+  schedule is Monday–Friday, 09:00–17:00. Overnight hours belong to the starting day.
 - Muting a prayer immediately rebuilds its Athan and Iqama schedule.
 
 ## Reliability and battery use
