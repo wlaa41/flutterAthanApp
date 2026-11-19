@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:timezone/data/latest.dart' as tz;
+
 import 'screens/main_navigation_screen.dart';
-import 'services/notification_service.dart';
 import 'services/prayer_service.dart';
 
 void main() async {
@@ -10,22 +10,7 @@ void main() async {
   // Initialize time zones for local notifications
   tz.initializeTimeZones();
 
-  // Initialize notification service with 'smooth' athan sound
-  await NotificationService.instance.initialize();
-
-  // Schedule upcoming month's prayer notifications
-  try {
-    final now = DateTime.now();
-    PrayerService.instance
-        .getMonthlyPrayers(now.year, now.month)
-        .then((prayers) {
-      NotificationService.instance.schedulePrayers(prayers);
-    }).catchError((e) {
-      debugPrint('Initial prayer schedule error: $e');
-    });
-  } catch (e) {
-    debugPrint('Prayer init error: $e');
-  }
+  await PrayerService.instance.loadSavedSettings();
 
   runApp(const AthanQuranApp());
 }
@@ -37,7 +22,7 @@ class AthanQuranApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Athan & Quran London',
+      title: 'Athan & Quran',
       theme: ThemeData(
         brightness: Brightness.light,
         primaryColor: const Color(0xFF0F3931),

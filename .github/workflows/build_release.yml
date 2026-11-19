@@ -1,63 +1,100 @@
-name: Build Release APK
+name: Verify mobile apps
 
 on:
+  pull_request:
   push:
-    branches: [ master, main ]
+    branches: [main, master]
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: mobile-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build:
+  verify:
     runs-on: ubuntu-latest
-
+    timeout-minutes: 35
     steps:
-      - name: Checkout Code
+      - name: Check out source
         uses: actions/checkout@v4
-
-      - name: Set up Java JDK
+      - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
+          distribution: temurin
           java-version: '17'
-
+          cache: gradle
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
-          cache: false
-
-      - name: Clean & Install Dependencies
+          flutter-version: '3.50.0'
+          channel: stable
+          cache: true
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Analyze Dart
+        run: flutter analyze --no-fatal-infos
+      - name: Test scheduling, fetching, settings, and widgets
+        run: flutter test
+      - name: Restore stable preview signing key
+        if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        env:
+          ATHAN_PREVIEW_KEYSTORE_BASE64: ${{ secrets.ATHAN_PREVIEW_KEYSTORE_BASE64 }}
         run: |
-          flutter clean
-          flutter pub get
-
-      - name: Build Android Release APK
-        run: flutter build apk --release --android-skip-build-dependency-validation
-
-      - name: Upload Release APK Artifact
+          if [ -z "$ATHAN_PREVIEW_KEYSTORE_BASE64" ]; then
+            echo "::error::Configure ATHAN_PREVIEW_KEYSTORE_BASE64 for upgradeable preview APKs."
+            exit 1
+          fi
+          umask 077
+          mkdir -p "$HOME/.android"
+          printf '%s' "$ATHAN_PREVIEW_KEYSTORE_BASE64" | base64 --decode > "$HOME/.android/debug.keystore"
+      - name: Build Android preview APK
+        run: flutter build apk --release
+      - name: Verify preview signing certificate
+        if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        run: |
+          signature_report="$("$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs build/app/outputs/flutter-apk/app-release.apk)"
+          printf '%s\n' "$signature_report"
+          actual="$(printf '%s\n' "$signature_report" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
+          test "$actual" = 'f7f52594422cf2ce808e9510ed91ee27e42ff7efd2e9fee841d29a05a0441678'
+      - name: Save installable preview
         uses: actions/upload-artifact@v4
         with:
-          name: app-release
+          name: athan-android-${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && 'preview' || 'test' }}-${{ github.sha }}
           path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 14
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        if: github.ref == 'refs/heads/main'
+  ios-simulator:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
         with:
-          tag_name: v2.0.0
-          name: "Athan & Quran London Pro v2.0.0"
-          body: |
-            ## Athan & Quran London Pro - Release v2.0.0
+          flutter-version: '3.50.0'
+          channel: stable
+          cache: true
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Build iOS simulator app (no signing)
+        run: flutter build ios --simulator --debug --no-codesign
+      - name: Launch iPhone app and verify startup
+        timeout-minutes: 10
+        run: bash tools/ios_smoke.sh
+      - name: Save iPhone startup screenshot
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: athan-iphone-startup-${{ github.sha }}
+          path: build/review/ios-launch.png
+          if-no-files-found: ignore
+          retention-days: 14
 
-            ### What's New
-            - **Modern Prayer Times**: Live countdown timer, interval progress bar, and authentic Athan sound preview (`smooth.mp3`).
-            - **Robust Offline Fallback**: Built-in astronomical solar calculation engine (fail-safe when offline or API is down).
-            - **Holy Quran with Colored Tajweed**: Authentic Tajweed coloring (Qalqalah, Ikhfa, Idgham, Madd rules, etc.) with in-app guide.
-            - **Stylus & Highlighter Canvas**: Write notes, circle ayahs, and highlight text with S-Pen, Apple Pencil, or finger.
-            - **Clickable Verses**: Tap any ayah for Sheikh Mishary Rashid Alafasy recitation, English Saheeh International translation, bookmarks, and copy.
-            - **Qibla Direction & Adhkar**: Compass pointing to Mecca with daily authentic adhkar and touch tasbeeh counter.
-          files: build/app/outputs/flutter-apk/app-release.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+# Trusted Android previews use a stable private debug key. Production signing and
+# publishing are separate deliberate steps; this workflow never overwrites v2.0.0.
+

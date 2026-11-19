@@ -1,5 +1,9 @@
 import 'dart:async';
+import 'dart:ui' show FontFeature;
+
 import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
+
 import '../models/prayer_time_model.dart';
 import '../services/audio_service.dart';
 import '../services/prayer_service.dart';
@@ -9,240 +13,293 @@ class NextPrayerHero extends StatefulWidget {
   final VoidCallback onRefresh;
 
   const NextPrayerHero({
-    Key? key,
+    super.key,
     required this.today,
     required this.onRefresh,
-  }) : super(key: key);
+  });
 
   @override
-  _NextPrayerHeroState createState() => _NextPrayerHeroState();
+  State<NextPrayerHero> createState() => _NextPrayerHeroState();
 }
 
-class _NextPrayerHeroState extends State<NextPrayerHero> {
+class _NextPrayerHeroState extends State<NextPrayerHero>
+    with WidgetsBindingObserver {
   Timer? _timer;
+  StreamSubscription<PlayerState>? _audioSubscription;
   late NextPrayerInfo _nextPrayer;
+  late int _displayedDay;
+  double _intervalSeconds = 0;
   bool _isPlayingAthan = false;
+  bool _audioBusy = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _displayedDay = _dayKey(PrayerService.instance.now);
     _updateNextPrayer();
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (mounted) {
-        setState(() {
-          _updateNextPrayer();
-        });
-      }
+    _startTimer();
+    _audioSubscription = AudioService.instance.playerStateStream.listen((
+      state,
+    ) {
+      if (!mounted) return;
+      final playing =
+          AudioService.instance.isPlayingAthan &&
+          state.playing &&
+          state.processingState != ProcessingState.completed;
+      if (playing != _isPlayingAthan) setState(() => _isPlayingAthan = playing);
     });
+    AudioService.instance.lastError.addListener(_showAudioError);
+  }
 
-    AudioService.instance.playerStateStream.listen((state) {
-      if (mounted) {
-        setState(() {
-          _isPlayingAthan = AudioService.instance.isPlayingAthan;
-        });
+  void _showAudioError() {
+    if (!mounted) return;
+    final message = AudioService.instance.lastError.value;
+    if (message != null) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
+
+  void _startTimer() {
+    _timer?.cancel();
+    final state = WidgetsBinding.instance.lifecycleState;
+    if (state != null && state != AppLifecycleState.resumed) return;
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
+  }
+
+  void _tick() {
+    if (!mounted) return;
+    final now = PrayerService.instance.now;
+    final currentDay = _dayKey(now);
+    setState(() {
+      if (currentDay != _displayedDay ||
+          !now.isBefore(_nextPrayer.prayerTime)) {
+        _updateNextPrayer();
+      } else {
+        final remaining = _nextPrayer.prayerTime.difference(now);
+        _nextPrayer = NextPrayerInfo(
+          prayerName: _nextPrayer.prayerName,
+          prayerIndex: _nextPrayer.prayerIndex,
+          prayerTime: _nextPrayer.prayerTime,
+          timeRemaining: remaining,
+          progressFraction: _intervalSeconds <= 0
+              ? 0
+              : (1 - remaining.inSeconds / _intervalSeconds).clamp(0.0, 1.0),
+        );
       }
     });
+    if (currentDay != _displayedDay) {
+      _displayedDay = currentDay;
+      widget.onRefresh();
+    }
+  }
+
+  int _dayKey(DateTime day) => day.year * 10000 + day.month * 100 + day.day;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _timer?.cancel();
+    if (state == AppLifecycleState.resumed) {
+      _tick();
+      _startTimer();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant NextPrayerHero oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.today != widget.today) _updateNextPrayer();
   }
 
   void _updateNextPrayer() {
     _nextPrayer = PrayerService.instance.calculateNextPrayer(
       widget.today,
-      DateTime.now(),
+      PrayerService.instance.now,
     );
+    final fractionRemaining = 1 - _nextPrayer.progressFraction;
+    _intervalSeconds = fractionRemaining <= 0
+        ? 0
+        : _nextPrayer.timeRemaining.inSeconds / fractionRemaining;
+  }
+
+  Future<void> _togglePreview() async {
+    if (_audioBusy) return;
+    setState(() => _audioBusy = true);
+    try {
+      await AudioService.instance.toggleAthan();
+    } catch (_) {
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Unable to play this sound. Try again in Settings.'),
+          ),
+        );
+    } finally {
+      if (mounted)
+        setState(() {
+          _audioBusy = false;
+          _isPlayingAthan =
+              AudioService.instance.isPlayingAthan &&
+              AudioService.instance.player.playing;
+        });
+    }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
+    _audioSubscription?.cancel();
+    AudioService.instance.lastError.removeListener(_showAudioError);
     super.dispose();
   }
 
-  String _formatDuration(Duration d) {
-    final hours = d.inHours.toString().padLeft(2, '0');
-    final minutes = (d.inMinutes % 60).toString().padLeft(2, '0');
-    final seconds = (d.inSeconds % 60).toString().padLeft(2, '0');
-    return '$hours:$minutes:$seconds';
+  String _formatDuration(Duration remaining) {
+    final d = remaining.isNegative ? Duration.zero : remaining;
+    return '${d.inHours.toString().padLeft(2, '0')}:'
+        '${(d.inMinutes % 60).toString().padLeft(2, '0')}:'
+        '${(d.inSeconds % 60).toString().padLeft(2, '0')}';
   }
 
   @override
   Widget build(BuildContext context) {
+    final target = _nextPrayer.prayerTime;
+    final time =
+        '${target.hour.toString().padLeft(2, '0')}:${target.minute.toString().padLeft(2, '0')}';
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
         gradient: const LinearGradient(
-          colors: [
-            Color(0xFF0F3931), // Deep Islamic Emerald
-            Color(0xFF0B2421), // Midnight Forest
-            Color(0xFF071B19),
-          ],
+          colors: [Color(0xFF0F3931), Color(0xFF071B19)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0F3931).withOpacity(0.35),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top Row: Location & Refresh
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              InkWell(
-                onTap: () => _showCitySelectorModal(context),
-                borderRadius: BorderRadius.circular(12),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.location_on_outlined,
-                        color: Color(0xFFC5A059),
-                        size: 18,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        PrayerService.instance.cityName,
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      const Icon(
-                        Icons.arrow_drop_down,
-                        color: Colors.white54,
-                        size: 18,
-                      ),
-                    ],
+              Expanded(
+                child: TextButton.icon(
+                  onPressed: _showCitySelectorModal,
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    alignment: Alignment.centerLeft,
+                    minimumSize: const Size(48, 48),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 8,
+                    ),
+                  ),
+                  icon: const Icon(
+                    Icons.location_on_outlined,
+                    color: Color(0xFFE3C78F),
+                  ),
+                  label: Text(
+                    PrayerService.instance.cityName,
+                    style: const TextStyle(fontSize: 14),
                   ),
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.refresh, color: Colors.white60, size: 20),
                 onPressed: widget.onRefresh,
-                tooltip: 'Refresh Prayer Times',
+                icon: const Icon(Icons.refresh, color: Colors.white70),
+                tooltip: 'Refresh prayer times',
               ),
             ],
           ),
-
           const SizedBox(height: 12),
-
-          // Prayer Countdown Title
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Text(
+            'Next prayer · ${_nextPrayer.prayerName}',
+            style: const TextStyle(
+              color: Color(0xFFE3C78F),
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          // Wrapping leaves room for large accessibility text without squeezing
+          // the countdown or making the playback control hard to reach.
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 16,
+            runSpacing: 12,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Next Prayer: ${_nextPrayer.prayerName}',
-                    style: const TextStyle(
-                      color: Color(0xFFC5A059),
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.5,
-                    ),
+              Semantics(
+                label:
+                    '${_nextPrayer.prayerName} in ${_nextPrayer.timeRemaining.inMinutes} minutes',
+                excludeSemantics: true,
+                child: Text(
+                  _formatDuration(_nextPrayer.timeRemaining),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    fontFeatures: [FontFeature.tabularFigures()],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '- ${_formatDuration(_nextPrayer.timeRemaining)}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 34,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                ],
+                ),
               ),
-
-              // Athan Sound Button
-              InkWell(
-                onTap: () {
-                  AudioService.instance.toggleAthan();
-                  setState(() {
-                    _isPlayingAthan = !_isPlayingAthan;
-                  });
-                },
-                borderRadius: BorderRadius.circular(30),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: _isPlayingAthan
-                        ? const Color(0xFFC5A059)
-                        : Colors.white.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(30),
-                    border: Border.all(
-                      color: const Color(0xFFC5A059).withOpacity(0.5),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        _isPlayingAthan
-                            ? Icons.pause_rounded
-                            : Icons.volume_up_rounded,
-                        color: _isPlayingAthan ? Colors.black87 : Colors.white,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        _isPlayingAthan ? 'Stop' : 'Athan',
-                        style: TextStyle(
-                          color: _isPlayingAthan ? Colors.black87 : Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
+              OutlinedButton.icon(
+                onPressed: _audioBusy ? null : _togglePreview,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  disabledForegroundColor: Colors.white70,
+                  minimumSize: const Size(48, 48),
+                  side: const BorderSide(color: Color(0xFFE3C78F)),
+                ),
+                icon: _audioBusy
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
                         ),
+                      )
+                    : Icon(
+                        _isPlayingAthan
+                            ? Icons.stop_rounded
+                            : Icons.volume_up_rounded,
                       ),
-                    ],
-                  ),
+                label: Text(
+                  _audioBusy
+                      ? 'Loading…'
+                      : _isPlayingAthan
+                      ? 'Stop'
+                      : 'Preview Athan',
                 ),
               ),
             ],
           ),
-
-          const SizedBox(height: 16),
-
-          // Progress Bar for current prayer interval
+          const SizedBox(height: 20),
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
               value: _nextPrayer.progressFraction,
+              semanticsLabel: 'Progress to the next prayer',
               minHeight: 6,
               backgroundColor: Colors.white12,
-              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFC5A059)),
+              valueColor: const AlwaysStoppedAnimation(Color(0xFFE3C78F)),
             ),
           ),
-
           const SizedBox(height: 12),
-
-          // Date & Target Time Info
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            spacing: 20,
+            runSpacing: 8,
             children: [
               Text(
-                'Today: ${widget.today.formattedDate}',
-                style: const TextStyle(
-                  color: Colors.white60,
-                  fontSize: 12,
-                ),
+                widget.today.formattedDate,
+                style: const TextStyle(color: Colors.white70, fontSize: 14),
               ),
               Text(
-                '${_nextPrayer.prayerName} at ${_nextPrayer.prayerTime.hour.toString().padLeft(2, '0')}:${_nextPrayer.prayerTime.minute.toString().padLeft(2, '0')}',
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
+                '${_nextPrayer.prayerName} at $time',
+                style: const TextStyle(color: Colors.white, fontSize: 14),
               ),
             ],
           ),
@@ -251,91 +308,78 @@ class _NextPrayerHeroState extends State<NextPrayerHero> {
     );
   }
 
-  void _showCitySelectorModal(BuildContext context) {
-    showModalBottomSheet(
+  Future<void> _showCitySelectorModal() async {
+    final city = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
-      backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (ctx) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(ctx).size.height * 0.7,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 44,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (ctx) => ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(ctx).height * .75,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 8, 8),
+              child: Row(
                 children: [
-                  const Text(
-                    'Select Your City',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F172A),
+                  Expanded(
+                    child: Text(
+                      'Choose your city',
+                      style: Theme.of(ctx).textTheme.titleLarge,
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close),
+                    tooltip: 'Close city list',
                     onPressed: () => Navigator.pop(ctx),
+                    icon: const Icon(Icons.close),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              Expanded(
-                child: ListView.separated(
-                  itemCount: PrayerService.presetCities.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
-                  itemBuilder: (context, idx) {
-                    final city = PrayerService.presetCities[idx];
-                    final isSelected =
-                        PrayerService.instance.cityName == city['name'];
-                    return ListTile(
-                      title: Text(
-                        city['name'] as String,
-                        style: TextStyle(
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                          color: isSelected
-                              ? const Color(0xFF0F3931)
-                              : Colors.black87,
-                        ),
-                      ),
-                      trailing: isSelected
-                          ? const Icon(Icons.check_circle,
-                              color: Color(0xFF0F3931))
-                          : null,
-                      onTap: () async {
-                        await PrayerService.instance.updateLocation(
-                          lat: city['lat'] as double,
-                          lng: city['lng'] as double,
-                          city: city['name'] as String,
-                          method: city['method'] as int?,
-                        );
-                        Navigator.pop(ctx);
-                        widget.onRefresh();
-                      },
-                    );
-                  },
-                ),
+            ),
+            Flexible(
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemCount: PrayerService.presetCities.length,
+                separatorBuilder: (_, __) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final option = PrayerService.presetCities[index];
+                  final selected =
+                      PrayerService.instance.cityName == option['name'];
+                  return ListTile(
+                    title: Text(option['name'] as String),
+                    selected: selected,
+                    trailing: selected
+                        ? const Icon(Icons.check_circle_outline)
+                        : null,
+                    onTap: () => Navigator.pop(ctx, option),
+                  );
+                },
               ),
-            ],
+            ),
+          ],
+        ),
+      ),
+    );
+    if (city == null || !mounted) return;
+    try {
+      await PrayerService.instance.updateLocation(
+        lat: city['lat'] as double,
+        lng: city['lng'] as double,
+        city: city['name'] as String,
+        method: city['method'] as int?,
+        timeZoneName: city['timezone'] as String?,
+      );
+      if (mounted) widget.onRefresh();
+    } catch (_) {
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not save this city. Please try again.'),
           ),
         );
-      },
-    );
+    }
   }
 }

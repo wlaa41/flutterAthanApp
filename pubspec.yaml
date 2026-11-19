@@ -1,5 +1,5 @@
 name: flutter_pro
-description: A new Flutter project.
+description: Prayer times, Athan and Iqama reminders with editable quiet hours.
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `pub publish`. This is preferred for private packages.
@@ -15,10 +15,10 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion. android:
 # Read more about iOS versioning a
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.0+1
+version: 2.1.0-rc.7+9
 
 environment:
-  sdk: ">=2.12.0 <4.0.0"
+  sdk: ">=3.10.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -29,9 +29,14 @@ dependencies:
   flutter_local_notifications: ^17.0.0
   http: ^0.13.6
   path_provider: ^2.1.2
+  # 2.3.1's older generated bindings are incompatible with JNI 1.2 class lookup.
+  # Keep private audio storage and just_audio's asset cache on the channel API.
+  path_provider_android: 2.2.23
   rxdart: ^0.27.7
   shared_preferences: ^2.2.2
   timezone: ^0.9.4
+  adhan_dart: ^2.0.1
+  file_picker: ^13.4.0
 
 
 dev_dependencies:
