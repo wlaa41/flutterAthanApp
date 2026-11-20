@@ -41,12 +41,13 @@ an APK for every processor type would be over GitHub's 100 MB file limit.
   beep, Gentle chime, Strong beep, vibration or silence), its power from Soft to
   Maximum with a Test button, a buzz with the beep, and whether it follows the
   phone's alarm volume.
-- For a beep on specific days: **Settings → Reminders → Beep on chosen days**.
-  Turn on **Use a quieter reminder**, select your days (or Weekdays / Weekend /
-  Every day), then choose **All day** or **Set hours**. Beep is the default;
-  other days and hours keep your usual sounds. Applies to Athan and Iqama in the
-  selected city's timezone. Existing schedules are preserved; the initial optional
-  schedule is Monday–Friday, 09:00–17:00. Overnight hours belong to the starting day.
+- **Weekly beep days**, on the same home screen card, are the days that beep
+  every week. One switch turns it on as one beep, Monday to Friday, 09:00 to
+  17:00. Tap a day on the card to add or drop it. **Hours** opens Weekdays /
+  Weekend / Every day, **All day** or **Set hours**. Other days and hours keep
+  your usual sounds. It applies to Athan and Iqama on the clock of the selected
+  city, and overnight hours belong to the day they start on. The same schedule
+  is under **Settings → Reminders → Weekly beep days**.
 - Muting a prayer immediately rebuilds its Athan and Iqama schedule.
 
 ## Quran

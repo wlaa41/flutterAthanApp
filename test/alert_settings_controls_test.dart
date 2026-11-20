@@ -73,8 +73,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ChoiceChip, 'Reminders'));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('Use a quieter reminder'), 300);
-    await tester.tap(find.text('Use a quieter reminder'));
+    await tester.scrollUntilVisible(find.text('Beep on these days'), 300);
+    await tester.tap(find.text('Beep on these days'));
     await tester.pumpAndSettle();
     final preferences = await AlertPreferences.load();
     expect(preferences.quietEnabled, isTrue);
@@ -206,15 +206,12 @@ void main() {
     await tester.pumpWidget(build(360));
     expect(
       find.text(
-        'Finishes the next morning. Choose the days your quiet hours start.',
+        'Finishes the next morning. Choose the days the hours start on.',
       ),
       findsOneWidget,
     );
     await tester.pumpWidget(build(1320));
-    expect(
-      find.text('Quieter reminders all day on your selected days.'),
-      findsOneWidget,
-    );
+    expect(find.text('Beeps all day on the chosen days.'), findsOneWidget);
   });
 
   for (final size in [

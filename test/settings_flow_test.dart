@@ -54,9 +54,9 @@ void main() {
     await tester.tap(find.widgetWithText(ChoiceChip, 'Reminders'));
     await tester.pumpAndSettle();
     // Beep mode and the beep sound now come first on this page.
-    await tester.scrollUntilVisible(find.text('Use a quieter reminder'), 150);
+    await tester.scrollUntilVisible(find.text('Beep on these days'), 150);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Use a quieter reminder'));
+    await tester.tap(find.text('Beep on these days'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.text('Weekend'), 150);
     await tester.pumpAndSettle();
@@ -108,12 +108,12 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('Use a quieter reminder'), 150);
+    await tester.scrollUntilVisible(find.text('Beep on these days'), 150);
     await tester.pumpAndSettle();
     expect(
       tester
           .widget<SwitchListTile>(
-            find.widgetWithText(SwitchListTile, 'Use a quieter reminder'),
+            find.widgetWithText(SwitchListTile, 'Beep on these days'),
           )
           .value,
       isTrue,

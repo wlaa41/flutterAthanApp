@@ -9,18 +9,29 @@ import '../services/beep_mode.dart';
 import '../services/notification_service.dart';
 import '../services/prayer_service.dart';
 import '../services/sound_library.dart';
+import 'weekly_beep.dart';
 
 /// The quick switch on the home screen: one tap turns every Athan and Iqama
 /// into the chosen beep for the next prayer, for today, or until switched back.
+/// Below it, the days and hours that beep every week.
 class BeepModeCard extends StatefulWidget {
   const BeepModeCard({
     super.key,
     this.margin,
     this.onChanged,
     this.upcomingDays,
+    this.showWeekly = true,
+    this.cityNow,
   });
 
   final EdgeInsetsGeometry? margin;
+
+  /// Whether the card carries the weekly beep days. Settings shows the same
+  /// schedule in a section of its own and leaves it off the card.
+  final bool showWeekly;
+
+  /// The clock in the prayer city; the prayer service's when omitted.
+  final DateTime Function()? cityNow;
 
   /// Supplies the coming days' timetable; the prayer service when omitted.
   final Future<List<PrayerTimeModel>> Function()? upcomingDays;
@@ -38,6 +49,7 @@ class _BeepModeCardState extends State<BeepModeCard>
   static const _gold = Color(0xFFE3C78F);
   Timer? _expiry;
   bool _busy = false;
+  AlertPreferences? _preferences;
 
   @override
   void initState() {
@@ -67,6 +79,61 @@ class _BeepModeCardState extends State<BeepModeCard>
     } catch (_) {
       // The card still shows the last known state.
     }
+    if (!widget.showWeekly) return;
+    try {
+      final preferences = await AlertPreferences.load();
+      if (mounted) setState(() => _preferences = preferences);
+    } catch (_) {
+      // Without saved choices the weekly days stay hidden.
+    }
+  }
+
+  /// The card answers at once; a change that cannot be saved is taken back.
+  Future<void> _saveWeekly(AlertPreferences next) async {
+    final before = _preferences;
+    setState(() => _preferences = next);
+    try {
+      await next.save();
+    } catch (_) {
+      if (mounted) {
+        setState(() => _preferences = before);
+        _say('That did not save. Please try again.');
+      }
+      return;
+    }
+    try {
+      await NotificationService.instance.refreshSchedule();
+    } catch (_) {
+      // The days are saved; reminders pick them up on the next refresh.
+    }
+    widget.onChanged?.call();
+  }
+
+  Future<void> _editWeeklyHours() async {
+    final preferences = _preferences;
+    if (preferences == null) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => WeeklyBeepSheet(
+        preferences: preferences,
+        cityName: PrayerService.instance.cityName,
+        onChanged: _saveWeekly,
+      ),
+    );
+  }
+
+  Widget? _weekly() {
+    final preferences = _preferences;
+    if (!widget.showWeekly || preferences == null) return null;
+    return WeeklyBeepSection(
+      preferences: preferences,
+      now: widget.cityNow?.call() ?? PrayerService.instance.now,
+      enabled: true,
+      onChanged: _saveWeekly,
+      onEditHours: _editWeeklyHours,
+    );
   }
 
   void _stateChanged() {
@@ -245,6 +312,7 @@ class _BeepModeCardState extends State<BeepModeCard>
                     ),
                   ],
                 ),
+                ?_weekly(),
               ],
             ),
           ),
@@ -300,6 +368,7 @@ class _BeepModeCardState extends State<BeepModeCard>
                   ),
               ],
             ),
+            ?_weekly(),
           ],
         ),
       ),

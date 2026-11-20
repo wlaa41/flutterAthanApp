@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.2.0-rc.6 (build 16)
+
+- Weekly beep days are on the home Beep card. One switch turns them on with
+  the defaults: one beep, Monday to Friday, 09:00 to 17:00. Seven day buttons
+  on the card add or drop a day with one tap, and **Hours** opens the presets,
+  **All day** and the start and end times.
+- The card says when the schedule applies at this moment ("on now"), and the
+  weekly days stay on the card while Beep mode is on.
+- The schedule itself is the one that already lived in Settings, so existing
+  choices carry over. It stays off until switched on, so nobody's Athan
+  becomes a beep on its own. Settings now uses the same name, **Weekly beep
+  days**.
+- Validation: 161 tests pass, among them the card at 320 x 568 with doubled
+  text. Not tried on a physical phone.
+
 ## 2.2.0-rc.5 (build 15)
 
 - More athans. The sound picker opens with **Trending athans**: Muhammad Marwan

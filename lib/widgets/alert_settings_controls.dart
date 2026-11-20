@@ -60,7 +60,7 @@ class QuietScheduleEditor extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Quiet days', style: Theme.of(context).textTheme.titleSmall),
+        Text('Days', style: Theme.of(context).textTheme.titleSmall),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -105,7 +105,7 @@ class QuietScheduleEditor extends StatelessWidget {
         if (weekdays.isEmpty)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
-            child: Text('Select at least one day to use quiet hours.'),
+            child: Text('Choose at least one day.'),
           ),
         const SizedBox(height: 8),
         if (onAllDayChanged != null) ...[
@@ -156,13 +156,13 @@ class QuietScheduleEditor extends StatelessWidget {
           const Padding(
             padding: EdgeInsets.only(top: 8),
             child: Text(
-              'Finishes the next morning. Choose the days your quiet hours start.',
+              'Finishes the next morning. Choose the days the hours start on.',
             ),
           ),
         if (allDay)
           const Padding(
             padding: EdgeInsets.only(top: 8),
-            child: Text('Quieter reminders all day on your selected days.'),
+            child: Text('Beeps all day on the chosen days.'),
           ),
       ],
     );

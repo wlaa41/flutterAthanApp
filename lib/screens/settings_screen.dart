@@ -278,6 +278,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                                 SettingsSection.reminders) ...[
                               const BeepModeCard(
                                 margin: EdgeInsets.only(bottom: 16),
+                                showWeekly: false,
                               ),
                               _beepSoundSection(prefs),
                               _quietSection(prefs),
@@ -376,16 +377,16 @@ class _SettingsScreenState extends State<SettingsScreen>
   );
 
   Widget _quietSection(AlertPreferences prefs) => _section(
-    title: 'Beep on chosen days',
+    title: 'Weekly beep days',
     icon: Icons.work_outline,
     children: [
       SwitchListTile.adaptive(
         contentPadding: EdgeInsets.zero,
-        title: const Text('Use a quieter reminder'),
+        title: const Text('Beep on these days'),
         subtitle: Text(
           prefs.quietEnabled
-              ? 'Applies to Athan and Iqama. Other times keep your usual sounds.'
-              : 'Choose days for a beep instead of the full Athan.',
+              ? 'Athan and Iqama are your beep on these days and hours. Other times keep your usual sounds.'
+              : 'One beep on the same days every week, such as work days.',
         ),
         value: prefs.quietEnabled,
         onChanged: _busy
