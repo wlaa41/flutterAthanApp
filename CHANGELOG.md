@@ -1,5 +1,29 @@
 # Changelog
 
+## 2.2.0-rc.9 (build 19)
+
+- The athan plays again. On Android 14 and later, an app may only set an
+  on-time alarm if the phone allows it, and new installs are not allowed by
+  default. Without it, the app fell back to a late, quiet notification and
+  never started the athan. Athan now declares itself an alarm app
+  (`USE_EXACT_ALARM`), which Android 13+ grants at install, so the alarm fires
+  at prayer time and the athan is allowed to start from the background.
+- The athan plays as an alarm: alarm volume, the alarm audio channel.
+- Silent or vibrate mode: the phone vibrates at prayer time, three long pulses
+  twice, as an alarm vibrates, which goes through on silent. The reminder
+  shows on the lock screen. Do Not Disturb gets a reminder only.
+- Notification permission is no longer required for the athan. Reminders are
+  still scheduled and the athan still plays without it.
+- First launch asks for notifications, then to let Athan run in the
+  background (battery saving can hold the alarm back).
+- If the app refreshed its schedule at the moment an alarm went off, that
+  athan was dropped. It now plays, and never twice.
+- **Reminder readiness** (Settings, phone) shows the next athan, the sound
+  mode and what still blocks it, with **Test in 1 minute**: a test through the
+  same alarm a real prayer uses, so it can be checked with the phone locked.
+- Validation: 197 Dart tests, plus 14 tests of the native alarm path run on
+  Android 9, 14 and 16 (Robolectric) in CI. Not tried on a physical phone.
+
 ## 2.2.0-rc.8 (build 18)
 
 - Hashem Al-Saqqaf, muezzin of the Grand Mosque in Makkah, joins the athans

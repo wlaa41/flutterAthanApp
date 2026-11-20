@@ -303,7 +303,8 @@ class _SettingsScreenState extends State<SettingsScreen>
       _health != null &&
       _health!.supported &&
       (!_health!.notificationsEnabled ||
-          (_android && !_health!.exactAlarmsEnabled));
+          (_android &&
+              (!_health!.exactAlarmsEnabled || _health!.batteryOptimized)));
 
   Widget _category(SettingsSection section, String label, IconData icon) =>
       ChoiceChip(
@@ -675,6 +676,8 @@ class _SettingsScreenState extends State<SettingsScreen>
             'Notifications',
             health.notificationsEnabled
                 ? 'Allowed'
+                : _android
+                ? 'Off. The Athan still plays, but nothing shows on screen and silent-mode reminders are missed.'
                 : 'Permission needed to show reminders',
             health.notificationsEnabled,
             () => _run(() async {
@@ -693,7 +696,7 @@ class _SettingsScreenState extends State<SettingsScreen>
               'On-time alarms',
               health.exactAlarmsEnabled
                   ? 'Allowed'
-                  : 'Allow precise timing for full recordings. Without it, phone tones may arrive late.',
+                  : 'Off. Android will not let the Athan play without it. Tap to allow "Alarms & reminders".',
               health.exactAlarmsEnabled,
               () => _run(() async {
                 await NotificationService.instance
@@ -702,27 +705,45 @@ class _SettingsScreenState extends State<SettingsScreen>
                 await _loadHealth();
               }),
             ),
+            _statusTile(
+              'Battery',
+              health.batteryOptimized
+                  ? 'Battery saving is on for Athan, so the phone may hold the Athan back. Tap and choose Allow.'
+                  : 'Not restricted',
+              !health.batteryOptimized,
+              () => _run(() async {
+                if (health.batteryOptimized) {
+                  await NotificationService.instance.requestBatteryExemption();
+                } else {
+                  await NotificationService.instance.openBatterySettings();
+                }
+                await _loadHealth();
+              }),
+            ),
             ListTile(
               contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.battery_saver_outlined),
-              title: const Text('Battery settings'),
-              subtitle: Text(
-                health.batteryOptimized
-                    ? 'Optimized. If reminders arrive late, allow background activity for Athan.'
-                    : 'Background activity allowed',
+              leading: Icon(
+                health.canPlayAloud
+                    ? Icons.volume_up_outlined
+                    : Icons.vibration,
               ),
-              trailing: const Icon(Icons.open_in_new),
-              onTap: _busy
-                  ? null
-                  : () =>
-                        _run(NotificationService.instance.openBatterySettings),
+              title: const Text('Sound mode'),
+              subtitle: Text(_soundModeText(health)),
             ),
           ],
+          if (health.nextTime != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                'Next: ${health.nextTitle ?? 'Prayer reminder'} at ${_when(health.nextTime!)}.',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+            ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Text(
               health.scheduledCount == 0
-                  ? 'No reminders are scheduled yet. Enable notifications and turn on the prayers you want.'
+                  ? 'No reminders are scheduled yet. Turn on the prayers you want.'
                   : health.scheduledUntil == null
                   ? '${health.scheduledCount} reminders scheduled.'
                   : '${health.scheduledCount} reminders scheduled through ${MaterialLocalizations.of(context).formatMediumDate(health.scheduledUntil!)}. Open the app regularly to keep them ready.',
@@ -732,15 +753,32 @@ class _SettingsScreenState extends State<SettingsScreen>
             spacing: 12,
             runSpacing: 8,
             children: [
+              if (_android)
+                FilledButton.icon(
+                  icon: const Icon(Icons.alarm),
+                  label: const Text('Test in 1 minute'),
+                  onPressed: _busy
+                      ? null
+                      : () => _run(() async {
+                          final at = await NotificationService.instance
+                              .testSoon();
+                          await _loadHealth();
+                          if (mounted)
+                            _message(
+                              'Test Athan at ${_when(at)}. Lock the phone now and wait.',
+                            );
+                        }, failure: 'The test could not be set. Try again.'),
+                ),
               OutlinedButton.icon(
-                icon: const Icon(Icons.notifications_outlined),
-                label: const Text('Test reminder'),
+                icon: const Icon(Icons.play_arrow_outlined),
+                label: Text(_android ? 'Play now' : 'Test reminder'),
                 onPressed: _busy
                     ? null
                     : () => _run(
                         NotificationService.instance.testNotification,
-                        success:
-                            'Test sent. Check your phone’s notification panel.',
+                        success: _android
+                            ? null
+                            : 'Test sent. Check your phone’s notification panel.',
                         failure:
                             'The test could not be sent. Check notification permissions.',
                       ),
@@ -769,6 +807,26 @@ class _SettingsScreenState extends State<SettingsScreen>
         ),
       ],
     );
+  }
+
+  String _when(DateTime time) =>
+      MaterialLocalizations.of(context).formatTimeOfDay(
+        TimeOfDay.fromDateTime(time),
+        alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
+      );
+
+  String _soundModeText(NotificationHealth health) {
+    if (health.doNotDisturb)
+      return 'Do Not Disturb is on. Reminders follow its rules and the Athan does not play.';
+    switch (health.ringer) {
+      case RingerMode.silent:
+      case RingerMode.vibrate:
+        return 'Phone is on ${health.ringer.name}. It vibrates at prayer time instead of playing the Athan.';
+      case RingerMode.normal:
+        return health.playbackMuted
+            ? 'The "Athan playback" notification category is turned down in phone settings, so the Athan cannot play.'
+            : 'Ring mode. The Athan plays at alarm volume.';
+    }
   }
 
   Widget _statusTile(
@@ -986,8 +1044,45 @@ class _SettingsScreenState extends State<SettingsScreen>
     });
   }
 
+  Widget _batteryBanner() => Card(
+    margin: const EdgeInsets.only(bottom: 16),
+    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Let the Athan run in the background',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Battery saving can stop the Athan from playing. Choose Allow on the next screen.',
+          ),
+          const SizedBox(height: 12),
+          FilledButton(
+            onPressed: _busy
+                ? null
+                : () => _run(() async {
+                    await NotificationService.instance
+                        .requestBatteryExemption();
+                    await _loadHealth();
+                  }),
+            child: const Text('Allow background'),
+          ),
+        ],
+      ),
+    ),
+  );
+
   Widget _setupBanner(NotificationHealth health) {
-    final needsNotifications = !health.notificationsEnabled;
+    // Worst blocker first: no on-time alarms means no Athan at all.
+    if (_android && health.exactAlarmsEnabled && health.notificationsEnabled)
+      return _batteryBanner();
+    final needsNotifications =
+        !health.notificationsEnabled &&
+        (!_android || health.exactAlarmsEnabled);
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       color: Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -1006,7 +1101,7 @@ class _SettingsScreenState extends State<SettingsScreen>
             Text(
               needsNotifications
                   ? 'Allow notifications so your phone can remind you when it is time to pray.'
-                  : 'Allow precise alarms for full Athan recordings at the right time.',
+                  : 'Allow "Alarms & reminders" so the Athan can play at prayer time.',
             ),
             const SizedBox(height: 12),
             FilledButton(

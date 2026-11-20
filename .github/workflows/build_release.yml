@@ -38,6 +38,12 @@ jobs:
         run: flutter analyze --no-fatal-infos
       - name: Test scheduling, fetching, settings, and widgets
         run: flutter test
+      # The native path from alarm to sound, on Android 9, 14 and 16 (Robolectric).
+      # It runs before the signing key is restored, so it cannot touch the key.
+      - name: Test that the athan plays, vibrates on silent and survives refreshes
+        run: |
+          flutter build apk --config-only
+          cd android && ./gradlew :app:testDebugUnitTest --no-daemon
       - name: Restore stable preview signing key
         if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         env:

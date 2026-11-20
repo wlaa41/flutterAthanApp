@@ -14,6 +14,9 @@ import 'beep_mode.dart';
 import 'prayer_service.dart';
 import 'sound_library.dart';
 
+/// The phone's sound mode, which decides how a reminder arrives.
+enum RingerMode { normal, vibrate, silent }
+
 class NotificationHealth {
   final bool notificationsEnabled,
       exactAlarmsEnabled,
@@ -21,6 +24,15 @@ class NotificationHealth {
       supported;
   final int scheduledCount;
   final DateTime? scheduledUntil;
+
+  /// The next reminder the phone will deliver.
+  final DateTime? nextTime;
+  final String? nextTitle;
+  final RingerMode ringer;
+  final bool doNotDisturb;
+
+  /// The user turned the "Athan playback" channel down in phone settings.
+  final bool playbackMuted;
   const NotificationHealth({
     required this.notificationsEnabled,
     required this.exactAlarmsEnabled,
@@ -28,7 +40,26 @@ class NotificationHealth {
     required this.supported,
     required this.scheduledCount,
     this.scheduledUntil,
+    this.nextTime,
+    this.nextTitle,
+    this.ringer = RingerMode.normal,
+    this.doNotDisturb = false,
+    this.playbackMuted = false,
   });
+
+  /// An Athan can play out loud right now.
+  bool get canPlayAloud =>
+      ringer == RingerMode.normal && !doNotDisturb && !playbackMuted;
+
+  /// What would block or weaken the next Athan, worst first. Empty when ready.
+  List<String> get problems => [
+    if (!exactAlarmsEnabled)
+      'On-time alarms are off, so the Athan cannot play.',
+    if (scheduledCount == 0) 'No Athan is scheduled.',
+    if (batteryOptimized) 'Battery saving can delay or block the Athan.',
+    if (!notificationsEnabled)
+      'Notifications are off, so reminders cannot show on screen.',
+  ];
 }
 
 class NotificationService {
@@ -97,7 +128,9 @@ class NotificationService {
     return _enqueue(() async {
       await initialize();
       if (!_supported) return;
-      if (!(await getHealth()).notificationsEnabled) {
+      // Android plays the Athan through its own alarm and service, which do
+      // not need notification permission. iOS can only notify.
+      if (_ios && !(await getHealth()).notificationsEnabled) {
         await cancelAll();
         return;
       }
@@ -127,7 +160,7 @@ class NotificationService {
         if (prefs.getBool('alarm_enabled_$i') ?? true) i,
     };
     final health = await getHealth();
-    if (!health.notificationsEnabled) {
+    if (_ios && !health.notificationsEnabled) {
       await cancelAll();
       return;
     }
@@ -142,12 +175,10 @@ class NotificationService {
     );
     final sounds = await SoundLibrary.instance.loadSounds();
     SoundOption sound(String id) => sounds
-        .firstWhere(
-          (s) => s.id == id,
-          orElse: () => SoundCatalog.byId('beep'),
-        )
+        .firstWhere((s) => s.id == id, orElse: () => SoundCatalog.byId('beep'))
         .atPower(settings.beepPower);
-    if (_android) await _sendBeepOptions(settings, sound(settings.quietSoundId));
+    if (_android)
+      await _sendBeepOptions(settings, sound(settings.quietSoundId));
     final events = plan.map((a) {
       final s = sound(a.soundId);
       return {
@@ -275,15 +306,9 @@ class NotificationService {
           >();
       final native =
           await _native.invokeMapMethod<String, dynamic>('health') ?? {};
-      return NotificationHealth(
+      return healthFromNative(
+        native,
         notificationsEnabled: await plugin?.areNotificationsEnabled() ?? false,
-        exactAlarmsEnabled: native['exact'] == true,
-        batteryOptimized: native['batteryOptimized'] == true,
-        supported: true,
-        scheduledCount: native['count'] as int? ?? 0,
-        scheduledUntil: native['until'] == null
-            ? null
-            : DateTime.fromMillisecondsSinceEpoch(native['until'] as int),
       );
     }
     final permissions = await _plugin
@@ -303,6 +328,59 @@ class NotificationService {
           ? null
           : DateTime.fromMillisecondsSinceEpoch(until),
     );
+  }
+
+  /// Reads the phone's answer to "health". Public for tests.
+  static NotificationHealth healthFromNative(
+    Map<String, dynamic> native, {
+    required bool notificationsEnabled,
+  }) {
+    DateTime? at(Object? ms) =>
+        ms is int ? DateTime.fromMillisecondsSinceEpoch(ms) : null;
+    final title = native['nextTitle'];
+    return NotificationHealth(
+      notificationsEnabled: notificationsEnabled,
+      exactAlarmsEnabled: native['exact'] == true,
+      batteryOptimized: native['batteryOptimized'] == true,
+      supported: true,
+      scheduledCount: native['count'] as int? ?? 0,
+      scheduledUntil: at(native['until']),
+      nextTime: at(native['nextTime']),
+      nextTitle: title is String && title.isNotEmpty ? title : null,
+      ringer: switch (native['ringer']) {
+        'silent' => RingerMode.silent,
+        'vibrate' => RingerMode.vibrate,
+        _ => RingerMode.normal,
+      },
+      doNotDisturb: native['dnd'] == true,
+      playbackMuted: native['playbackMuted'] == true,
+    );
+  }
+
+  /// Asks, once per install, for what the Athan needs: notifications, then
+  /// freedom from battery saving. Later fixes go through Reminder readiness.
+  Future<void> firstRunSetup() async {
+    if (!_supported) return;
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(_setupKey) ?? false) return;
+    await prefs.setBool(_setupKey, true);
+    try {
+      final health = await getHealth();
+      if (!health.notificationsEnabled) await requestNotificationPermission();
+      if (_android && (await getHealth()).batteryOptimized)
+        await requestBatteryExemption();
+    } on PlatformException catch (e) {
+      debugPrint('Reminder setup: $e');
+    } on MissingPluginException catch (e) {
+      debugPrint('Reminder setup: $e');
+    }
+  }
+
+  static const _setupKey = 'reminder_setup_asked_v1';
+
+  /// Shows Android's "Let app always run in the background?" dialog.
+  Future<void> requestBatteryExemption() async {
+    if (_android) await _native.invokeMethod<void>('requestBatteryExemption');
   }
 
   Future<void> requestNotificationPermission() async {
@@ -345,33 +423,21 @@ class NotificationService {
     await initialize();
     if (!_supported)
       throw UnsupportedError('Test alerts on an Android phone or iPhone.');
-    final health = await getHealth();
-    if (!health.notificationsEnabled)
+    if (_ios && !(await getHealth()).notificationsEnabled)
       throw StateError('Allow notifications before testing an alert.');
-    final settings = await AlertPreferences.load();
-    final sounds = await SoundLibrary.instance.loadSounds();
-    final beepMode = await BeepMode.instance.load();
-    final id =
-        settings.isQuietAt(PrayerService.instance.now) ||
-            beepMode.activeAt(DateTime.now())
-        ? settings.quietSoundId
-        : settings.athanSoundId;
-    final sound = sounds
-        .firstWhere((s) => s.id == id, orElse: () => SoundCatalog.byId('beep'))
-        .atPower(settings.beepPower);
+    final event = await _testEvent(
+      999,
+      'Test prayer alert',
+      'Uses your current work-hours and sound settings.',
+    );
     if (_android) {
-      await _native.invokeMethod<void>(
-        'test',
-        jsonEncode({
-          'id': 999,
-          'title': 'Test prayer alert',
-          'body': 'Uses your current work-hours and sound settings.',
-          'soundId': sound.id,
-          'resource': sound.androidResource ?? 'beep',
-          'filePath': sound.filePath ?? '',
-        }),
-      );
+      await _native.invokeMethod<void>('test', jsonEncode(event));
     } else {
+      final sounds = await SoundLibrary.instance.loadSounds();
+      final sound = sounds.firstWhere(
+        (s) => s.id == event['soundId'],
+        orElse: () => SoundCatalog.byId('beep'),
+      );
       await _plugin.show(
         999,
         'Test prayer alert',
@@ -379,6 +445,55 @@ class NotificationService {
         NotificationDetails(iOS: iosDetailsFor(sound)),
       );
     }
+  }
+
+  /// How long "Test in 1 minute" waits: enough time to lock the phone.
+  static const testDelay = Duration(seconds: 60);
+
+  /// Puts a test through the same alarm a real prayer uses, [testDelay] from
+  /// now. This is the honest test: lock the phone and wait for it.
+  Future<DateTime> testSoon() async {
+    await initialize();
+    if (!_android) throw UnsupportedError('This test runs on Android.');
+    final at = DateTime.now().add(testDelay);
+    final event = await _testEvent(
+      998,
+      'Test Athan',
+      'This came through the same alarm as a real prayer.',
+    );
+    event['time'] = at.millisecondsSinceEpoch;
+    await _native.invokeMethod<void>('testSoon', jsonEncode(event));
+    return at;
+  }
+
+  Future<Map<String, Object>> _testEvent(
+    int id,
+    String title,
+    String body,
+  ) async {
+    final settings = await AlertPreferences.load();
+    final sounds = await SoundLibrary.instance.loadSounds();
+    final beepMode = await BeepMode.instance.load();
+    final soundId =
+        settings.isQuietAt(PrayerService.instance.now) ||
+            beepMode.activeAt(DateTime.now())
+        ? settings.quietSoundId
+        : settings.athanSoundId;
+    final sound = sounds
+        .firstWhere(
+          (s) => s.id == soundId,
+          orElse: () => SoundCatalog.byId('beep'),
+        )
+        .atPower(settings.beepPower);
+    return {
+      'id': id,
+      'time': DateTime.now().millisecondsSinceEpoch,
+      'title': title,
+      'body': body,
+      'soundId': sound.id,
+      'resource': sound.androidResource ?? 'beep',
+      'filePath': sound.filePath ?? '',
+    };
   }
 
   Future<void> cancelAll() async {

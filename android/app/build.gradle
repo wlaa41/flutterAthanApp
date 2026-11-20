@@ -39,6 +39,14 @@ android {
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
+        test.java.srcDirs += 'src/test/kotlin'
+    }
+
+    // The alarm path runs on Robolectric: the Android framework on the JVM.
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
     }
 
     defaultConfig {
@@ -63,4 +71,7 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.robolectric:robolectric:4.18.1'
+    testImplementation 'androidx.test:core:1.6.1'
 }

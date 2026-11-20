@@ -90,14 +90,25 @@ foreground service only while playing, with a visible Stop action and a 10 minut
 maximum. There is no periodic background polling, location tracking, or permanent
 service. Screen countdowns stop when the app is not active.
 
-Allow **Notifications**, then **Precise alarms** in Settings. Without precise alarm
-access, reminders use an inexact system alarm and a short tone; delivery may be
-late. Alerts delayed more than 10 minutes become silent reminders. Built-in quiet
-tones still apply. Ringer silence, Do Not Disturb, audio focus,
-and a disabled playback notification channel are respected. Reopen after an
-Android Force stop or permission revocation. Some manufacturers restrict apps
-further; the Battery settings shortcut provides a manual remedy for late alerts.
-The app does not automatically request a battery exemption.
+Athan is an alarm app on Android: it declares `USE_EXACT_ALARM`, which Android
+13+ grants at install, so the athan fires on time and may start from the
+background. (On Android 12 it uses `SCHEDULE_EXACT_ALARM`.) First launch asks
+for notifications, then to leave Athan out of battery optimisation.
+
+At prayer time the phone's sound mode decides what happens:
+
+| Phone | What you get |
+| --- | --- |
+| Ring | The athan, at alarm volume, with a Stop button |
+| Vibrate or silent | Alarm vibration (felt on silent) and a lock-screen reminder |
+| Do Not Disturb | A reminder only |
+
+The athan plays even when notifications are off; only the on-screen reminder is
+lost. Alerts delayed more than 10 minutes become silent reminders. Reopen after an
+Android Force stop. Some manufacturers restrict apps further: Settings, phone,
+**Reminder readiness** lists what still blocks the athan and has **Test in 1
+minute**, which goes through the same alarm as a real prayer. Lock the phone and
+wait for it.
 
 On iPhone, the app queues the next 60 notifications (under the system limit), so
 frequent Iqama reminders shorten the covered period. Settings shows the scheduled

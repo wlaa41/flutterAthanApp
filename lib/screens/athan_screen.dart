@@ -76,6 +76,8 @@ class _AthanScreenState extends State<AthanScreen> with WidgetsBindingObserver {
         });
       }
       try {
+        // Asks once per install for notifications and battery freedom.
+        await NotificationService.instance.firstRunSetup();
         await NotificationService.instance.refreshSchedule();
         final health = await NotificationService.instance.getHealth();
         if (mounted) setState(() => _health = health);
@@ -280,18 +282,13 @@ class _AthanScreenState extends State<AthanScreen> with WidgetsBindingObserver {
 
             if (_health != null &&
                 _health!.supported &&
-                (!_health!.notificationsEnabled ||
-                    !_health!.exactAlarmsEnabled))
+                _health!.problems.isNotEmpty)
               Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: ListTile(
                   leading: const Icon(Icons.notifications_active_outlined),
                   title: const Text('Finish reminder setup'),
-                  subtitle: Text(
-                    _health!.notificationsEnabled
-                        ? 'Allow precise alarms for timely Athan playback.'
-                        : 'Allow notifications to hear prayer reminders.',
-                  ),
+                  subtitle: Text(_health!.problems.first),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => _openSettings(section: SettingsSection.phone),
                 ),

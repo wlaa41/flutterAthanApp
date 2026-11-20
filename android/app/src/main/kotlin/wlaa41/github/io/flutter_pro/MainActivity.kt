@@ -20,7 +20,17 @@ class MainActivity: FlutterActivity() {
                 when(call.method) {
                     "replace" -> { PrayerAlarms.replace(this, call.arguments as String); result.success(null) }
                     "health" -> result.success(PrayerAlarms.health(this))
-                    "test" -> { PrayerAlarms.deliver(this, JSONObject(call.arguments as String), true); result.success(null) }
+                    "test" -> { PrayerAlarms.deliver(this, JSONObject(call.arguments as String)); result.success(null) }
+                    "testSoon" -> { PrayerAlarms.addTest(this, JSONObject(call.arguments as String)); result.success(null) }
+                    "requestBatteryExemption" -> {
+                        // The system dialog "Let app always run in the background?".
+                        val power = getSystemService(POWER_SERVICE) as android.os.PowerManager
+                        if (Build.VERSION.SDK_INT >= 23 && !power.isIgnoringBatteryOptimizations(packageName)) {
+                            try { startActivity(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:$packageName"))) }
+                            catch (_: Exception) { startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) }
+                        }
+                        result.success(null)
+                    }
                     "getBeepMode" -> result.success(BeepMode.until(this))
                     "setBeepMode" -> { BeepMode.set(this, (call.arguments as Number).toLong()); result.success(null) }
                     "beepOptions" -> { BeepMode.setOptions(this, call.arguments as String); result.success(null) }
