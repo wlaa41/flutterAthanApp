@@ -81,6 +81,15 @@ is `tools/mushaf_pages_manifest.json`. What the tool checks and decides:
 `test/mushaf_pages_test.dart` rebuilds all 6,236 verses from the lines and
 compares them with the text, so a page can neither drop nor repeat a word.
 
+How the layout compares with the Complex's own data: `hafsData_v18.json` gives,
+for each verse, the line it starts on and the line it ends on. On 552 of the
+604 pages every verse starts and ends on those lines in this layout too. On
+the other 52 pages some verses (392 in all) sit one line higher or lower in
+one source than in the other, which points to two printings that differ
+there. The app follows quran.com on those pages, because it is the only source
+that says where each word stands. The comparison was run once, on
+20 November 2026; the Complex's data is not in this repository.
+
 The app draws these lines in the Complex's Hafs font, which is a typeface, not
 the calligrapher's hand. A hand-written line holds as many words as the
 calligrapher made fit; a typeface cannot stretch a letter. So the type size is
