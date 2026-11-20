@@ -10,8 +10,8 @@ On your phone, open
 (the file at the top of this repository) and install it. Every push to `main`
 rebuilds it: once the checks pass, CI commits the freshly signed APK to the
 repository root, so that file is always the latest build and updates the
-installed app in place. It is the 64-bit ARM build that phones use; the
-all-devices APK is over GitHub's 100 MB file limit and stays a CI artifact.
+installed app in place. It is built for 64-bit ARM, which is what phones use;
+an APK for every processor type would be over GitHub's 100 MB file limit.
 
 ## Reminders that fit your day
 

@@ -50,65 +50,34 @@ jobs:
           umask 077
           mkdir -p "$HOME/.android"
           printf '%s' "$ATHAN_PREVIEW_KEYSTORE_BASE64" | base64 --decode > "$HOME/.android/debug.keystore"
+      # One build only: a second Gradle run in the same job signs with a freshly
+      # generated key. It targets 64-bit ARM, which is what phones use; the APK for
+      # every processor type is over GitHub's 100 MB file limit.
       - name: Build Android preview APK
-        run: flutter build apk --release
+        run: flutter build apk --release --target-platform android-arm64
       - name: Verify preview signing certificate
         if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         run: |
-          signature_report="$("$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs build/app/outputs/flutter-apk/app-release.apk)"
+          set -euo pipefail
+          apk=build/app/outputs/flutter-apk/app-release.apk
+          signature_report="$("$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs "$apk")"
           printf '%s\n' "$signature_report"
           actual="$(printf '%s\n' "$signature_report" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
-          test "$actual" = 'f7f52594422cf2ce808e9510ed91ee27e42ff7efd2e9fee841d29a05a0441678'
+          if [ "$actual" != 'f7f52594422cf2ce808e9510ed91ee27e42ff7efd2e9fee841d29a05a0441678' ]; then
+            echo "::error::Unexpected signing certificate: $actual"
+            exit 1
+          fi
+          size="$(stat -c %s "$apk")"
+          echo "APK: $size bytes"
+          if [ "$size" -ge 99000000 ]; then
+            echo "::error::The APK is $size bytes; GitHub rejects files of 100 MB or more."
+            exit 1
+          fi
       - name: Save installable preview
         uses: actions/upload-artifact@v4
         with:
           name: athan-android-${{ github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && 'preview' || 'test' }}-${{ github.sha }}
           path: build/app/outputs/flutter-apk/app-release.apk
-          if-no-files-found: error
-          retention-days: 14
-      # GitHub refuses files over 100 MB and the all-devices APK is larger, so the
-      # copy kept at the repository root is the 64-bit ARM build used by phones.
-      - name: Build the phone APK kept on main
-        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' && github.actor != 'dependabot[bot]'
-        run: |
-          set -uo pipefail
-          apk=build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
-          rm -f "$apk"
-          # The tool can report a late non-zero exit after a completed second build;
-          # the APK itself is what gets checked below.
-          set +e
-          flutter build apk --release --split-per-abi --target-platform android-arm64
-          status=$?
-          set -e
-          echo "flutter build exit code: $status"
-          ls -l build/app/outputs/flutter-apk/
-          if [ ! -s "$apk" ]; then
-            echo "::error::The phone APK was not produced."
-            exit 1
-          fi
-          if ! signature_report="$("$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs "$apk" 2>&1)"; then
-            printf '%s\n' "$signature_report"
-            echo "::error::The phone APK signature could not be verified."
-            exit 1
-          fi
-          printf '%s\n' "$signature_report"
-          actual="$(printf '%s\n' "$signature_report" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
-          if [ "$actual" != 'f7f52594422cf2ce808e9510ed91ee27e42ff7efd2e9fee841d29a05a0441678' ]; then
-            echo "::error::Unexpected signing certificate on the phone APK: $actual"
-            exit 1
-          fi
-          size="$(stat -c %s "$apk")"
-          echo "Phone APK: $size bytes"
-          if [ "$size" -ge 99000000 ]; then
-            echo "::error::The phone APK is $size bytes; GitHub rejects files of 100 MB or more."
-            exit 1
-          fi
-      - name: Save the phone APK
-        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' && github.actor != 'dependabot[bot]'
-        uses: actions/upload-artifact@v4
-        with:
-          name: athan-android-phone-${{ github.sha }}
-          path: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
           if-no-files-found: error
           retention-days: 14
 
@@ -141,7 +110,7 @@ jobs:
           retention-days: 14
 
   # Keeps one installable file at the repository root: AthanApp.apk on main is
-  # always the phone build of the commit before it, signed with the trusted preview key.
+  # always the build of the commit before it, signed with the trusted preview key.
   # Only this small job can write to the repository; it runs no build tooling.
   publish-apk:
     name: Keep the signed APK on main
@@ -159,7 +128,7 @@ jobs:
       - name: Fetch the verified preview APK
         uses: actions/download-artifact@v4
         with:
-          name: athan-android-phone-${{ github.sha }}
+          name: athan-android-preview-${{ github.sha }}
           path: ${{ runner.temp }}/apk
       - name: Commit AthanApp.apk to the repository root
         run: |
@@ -168,7 +137,7 @@ jobs:
             echo "::notice::main has moved on; the newer run publishes its own APK."
             exit 0
           fi
-          cp "$RUNNER_TEMP/apk/app-arm64-v8a-release.apk" AthanApp.apk
+          cp "$RUNNER_TEMP/apk/app-release.apk" AthanApp.apk
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -f AthanApp.apk
