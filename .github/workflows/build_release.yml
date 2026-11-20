@@ -20,11 +20,15 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v4
-      - name: Set up Java 17
+      # 17 builds the app (the last one listed is the default). Robolectric needs
+      # 21 to run Android 14 and later, so the native tests use that.
+      - name: Set up Java 17 and 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: |
+            21
+            17
           cache: gradle
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -43,7 +47,7 @@ jobs:
       - name: Test that the athan plays, vibrates on silent and survives refreshes
         run: |
           flutter build apk --config-only
-          cd android && ./gradlew :app:testDebugUnitTest --no-daemon
+          cd android && JAVA_HOME="$JAVA_HOME_21_X64" ./gradlew :app:testDebugUnitTest --no-daemon
       - name: Restore stable preview signing key
         if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         env:
