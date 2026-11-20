@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/quran_models.dart';
 import '../services/mushaf_library.dart';
+import '../services/mushaf_pages.dart';
 import 'reader_palette.dart';
 
 const _ink = Color(0xFF0F172A);
@@ -77,10 +78,18 @@ class MushafSettingsSheet extends StatefulWidget {
     this.night,
     this.onFontSize,
     this.onNight,
+    this.printedPages,
+    this.onPrintedPages,
   });
 
   final MushafEdition edition;
   final ValueChanged<MushafEdition> onEdition;
+
+  /// Whether the reader shows printed pages (true) or flowing text (false),
+  /// and what to do when the other is chosen. The choice is offered only
+  /// when the reader passes both.
+  final bool? printedPages;
+  final ValueChanged<bool>? onPrintedPages;
 
   /// The page controls are shown only when the reader passes them.
   final double? fontSize;
@@ -99,6 +108,8 @@ class MushafSettingsSheet extends StatefulWidget {
     bool? night,
     ValueChanged<double>? onFontSize,
     ValueChanged<bool>? onNight,
+    bool? printedPages,
+    ValueChanged<bool>? onPrintedPages,
   }) {
     return showModalBottomSheet<void>(
       context: context,
@@ -111,6 +122,8 @@ class MushafSettingsSheet extends StatefulWidget {
         night: night,
         onFontSize: onFontSize,
         onNight: onNight,
+        printedPages: printedPages,
+        onPrintedPages: onPrintedPages,
       ),
     );
   }
@@ -174,11 +187,15 @@ class _MushafSettingsSheetState extends State<MushafSettingsSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
+                    // Side by side when there is room; with large text the
+                    // Arabic name drops to its own line.
+                    SizedBox(
+                      width: double.infinity,
+                      child: Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        spacing: 8,
+                        children: [
+                          Text(
                             edition.name,
                             style: const TextStyle(
                               fontSize: 15,
@@ -186,18 +203,17 @@ class _MushafSettingsSheetState extends State<MushafSettingsSheet> {
                               color: _ink,
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          edition.arabicName,
-                          textDirection: TextDirection.rtl,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: ReaderPalette.green,
+                          Text(
+                            edition.arabicName,
+                            textDirection: TextDirection.rtl,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: ReaderPalette.green,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 3),
                     Text(
@@ -218,6 +234,58 @@ class _MushafSettingsSheetState extends State<MushafSettingsSheet> {
     );
   }
 
+  /// Printed pages or flowing text. Choosing the other one closes the sheet,
+  /// because the reader changes under it.
+  List<Widget> _viewChoice() {
+    final printed = widget.printedPages;
+    final onChange = widget.onPrintedPages;
+    if (printed == null || onChange == null) return const [];
+    final available = MushafPages.has(_edition);
+    void choose(bool value) {
+      if (value == printed) return;
+      Navigator.pop(context);
+      onChange(value);
+    }
+
+    return [
+      const Text(
+        'Page',
+        style: TextStyle(fontWeight: FontWeight.w700, color: _ink),
+      ),
+      const SizedBox(height: 6),
+      Wrap(
+        spacing: 8,
+        runSpacing: 4,
+        children: [
+          ChoiceChip(
+            label: const Text('Printed pages'),
+            selected: printed,
+            materialTapTargetSize: MaterialTapTargetSize.padded,
+            onSelected: available ? (_) => choose(true) : null,
+          ),
+          ChoiceChip(
+            label: const Text('Flowing text'),
+            selected: !printed,
+            materialTapTargetSize: MaterialTapTargetSize.padded,
+            onSelected: (_) => choose(false),
+          ),
+        ],
+      ),
+      const SizedBox(height: 4),
+      Text(
+        !available
+            ? 'This mushaf opens as flowing text. Printed pages are ready for '
+                  'the two Hafs copies.'
+            : printed
+            ? 'The 604 pages of the Madinah mushaf, each line as it is '
+                  'printed. Swipe to turn the page.'
+            : 'One surah at any text size, with room for handwritten notes.',
+        style: const TextStyle(fontSize: 12.5, height: 1.35, color: _soft),
+      ),
+      const SizedBox(height: 10),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final fontSize = _fontSize;
@@ -233,8 +301,9 @@ class _MushafSettingsSheetState extends State<MushafSettingsSheet> {
         ),
         const SizedBox(height: 10),
         for (final edition in MushafLibrary.editions) _editionRow(edition),
+        if (widget.printedPages != null) const SizedBox(height: 14),
+        ..._viewChoice(),
         if (fontSize != null && widget.onFontSize != null) ...[
-          const SizedBox(height: 14),
           const Text(
             'Text size',
             style: TextStyle(fontWeight: FontWeight.w700, color: _ink),
@@ -299,7 +368,8 @@ class _MushafSettingsSheetState extends State<MushafSettingsSheet> {
         const SizedBox(height: 12),
         const Text(
           'Text and fonts: King Fahd Glorious Quran Printing Complex, as '
-          'published. Tajweed colours and tafsir: quran.com. Meaning: Saheeh '
+          'published. Page lines, tajweed colours and tafsir: quran.com. '
+          'Meaning: Saheeh '
           'International. Recitation: Mishary Alafasy (Hafs) and Ibrahim '
           'Al-Dosari (Warsh).',
           style: TextStyle(fontSize: 12, height: 1.4, color: _soft),
@@ -349,11 +419,13 @@ class TajweedGuideSheet extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Text(
+                      SizedBox(
+                        width: double.infinity,
+                        child: Wrap(
+                          alignment: WrapAlignment.spaceBetween,
+                          spacing: 8,
+                          children: [
+                            Text(
                               entry.title,
                               style: const TextStyle(
                                 fontWeight: FontWeight.w700,
@@ -361,18 +433,17 @@ class TajweedGuideSheet extends StatelessWidget {
                                 color: _ink,
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            entry.arabicTitle,
-                            textDirection: TextDirection.rtl,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 15,
-                              color: ReaderPalette.green,
+                            Text(
+                              entry.arabicTitle,
+                              textDirection: TextDirection.rtl,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 15,
+                                color: ReaderPalette.green,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 2),
                       Text(

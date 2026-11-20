@@ -1,0 +1,24 @@
+{
+  "asset": "asset/quran/hafs_pages.json",
+  "asset_bytes": 54907,
+  "asset_sha256": "b166aaa9498d7f14d96d66da75626096776dde090e4d41e76c54b642bc717f44",
+  "source": "https://api.quran.com/api/v4/verses/by_page/<1 to 604>?words=true&word_fields=line_number,page_number,text_qpc_hafs,char_type_name,position,code_v2&per_page=50&fields=verse_key",
+  "fetched": "2026-11-20",
+  "centred_lines_from": "quran.com-frontend-next, src/components/Verse/pageUtils.ts",
+  "pages": 604,
+  "text_lines": 8820,
+  "headings": 226,
+  "tokens": 83666,
+  "end_mark_moved_to_its_words_line": [
+    "84:21"
+  ],
+  "verses_split_into_words_differently": [
+    "2:181",
+    "8:6",
+    "13:37",
+    "15:7",
+    "27:20",
+    "36:22",
+    "37:130"
+  ]
+}

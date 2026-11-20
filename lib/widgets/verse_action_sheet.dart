@@ -16,8 +16,8 @@ class VerseActionSheet extends StatefulWidget {
     required this.edition,
     required this.highlight,
     required this.onHighlight,
-    required this.onAnnotate,
     required this.onTafsir,
+    this.onAnnotate,
     this.translations,
   });
 
@@ -28,7 +28,9 @@ class VerseActionSheet extends StatefulWidget {
   /// The verse's current highlight colour, if any.
   final Color? highlight;
   final ValueChanged<Color?> onHighlight;
-  final VoidCallback onAnnotate;
+
+  /// Opens the pen on the page. Left out where the page takes no handwriting.
+  final VoidCallback? onAnnotate;
   final VoidCallback onTafsir;
   final QuranTranslationService? translations;
 
@@ -47,8 +49,8 @@ class VerseActionSheet extends StatefulWidget {
     required MushafEdition edition,
     required Color? highlight,
     required ValueChanged<Color?> onHighlight,
-    required VoidCallback onAnnotate,
     required VoidCallback onTafsir,
+    VoidCallback? onAnnotate,
     QuranTranslationService? translations,
   }) {
     return showModalBottomSheet<void>(
@@ -254,15 +256,16 @@ class _VerseActionSheetState extends State<VerseActionSheet> {
                     color: const Color(0xFFA47C2C),
                     onTap: _toggleBookmark,
                   ),
-                  _action(
-                    icon: Icons.edit,
-                    label: 'Note',
-                    color: const Color(0xFF2563EB),
-                    onTap: () {
-                      Navigator.pop(context);
-                      widget.onAnnotate();
-                    },
-                  ),
+                  if (widget.onAnnotate case final annotate?)
+                    _action(
+                      icon: Icons.edit,
+                      label: 'Note',
+                      color: const Color(0xFF2563EB),
+                      onTap: () {
+                        Navigator.pop(context);
+                        annotate();
+                      },
+                    ),
                   _action(
                     icon: Icons.copy,
                     label: 'Copy',

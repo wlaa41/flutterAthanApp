@@ -57,8 +57,15 @@ an APK for every processor type would be over GitHub's 100 MB file limit.
   Shu'bah, Al-Duri, Al-Susi, Al-Bazzi or Qunbul. Each is the King Fahd Complex
   text drawn in the Complex's own font for that riwayah, so the letters join
   as they do in print.
-- The text flows page by page like the printed mushaf, with the page and juz
-  marked. The tune button sets the text size and a night page.
+- Hafs opens as the printed Madinah mushaf: the same 604 pages, the same
+  fifteen lines, each line beginning with the same word, with the surah
+  banners and the basmalah in their places. Swipe to turn the page, or use
+  **Go to page**. A phone held sideways keeps the page wide and scrolls it.
+- With the tajweed copy, the colour key stays under the page: each colour
+  beside the name of its rule. Tap it for what each rule asks of the reciter.
+- The tune button switches between **Printed pages** and **Flowing text**
+  (one surah at any text size, with handwritten notes), and sets a night page.
+  The other eight riwayat open as flowing text.
 - Tap a verse for its meaning (Saheeh International), its tafsir, recitation,
   a bookmark, a highlight or a handwritten note. Bookmarks are listed from the
   Quran tab, which also offers to continue where you stopped.

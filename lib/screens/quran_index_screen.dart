@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../models/quran_models.dart';
 import '../services/mushaf_library.dart';
+import '../services/mushaf_pages.dart';
 import '../services/quran_service.dart';
 import '../widgets/mushaf_sheets.dart';
 import '../widgets/reader_palette.dart';
+import 'mushaf_pages_screen.dart';
 import 'quran_reader_screen.dart';
 
 class QuranIndexScreen extends StatefulWidget {
@@ -85,15 +87,28 @@ class _QuranIndexScreenState extends State<QuranIndexScreen> {
   }
 
   Future<void> _open(Surah surah, {int? page, int? hafsAyah}) async {
+    // A mushaf with a page layout opens as its printed pages, unless
+    // flowing text was chosen.
+    final edition = await _library.restoreChoice();
+    final printed =
+        MushafPages.has(edition) && await MushafPagesScreen.preferred();
+    if (!mounted) return;
     await Navigator.push(
       context,
       MaterialPageRoute<void>(
-        builder: (_) => QuranReaderScreen(
-          surah: surah,
-          openAtPage: page,
-          openAtHafsAyah: hafsAyah,
-          library: widget.library,
-        ),
+        builder: (_) => printed
+            ? MushafPagesScreen(
+                surah: surah.number,
+                page: page,
+                hafsAyah: hafsAyah,
+                library: widget.library,
+              )
+            : QuranReaderScreen(
+                surah: surah,
+                openAtPage: page,
+                openAtHafsAyah: hafsAyah,
+                library: widget.library,
+              ),
       ),
     );
     await _refreshLastRead();

@@ -47,6 +47,51 @@ The fonts carry the Complex's licence: free to use, copy and distribute, and not
 to be sold or modified. The app is free and ships them unmodified. If the app is
 ever sold, read that licence again first.
 
+## Printed pages (Hafs)
+
+The two Hafs copies open as the pages of the Madinah mushaf: 604 pages, fifteen
+lines to a page, every line beginning with the word it begins with in print,
+the surah banners and the basmalah on their own lines. The Complex's data says
+on which page and lines a verse stands, but not at which word a line ends, so
+that word-by-word layout comes from quran.com's API
+(`https://api.quran.com/api/v4/verses/by_page/<page>?words=true`, word field
+`line_number`). It is the layout quran.com serves with its own page fonts for
+this mushaf.
+
+`tools/build_mushaf_pages.py` fetches the 604 pages, matches every word to the
+bundled text letter for letter, and writes `asset/quran/hafs_pages.json` (55 KB):
+for each line of each page, the first word of the line. The record of the build
+is `tools/mushaf_pages_manifest.json`. What the tool checks and decides:
+
+- Every one of the 6,236 verses is on a page, once, and the letters of each
+  verse are the letters of the bundled text. The page of every verse is the
+  page the Complex's own data gives for it.
+- Seven verses are cut into words differently by the two sources (for example
+  `بَعۡدَ مَا` as one word or two). The layout is matched by letters, not by
+  word count, and no line breaks inside such a word.
+- One end mark in the source, that of 84:21, sits a line above its own word.
+  It is put on its word's line.
+- A line with no words is a surah banner or a basmalah. The tool names them by
+  walking back from the first word of each surah, and stops if a line is left
+  unexplained. Pages 1 and 2 have eight lines.
+- Which lines the print sets centred (all of pages 1 and 2, and the short last
+  lines of some surahs) is taken from the list in quran.com's reader
+  (`quran.com-frontend-next`, `src/components/Verse/pageUtils.ts`).
+
+`test/mushaf_pages_test.dart` rebuilds all 6,236 verses from the lines and
+compares them with the text, so a page can neither drop nor repeat a word.
+
+The app draws these lines in the Complex's Hafs font, which is a typeface, not
+the calligrapher's hand. A hand-written line holds as many words as the
+calligrapher made fit; a typeface cannot stretch a letter. So the type size is
+set page by page to fit the widest line. A line may be set up to three per cent
+larger or smaller, and drawn up to four per cent narrower or six per cent
+wider, the way a hand fills a line. What is left is made up between its words.
+The words on each line are the print's; their spacing is the app's.
+
+The other eight riwayat have no published word-by-word layout. They open as
+flowing text, page after page, as before.
+
 ## Tajweed colours (Hafs only)
 
 The colour runs come from quran.com's `text_uthmani_tajweed`

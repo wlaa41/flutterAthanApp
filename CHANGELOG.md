@@ -1,5 +1,30 @@
 # Changelog
 
+## 2.2.0-rc.7 (build 17)
+
+- The Quran opens as the printed page. Both Hafs copies now show the Madinah
+  mushaf page by page: 604 pages, fifteen lines, every line beginning with the
+  word it begins with in print, the surah banners and the basmalah on their
+  own lines, centred lines centred. Swipe to turn the page; the next page
+  comes from the left, as in the book. **Go to page** jumps to a page number.
+- The line breaks are data, not guesses: the word-by-word layout of the mushaf
+  from quran.com, matched to the bundled text letter for letter. A test
+  rebuilds all 6,236 verses from the lines and compares them with the text.
+- The tajweed colours now have their key on the page. A strip under the text
+  shows every colour beside the name of its rule, in English and Arabic, on
+  the printed pages and on flowing text. A tap opens what each rule means.
+- **Printed pages** is how the reader opens. **Flowing text** (one surah at
+  any text size, with handwritten notes) is one tap away under the tune
+  button, and the choice is remembered. The other eight riwayat have no
+  published line layout and open as flowing text.
+- A phone held sideways keeps the page at full width and scrolls it, instead
+  of shrinking fifteen lines into the screen.
+- Long mushaf and rule names in the sheets wrap with large system text.
+- The page is set in the Complex's typeface, not the calligrapher's hand, so
+  the words on each line are the print's and the spacing between them is the
+  app's. Details are in `docs/QURAN_SOURCES.md`.
+- Validation: 186 tests pass. Not tried on a physical phone.
+
 ## 2.2.0-rc.6 (build 16)
 
 - Weekly beep days are on the home Beep card. One switch turns them on with

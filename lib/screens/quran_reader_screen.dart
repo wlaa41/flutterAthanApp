@@ -9,13 +9,17 @@ import '../models/quran_models.dart';
 import '../services/annotation_storage_service.dart';
 import '../services/audio_service.dart';
 import '../services/mushaf_library.dart';
+import '../services/mushaf_pages.dart';
 import '../services/quran_service.dart';
 import '../services/quran_translation_service.dart';
 import '../widgets/mushaf_block.dart';
 import '../widgets/mushaf_sheets.dart';
 import '../widgets/reader_palette.dart';
+import '../widgets/recitation_bar.dart';
 import '../widgets/stylus_canvas.dart';
+import '../widgets/tajweed_legend.dart';
 import '../widgets/verse_action_sheet.dart';
+import 'mushaf_pages_screen.dart';
 import 'tafsir_screen.dart';
 
 /// Reads one surah in the chosen mushaf. The text comes from the app's own
@@ -282,6 +286,29 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
       night: _night,
       onFontSize: _setFontSize,
       onNight: _setNight,
+      printedPages: false,
+      onPrintedPages: (printed) async {
+        if (!printed) return;
+        await MushafPagesScreen.prefer(printedPages: true);
+        if (mounted) _openPrintedPages();
+      },
+    );
+  }
+
+  /// Leaves for the printed pages at the passage being read.
+  void _openPrintedPages() {
+    final text = _text;
+    if (text == null || !MushafPages.has(text.edition)) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => MushafPagesScreen(
+          surah: _surahNumber,
+          page: _topPage()?.first.page,
+          library: widget.library,
+          translations: widget.translations,
+        ),
+      ),
     );
   }
 
@@ -432,70 +459,82 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
                       ),
                     ),
             )
-          : Stack(
-              key: _viewportKey,
-              fit: StackFit.expand,
-              children: [
-                NotificationListener<ScrollEndNotification>(
-                  onNotification: (_) {
-                    final page = _topPage();
-                    if (page != null) _rememberPlace(page.first.page);
-                    return false;
-                  },
-                  child: SingleChildScrollView(
-                    controller: _scroll,
-                    physics: (_isStylusMode && _activeTool != DrawingTool.pan)
-                        ? const NeverScrollableScrollPhysics()
-                        : const BouncingScrollPhysics(),
-                    padding: EdgeInsets.fromLTRB(
-                      16,
-                      16,
-                      16,
-                      _isStylusMode ? 240 : 96,
-                    ),
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 720),
-                        // The drawing layer is part of the page, so notes
-                        // scroll with the verses they were written on.
-                        child: StylusCanvas(
-                          key: _canvasKey,
-                          storageKey: _strokeKey(text.edition),
-                          initialStrokes: _strokes,
-                          onStrokesChanged: _onStrokesChanged,
-                          isDrawingActive: _isStylusMode,
-                          child: _page(text, palette),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: 10,
-                  left: 16,
-                  right: 16,
-                  child: ValueListenableBuilder<RecitationNow?>(
-                    valueListenable: AudioService.instance.recitation,
-                    builder: (context, now, _) => now == null
-                        ? const SizedBox.shrink()
-                        : _buildFloatingAudioPlayer(now),
-                  ),
-                ),
-                Positioned(
-                  bottom: 16,
-                  left: 16,
-                  right: 16,
-                  child: SafeArea(
-                    top: false,
-                    child: _isStylusMode
-                        ? _buildStylusToolbar()
-                        : Align(
-                            alignment: Alignment.centerRight,
-                            child: _buildNotesButton(),
+          : SafeArea(
+              top: false,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Stack(
+                      key: _viewportKey,
+                      fit: StackFit.expand,
+                      children: [
+                        NotificationListener<ScrollEndNotification>(
+                          onNotification: (_) {
+                            final page = _topPage();
+                            if (page != null) _rememberPlace(page.first.page);
+                            return false;
+                          },
+                          child: SingleChildScrollView(
+                            controller: _scroll,
+                            physics:
+                                (_isStylusMode &&
+                                    _activeTool != DrawingTool.pan)
+                                ? const NeverScrollableScrollPhysics()
+                                : const BouncingScrollPhysics(),
+                            padding: EdgeInsets.fromLTRB(
+                              16,
+                              16,
+                              16,
+                              _isStylusMode ? 240 : 96,
+                            ),
+                            child: Center(
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 720,
+                                ),
+                                // The drawing layer is part of the page, so notes
+                                // scroll with the verses they were written on.
+                                child: StylusCanvas(
+                                  key: _canvasKey,
+                                  storageKey: _strokeKey(text.edition),
+                                  initialStrokes: _strokes,
+                                  onStrokesChanged: _onStrokesChanged,
+                                  isDrawingActive: _isStylusMode,
+                                  child: _page(text, palette),
+                                ),
+                              ),
+                            ),
                           ),
+                        ),
+                        Positioned(
+                          top: 10,
+                          left: 16,
+                          right: 16,
+                          child: const RecitationBar(),
+                        ),
+                        Positioned(
+                          bottom: 16,
+                          left: 16,
+                          right: 16,
+                          child: SafeArea(
+                            top: false,
+                            child: _isStylusMode
+                                ? _buildStylusToolbar()
+                                : Align(
+                                    alignment: Alignment.centerRight,
+                                    child: _buildNotesButton(),
+                                  ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                  // The colour key stays on the page; the pen takes its place
+                  // while writing.
+                  if (text.edition.tajweedColours && !_isStylusMode)
+                    TajweedLegend(palette: palette),
+                ],
+              ),
             ),
     );
   }
@@ -632,63 +671,6 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
             Expanded(child: Divider(color: palette.rule, thickness: 1)),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildFloatingAudioPlayer(RecitationNow now) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: ReaderPalette.green,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.25),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-        border: Border.all(color: ReaderPalette.gold, width: 1.2),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.graphic_eq, color: ReaderPalette.gold, size: 22),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Reciting ${now.title}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                  ),
-                ),
-                Text(
-                  now.reciter,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Colors.white70, fontSize: 11),
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            icon: const Icon(
-              Icons.stop_circle_rounded,
-              color: Colors.white,
-              size: 26,
-            ),
-            tooltip: 'Stop Recitation',
-            onPressed: () => AudioService.instance.stop(),
-          ),
-        ],
       ),
     );
   }
