@@ -14,6 +14,36 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
+  testWidgets('Settings offers the athans that can be added, with credits', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    await tester.pumpWidget(const MaterialApp(home: SettingsScreen()));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('Audio credits'), 150);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Choose or add a sound'));
+    await tester.pumpAndSettle();
+    expect(find.text('Trending athans'), findsOneWidget);
+    expect(find.text('محمد بن مروان قصاص'), findsOneWidget);
+    expect(find.byTooltip('Add Muhammad Jazi Abdullah'), findsOneWidget);
+    await tester.tap(find.byTooltip('Close sound picker'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Audio credits'));
+    await tester.pumpAndSettle();
+    final credits = tester
+        .widget<SelectableText>(find.byType(SelectableText))
+        .data!;
+    expect(credits, contains('ATHAN AUDIO CREDITS'));
+    expect(credits, contains('ATHANS YOU CAN ADD'));
+    expect(credits, contains('Muhammad Marwan Qassas: tilawatalharamain.com'));
+    expect(credits, contains('Muhammad Jazi Abdullah: archive.org'));
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
+
   testWidgets('chosen beep days persist and only replace those days', (
     tester,
   ) async {

@@ -20,6 +20,12 @@ an APK for every processor type would be over GitHub's 100 MB file limit.
   Madinah, Abdul Basit, Minshawi, or Nasser Al Qatami, plus an Iqama recitation,
   beep, double beep, chime, strong beep, vibration, or silence. Recordings and tones are
   bundled, not streamed. Audio credits are available in Settings.
+- **Trending athans** at the top of the sound picker adds more muezzins with one
+  tap: Muhammad Marwan Qassas (Madinah), Muhammad Jazi Abdullah (Irbid) in full
+  and as the short, widely shared part, and twelve more. The phone fetches a
+  recording once from its public source, checks it against a recorded checksum
+  and keeps it, so reminders play it offline. Sources are in
+  `asset/AUDIO_SOURCES.md`.
 - Open **Settings → Basics → Choose or add a sound** to compare recordings, preview
   them, and add an MP3, M4A, or WAV from your phone (up to 20 MB / 10 minutes).
   Tap **Use sound** to apply your choice. Cancelling keeps your previous choice;

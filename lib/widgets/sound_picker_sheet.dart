@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../models/athan_download.dart';
+import '../services/athan_downloads.dart';
 import '../services/sound_library.dart';
 
 /// A sound can be heard and selected here without changing saved preferences.
@@ -19,6 +21,9 @@ class SoundPickerSheet extends StatefulWidget {
     required this.onImport,
     this.isPlayingStream,
     this.playbackError,
+    this.moreAthans = const [],
+    this.onAddAthan,
+    this.onRemoveAthan,
   });
 
   final List<SoundOption> sounds;
@@ -30,6 +35,17 @@ class SoundPickerSheet extends StatefulWidget {
   final Future<SoundOption?> Function() onImport;
   final Stream<bool>? isPlayingStream;
   final ValueListenable<String?>? playbackError;
+
+  /// Athans that can be added from their public source, offered in this order.
+  final List<AthanDownload> moreAthans;
+
+  /// Fetches one athan and returns every added athan now on the phone.
+  final Future<List<SoundOption>> Function(
+    AthanDownload athan,
+    void Function(double fraction) onProgress,
+  )?
+  onAddAthan;
+  final Future<void> Function(AthanDownload athan)? onRemoveAthan;
 
   @override
   State<SoundPickerSheet> createState() => _SoundPickerSheetState();
@@ -45,6 +61,11 @@ class _SoundPickerSheetState extends State<SoundPickerSheet>
   String? _error;
   String? _importMessage;
   bool _importing = false;
+  String? _addingId;
+  double _addProgress = 0;
+  String? _addErrorId;
+  String? _addError;
+  bool _showAllAthans = false;
   bool _heardPlayback = false;
   bool _playbackEnded = false;
   bool _appPaused = false;
@@ -52,7 +73,25 @@ class _SoundPickerSheetState extends State<SoundPickerSheet>
   final _errorKey = GlobalKey();
   final _importMessageKey = GlobalKey();
 
-  bool get _busy => _importing || _loadingPreviewId != null;
+  bool get _busy =>
+      _importing || _loadingPreviewId != null || _addingId != null;
+
+  bool get _offersMore =>
+      !widget.iqama &&
+      widget.onAddAthan != null &&
+      widget.moreAthans.isNotEmpty;
+
+  /// A sound from [SoundPickerSheet.moreAthans] that is on the phone.
+  bool _isAdded(SoundOption sound) =>
+      _offersMore &&
+      widget.moreAthans.any((athan) => athan.soundId == sound.id);
+
+  SoundOption? _addedSound(AthanDownload athan) {
+    for (final sound in _sounds) {
+      if (sound.id == athan.soundId) return sound;
+    }
+    return null;
+  }
 
   @override
   void initState() {
@@ -225,6 +264,67 @@ class _SoundPickerSheetState extends State<SoundPickerSheet>
     }
   }
 
+  Future<void> _addAthan(AthanDownload athan) async {
+    if (_busy) return;
+    setState(() {
+      _addingId = athan.id;
+      _addProgress = 0;
+      _addErrorId = null;
+      _error = null;
+    });
+    try {
+      await widget.onStop();
+      if (!mounted) return;
+      setState(() => _previewId = null);
+      final added = await widget.onAddAthan!(athan, (fraction) {
+        if (mounted) setState(() => _addProgress = fraction.clamp(0, 1));
+      });
+      if (!mounted) return;
+      setState(() {
+        _sounds.removeWhere((sound) => AthanDownloads.isAddedSound(sound.id));
+        _sounds.addAll(added);
+        _selected = _addedSound(athan) ?? _selected;
+      });
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _addErrorId = athan.id;
+          _addError = error is AthanDownloadFailure
+              ? error.message
+              : 'This athan could not be added. Try again.';
+        });
+      }
+    } finally {
+      if (mounted) setState(() => _addingId = null);
+    }
+  }
+
+  Future<void> _removeAthan(AthanDownload athan) async {
+    if (_busy) return;
+    try {
+      await widget.onStop();
+      await widget.onRemoveAthan!(athan);
+      if (!mounted) return;
+      setState(() {
+        _previewId = null;
+        _sounds.removeWhere((sound) => sound.id == athan.soundId);
+        if (_selected?.id == athan.soundId) {
+          _selected = null;
+          for (final sound in _sounds) {
+            if (sound.id == widget.selectedId) _selected = sound;
+          }
+        }
+      });
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _addErrorId = athan.id;
+          _addError = 'This athan could not be removed. Try again.';
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -298,12 +398,14 @@ class _SoundPickerSheetState extends State<SoundPickerSheet>
                     const SizedBox(height: 12),
                     _notice(_error!, scheme.errorContainer, _errorKey),
                   ],
+                  ..._trendingAthans(),
                   ..._group(
                     'Recitations',
                     _sounds.where(
                       (sound) =>
-                          sound.kind == SoundKind.athan ||
-                          sound.kind == SoundKind.iqama,
+                          !_isAdded(sound) &&
+                          (sound.kind == SoundKind.athan ||
+                              sound.kind == SoundKind.iqama),
                     ),
                   ),
                   ..._group(
@@ -357,25 +459,149 @@ class _SoundPickerSheetState extends State<SoundPickerSheet>
     ),
   );
 
+  Widget _groupTitle(String title) => Padding(
+    padding: const EdgeInsets.fromLTRB(4, 20, 4, 8),
+    child: Semantics(
+      header: true,
+      child: Text(title, style: Theme.of(context).textTheme.titleSmall),
+    ),
+  );
+
   List<Widget> _group(String title, Iterable<SoundOption> sounds) {
     final options = sounds.toList();
     if (options.isEmpty) return [];
+    return [_groupTitle(title), for (final sound in options) _soundTile(sound)];
+  }
+
+  /// The athans that can be added. Those asked for by name, and any already
+  /// on the phone, stay in view; the rest open on request.
+  List<Widget> _trendingAthans() {
+    if (!_offersMore) return [];
+    bool pinned(AthanDownload athan) =>
+        athan.featured ||
+        athan.id == _addingId ||
+        _addedSound(athan) != null ||
+        _selected?.id == athan.soundId;
+    final hidden = widget.moreAthans.where((athan) => !pinned(athan)).length;
     return [
+      _groupTitle('Trending athans'),
       Padding(
-        padding: const EdgeInsets.fromLTRB(4, 20, 4, 8),
-        child: Semantics(
-          header: true,
-          child: Text(title, style: Theme.of(context).textTheme.titleSmall),
+        padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+        child: Text(
+          'Add one to keep it on this phone. It is fetched once from its public source.',
+          style: Theme.of(context).textTheme.bodySmall,
         ),
       ),
-      for (final sound in options) _soundTile(sound),
+      for (final athan in widget.moreAthans)
+        if (_showAllAthans || pinned(athan))
+          switch (_addedSound(athan)) {
+            final sound? => _soundTile(sound, athan: athan),
+            null => _addTile(athan),
+          },
+      if (hidden > 0 || _showAllAthans)
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: TextButton.icon(
+            onPressed: () => setState(() => _showAllAthans = !_showAllAthans),
+            icon: Icon(_showAllAthans ? Icons.expand_less : Icons.expand_more),
+            label: Text(
+              _showAllAthans ? 'Show fewer' : 'Show $hidden more athans',
+            ),
+          ),
+        ),
     ];
   }
 
-  Widget _soundTile(SoundOption sound) {
+  Widget _athanNames(AthanDownload athan) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(athan.arabicName, textDirection: TextDirection.rtl),
+      Text(athan.name, style: Theme.of(context).textTheme.bodyMedium),
+    ],
+  );
+
+  Widget _addTile(AthanDownload athan) {
+    final scheme = Theme.of(context).colorScheme;
+    final adding = _addingId == athan.id;
+    final failed = _addErrorId == athan.id;
+    final cut = athan.cutFrom != null;
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      color: scheme.surfaceContainerLow,
+      elevation: 0,
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 8,
+            ),
+            title: _athanNames(athan),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (athan.note != null) Text(athan.note!),
+                Text(
+                  cut
+                      ? '${athan.place} · ${athan.length} · made from the full recording (${athan.size})'
+                      : '${athan.place} · ${athan.length} · ${athan.size}',
+                ),
+                if (failed)
+                  Semantics(
+                    liveRegion: true,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        _addError!,
+                        style: TextStyle(color: scheme.error),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            onTap: _busy ? null : () => _addAthan(athan),
+            trailing: adding
+                ? Semantics(
+                    label: 'Adding ${athan.name}',
+                    value: '${(_addProgress * 100).round()} percent',
+                    child: SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          value: _addProgress > 0 ? _addProgress : null,
+                        ),
+                      ),
+                    ),
+                  )
+                : IconButton.filledTonal(
+                    tooltip: 'Add ${athan.name}',
+                    onPressed: _busy ? null : () => _addAthan(athan),
+                    icon: Icon(failed ? Icons.refresh : Icons.download),
+                  ),
+          ),
+          if (adding)
+            LinearProgressIndicator(
+              value: _addProgress > 0 ? _addProgress : null,
+              minHeight: 3,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _soundTile(SoundOption sound, {AthanDownload? athan}) {
     final selected = _selected?.id == sound.id;
     final previewing = _previewId == sound.id;
     final scheme = Theme.of(context).colorScheme;
+    // The athan in use stays: removing it would leave reminders without it.
+    final removable =
+        athan != null &&
+        widget.onRemoveAthan != null &&
+        sound.id != widget.selectedId;
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       color: selected ? scheme.secondaryContainer : scheme.surfaceContainerLow,
@@ -387,15 +613,35 @@ class _SoundPickerSheetState extends State<SoundPickerSheet>
           color: selected ? scheme.primary : scheme.onSurfaceVariant,
         ),
         selected: selected,
-        title: Text(sound.name),
-        subtitle: Text(
-          widget.isIOS && sound.isVibrationOnly
-              ? 'Silent alert; vibration follows iPhone settings'
-              : sound.description,
+        title: athan == null ? Text(sound.name) : _athanNames(athan),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              widget.isIOS && sound.isVibrationOnly
+                  ? 'Silent alert; vibration follows iPhone settings'
+                  : sound.description,
+            ),
+            if (athan != null && _addErrorId == athan.id)
+              Semantics(
+                liveRegion: true,
+                child: Text(_addError!, style: TextStyle(color: scheme.error)),
+              ),
+          ],
         ),
         onTap: _busy ? null : () => setState(() => _selected = sound),
-        trailing: sound.canPreview
-            ? IconButton(
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (removable)
+              IconButton(
+                tooltip: 'Remove ${sound.name} from this phone',
+                visualDensity: VisualDensity.compact,
+                onPressed: _busy ? null : () => _removeAthan(athan),
+                icon: const Icon(Icons.delete_outline),
+              ),
+            if (sound.canPreview)
+              IconButton(
                 tooltip: '${previewing ? 'Stop' : 'Preview'} ${sound.name}',
                 onPressed: _busy ? null : () => _preview(sound),
                 icon: _loadingPreviewId == sound.id
@@ -405,8 +651,9 @@ class _SoundPickerSheetState extends State<SoundPickerSheet>
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : Icon(previewing ? Icons.stop : Icons.play_arrow),
-              )
-            : null,
+              ),
+          ],
+        ),
       ),
     );
   }

@@ -9,6 +9,8 @@ import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'athan_downloads.dart';
+
 enum SoundKind { athan, iqama, tone, custom }
 
 class SoundOption {
@@ -254,6 +256,11 @@ class SoundLibrary {
   Future<List<SoundOption>> loadSounds() async {
     final prefs = await SharedPreferences.getInstance();
     final sounds = <SoundOption>[...SoundCatalog.builtIns];
+    try {
+      sounds.addAll(await AthanDownloads.instance.sounds());
+    } on Object {
+      // Without the private folder there are no added athans to offer.
+    }
     for (final encoded in prefs.getStringList(_storageKey) ?? <String>[]) {
       try {
         final item = jsonDecode(encoded) as Map<String, dynamic>;

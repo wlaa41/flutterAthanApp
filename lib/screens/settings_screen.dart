@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 
 import '../models/alert_preferences.dart';
+import '../services/athan_catalog.dart';
+import '../services/athan_downloads.dart';
 import '../services/audio_service.dart';
 import '../services/notification_service.dart';
 import '../services/prayer_service.dart';
@@ -367,7 +369,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         const Padding(
           padding: EdgeInsets.only(top: 8),
           child: Text(
-            'On iPhone, recitations use short opening excerpts; Classic Athan uses a chime. Imported audio needs a PCM WAV under 30 seconds for alerts; other files use a beep. Previews play the full recording.',
+            'On iPhone, recitations use short opening excerpts; Classic Athan uses a chime. Imported audio needs a PCM WAV under 30 seconds for alerts; other files and added athans use a beep. Previews play the full recording.',
           ),
         ),
     ],
@@ -863,6 +865,15 @@ class _SettingsScreenState extends State<SettingsScreen>
           }
           return sound;
         },
+        moreAthans: athanCatalog,
+        onAddAthan: (athan, onProgress) async {
+          await AthanDownloads.instance.add(athan, onProgress: onProgress);
+          return _reloadAddedAthans();
+        },
+        onRemoveAthan: (athan) async {
+          await AthanDownloads.instance.remove(athan);
+          await _reloadAddedAthans();
+        },
       ),
     );
     await _stopAudio();
@@ -874,14 +885,34 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
+  /// Reads the sound list again after an athan was added or removed, and
+  /// returns the added athans now on the phone.
+  Future<List<SoundOption>> _reloadAddedAthans() async {
+    final sounds = await SoundLibrary.instance.loadSounds();
+    if (mounted) setState(() => _sounds = sounds);
+    return [
+      for (final sound in sounds)
+        if (AthanDownloads.isAddedSound(sound.id)) sound,
+    ];
+  }
+
   Future<void> _showAudioCredits() async {
     try {
       final credits = await rootBundle.loadString('asset/AUDIO_CREDITS.txt');
       if (!mounted) return;
+      final added = StringBuffer(
+        'ATHANS YOU CAN ADD\n'
+        'These recordings are not part of the app. Your phone fetches one '
+        'from the source below when you add it, and checks it against the '
+        'checksum recorded in tools/athan_downloads.json.\n',
+      );
+      for (final athan in athanCatalog) {
+        added.write('\n${athan.name}: ${athan.source}');
+      }
       await _sheet<void>('Audio credits', [
         Padding(
           padding: const EdgeInsets.all(12),
-          child: SelectableText(credits),
+          child: SelectableText('${credits.trimRight()}\n\n$added'),
         ),
       ]);
     } catch (_) {

@@ -1,5 +1,29 @@
 # Changelog
 
+## 2.2.0-rc.5 (build 15)
+
+- More athans. The sound picker opens with **Trending athans**: Muhammad Marwan
+  Qassas of the Prophet's Mosque, Muhammad Jazi Abdullah of Irbid in two
+  versions (the full athan, and the short part that is shared everywhere, from
+  "Hayya 'ala-s-salah" to the end), and twelve more muezzins and reciters,
+  among them Ahmad Al-Nafees, Hamad Al-Daghriri, Mansour Al-Zahrani and Yasser
+  Al-Dosari.
+- Tap the download button on one and it is fetched once, checked against a
+  recorded size and SHA-256, and kept on the phone. After that it previews and
+  plays at prayer time like a bundled athan, with no connection. A bin button
+  removes one that is not in use.
+- The recordings are fetched from their public sources and are not inside the
+  app or this repository: the two named recordings state no reuse licence, and
+  bundling fourteen would pass the APK size limit. Details are in
+  `asset/AUDIO_SOURCES.md`.
+- The short Jazi athan is cut on the phone from the full recording at a frame
+  boundary, without re-encoding, so adding it also adds the full one.
+- On iPhone an added athan plays in previews and its notification uses a beep,
+  as imported audio does.
+- Validation: 151 tests pass. All fourteen files were fetched through the app's
+  downloader from the real sources and matched their checksums. Not tried on a
+  physical phone.
+
 ## 2.2.0-rc.4 (build 14)
 
 Review pass over the icon, Beep and Quran rounds.
