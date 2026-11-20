@@ -1,5 +1,37 @@
 # Changelog
 
+## 2.2.0-rc.3 (build 13)
+
+- The Quran is now inside the app and opens offline, in the mushafs of the King
+  Fahd Complex: Hafs in Uthmani script, Hafs with tajweed colours, Warsh, Qalun,
+  Shu'bah, Al-Duri, Al-Susi, Al-Bazzi and Qunbul. Choose one from the Quran tab
+  or from the tune button while reading.
+- Letters join correctly. The old reader had no Quran font and changed the font
+  weight in the middle of words, which split them. Each mushaf is now one flowing
+  paragraph per printed page in the Complex's own font for that riwayah, and a
+  tajweed colour changes the colour only.
+- Tafsir for every verse: Al-Muyassar, Al-Sa'di, Ibn Kathir, Al-Tabari,
+  Al-Qurtubi and Al-Baghawi in Arabic, and Ibn Kathir (abridged), Ma'arif
+  al-Qur'an and Tazkirul Quran in English. A passage is fetched from quran.com
+  the first time and then kept on the phone.
+- Riwayat that number verses differently show their own numbers; meaning and
+  tafsir are found through the matching Hafs verses, and the app says which.
+- Warsh plays a Warsh recitation (Ibrahim Al-Dosari). The other non-Hafs
+  riwayat have no verse-by-verse recording and say that they play Hafs.
+- Also new: a night page, a text size slider, a bookmarks list, "Continue
+  reading", highlights that are remembered, and handwritten notes that scroll
+  with the page. Notes drawn in earlier versions are not shown, because the text
+  is laid out differently now.
+- Validation: 118 tests pass (30 new; 8 tests of the old download path are
+  retired). Every ayah of all eight texts is checked
+  for order and for its Hafs mapping; the Hafs text matches quran.com's copy for
+  all 6236 ayat; 59,324 of 59,878 tajweed colour runs are placed and the rest are
+  left uncoloured. Rendering was inspected in screenshots for all the fonts, and
+  the built APK was opened to confirm each Quran file and font is inside it,
+  byte for byte.
+  Recitation playback, the tafsir downloads on a real connection and performance
+  on a phone have not been tried on a physical device.
+
 ## 2.2.0-rc.2 (build 12)
 
 - Beep mode: one tap on the home screen swaps every Athan and Iqama for your beep,

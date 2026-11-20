@@ -1,18 +1,46 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/quran_models.dart';
 
-class QuranService {
-  static final QuranService instance = QuranService();
-  QuranService({http.Client? client}) : _client = client ?? http.Client();
-  final http.Client _client;
-  final Map<int, Future<List<Ayah>>> _pending = {};
+/// A verse the reader marked, decoded from its storage key.
+class VerseMark {
+  const VerseMark({
+    required this.key,
+    required this.surah,
+    required this.ayah,
+    this.textId,
+  });
 
-  /// Comprehensive list of all 114 Surahs
+  final String key;
+  final int surah;
+  final int ayah;
+
+  /// The mushaf whose numbering [ayah] follows, or null for the Hafs count.
+  final String? textId;
+}
+
+/// Where reading stopped: a surah, and the mushaf page that was on screen.
+class LastRead {
+  const LastRead({
+    required this.surah,
+    required this.page,
+    required this.textId,
+  });
+
+  final int surah;
+  final int page;
+  final String textId;
+}
+
+/// The chapter list, and the reader's own marks: bookmarks, highlights and the
+/// place reading stopped.
+class QuranService {
+  QuranService();
+  static final QuranService instance = QuranService();
+
+  /// All 114 surahs, with the Hafs (Kufi) verse counts.
   static const List<Surah> surahList = [
     Surah(
       number: 1,
@@ -928,282 +956,129 @@ class QuranService {
     ),
   ];
 
-  /// Offline bundled data for Surah Al-Fatiha (The Opening) with Tajweed notation
-  static final List<Ayah> offlineFatiha = [
-    Ayah(
-      number: 1,
-      numberInSurah: 1,
-      juz: 1,
-      page: 1,
-      tajweedText:
-          "بِسْمِ [h:1[ٱ]للَّهِ [h:2[ٱ]لرَّحْمَ[n[ـٰ]نِ [h:3[ٱ]لرَّحِ[p[ي]مِ",
-      cleanText: "بِسْمِ اللَّهِ الرَّحْمَـٰنِ الرَّحِيمِ",
-      translation: "In the name of Allah, the Entirely Merciful, the Especially Merciful.",
-      audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/1.mp3",
-    ),
-    Ayah(
-      number: 2,
-      numberInSurah: 2,
-      juz: 1,
-      page: 1,
-      tajweedText: "[h:4[ٱ]لْحَمْدُ لِلَّهِ رَبِّ [h:5[ٱ]لْعَ[n[ـٰ]لَمِ[p[ي]نَ",
-      cleanText: "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
-      translation: "[All] praise is [due] to Allah, Lord of the worlds -",
-      audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/2.mp3",
-    ),
-    Ayah(
-      number: 3,
-      numberInSurah: 3,
-      juz: 1,
-      page: 1,
-      tajweedText: "[h:1[ٱ]لرَّحْمَ[n[ـٰ]نِ [h:2[ٱ]لرَّحِ[p[ي]مِ",
-      cleanText: "الرَّحْمَـٰنِ الرَّحِيمِ",
-      translation: "The Entirely Merciful, the Especially Merciful,",
-      audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/3.mp3",
-    ),
-    Ayah(
-      number: 4,
-      numberInSurah: 4,
-      juz: 1,
-      page: 1,
-      tajweedText: "مَ[n[ـٰ]لِكِ يَوْمِ [h:3[ٱ]لدِّ[p[ي]نِ",
-      cleanText: "مَالِكِ يَوْمِ الدِّينِ",
-      translation: "Sovereign of the Day of Recompense.",
-      audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/4.mp3",
-    ),
-    Ayah(
-      number: 5,
-      numberInSurah: 5,
-      juz: 1,
-      page: 1,
-      tajweedText: "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِ[p[ي]نُ",
-      cleanText: "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ",
-      translation: "It is You we worship and You we ask for help.",
-      audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/5.mp3",
-    ),
-    Ayah(
-      number: 6,
-      numberInSurah: 6,
-      juz: 1,
-      page: 1,
-      tajweedText:
-          "[h:6[ٱ]هْدِنَا [h:7[ٱ]لصِّرَ[n[ـٰ]طَ [h:8[ٱ]لْمُسْتَقِ[p[ي]مَ",
-      cleanText: "اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ",
-      translation: "Guide us to the straight path -",
-      audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/6.mp3",
-    ),
-    Ayah(
-      number: 7,
-      numberInSurah: 7,
-      juz: 1,
-      page: 1,
-      tajweedText: "صِرَ[n[ـٰ]طَ [h:9[ٱ]لَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ [h:10[ٱ]لْمَغْضُوبِ عَلَيْهِمْ وَلَا [h:11[ٱ]ل[m[ضَّ]آلِّ[p[ي]نَ",
-      cleanText: "صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ",
-      translation: "The path of those upon whom You have bestowed favor, not of those who have evoked [Your] anger or of those who are astray.",
-      audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/7.mp3",
-    ),
-  ];
-
-  /// Offline bundled data for Surah Al-Ikhlas (The Sincerity)
-  static final List<Ayah> offlineIkhlas = [
-    Ayah(
-      number: 6222,
-      numberInSurah: 1,
-      juz: 30,
-      page: 604,
-      tajweedText: "قُ[q[لْ] هُوَ [h:1[ٱ]للَّهُ أَحَ[q[دٌ]",
-      cleanText: "قُلْ هُوَ اللَّهُ أَحَدٌ",
-      translation: "Say, 'He is Allah, [who is] One,",
-      audioUrl:
-          "https://cdn.islamic.network/quran/audio/128/ar.alafasy/6222.mp3",
-    ),
-    Ayah(
-      number: 6223,
-      numberInSurah: 2,
-      juz: 30,
-      page: 604,
-      tajweedText: "[h:2[ٱ]للَّهُ [h:3[ٱ]ل[m[صَّ]مَ[q[دُ]",
-      cleanText: "اللَّهُ الصَّمَدُ",
-      translation: "Allah, the Eternal Refuge.",
-      audioUrl:
-          "https://cdn.islamic.network/quran/audio/128/ar.alafasy/6223.mp3",
-    ),
-    Ayah(
-      number: 6224,
-      numberInSurah: 3,
-      juz: 30,
-      page: 604,
-      tajweedText: "لَمْ يَلِ[q[دْ] وَلَمْ يُولَ[q[دْ]",
-      cleanText: "لَمْ يَلِدْ وَلَمْ يُولَدْ",
-      translation: "He neither begets nor is born,",
-      audioUrl:
-          "https://cdn.islamic.network/quran/audio/128/ar.alafasy/6224.mp3",
-    ),
-    Ayah(
-      number: 6225,
-      numberInSurah: 4,
-      juz: 30,
-      page: 604,
-      tajweedText: "وَلَمْ يَكُ[a[ن لَّ]هُۥ كُفُوًا أَحَ[q[دٌ]",
-      cleanText: "وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ",
-      translation: "Nor is there to Him any equivalent.'",
-      audioUrl:
-          "https://cdn.islamic.network/quran/audio/128/ar.alafasy/6225.mp3",
-    ),
-  ];
-
-  /// Loads only a complete, validated requested Surah. Never substitutes another
-  /// Surah when offline: the reader can show an honest retry state instead.
-  Future<List<Ayah>> getSurahAyahs(int surahNumber) {
-    if (surahNumber < 1 || surahNumber > 114) {
-      return Future.error(RangeError.range(surahNumber, 1, 114));
+  static final List<int> _hafsOffsets = () {
+    final offsets = <int>[];
+    var total = 0;
+    for (final surah in surahList) {
+      offsets.add(total);
+      total += surah.numberOfAyahs;
     }
-    return _pending.putIfAbsent(surahNumber, () async {
-      try {
-        return await _loadSurah(surahNumber);
-      } finally {
-        _pending.remove(surahNumber);
-      }
-    });
-  }
+    return offsets;
+  }();
 
-  void _validateSurah(int number, List<Ayah> ayahs) {
-    final expected = surahList[number - 1].numberOfAyahs;
-    final firstGlobal =
-        1 +
-        surahList
-            .take(number - 1)
-            .fold<int>(0, (total, surah) => total + surah.numberOfAyahs);
-    if (ayahs.length != expected)
-      throw const FormatException('Incomplete Surah');
-    for (var index = 0; index < ayahs.length; index++) {
-      final ayah = ayahs[index];
-      if (ayah.numberInSurah != index + 1 ||
-          ayah.number != firstGlobal + index ||
-          ayah.tajweedText.trim().isEmpty ||
-          ayah.cleanText.trim().isEmpty ||
-          ayah.translation.trim().isEmpty) {
-        throw const FormatException('Surah verses do not match the request');
-      }
-    }
-  }
+  /// The running number (1 to 6236) of a Hafs verse. Recitations are filed
+  /// under it.
+  static int hafsGlobalNumber(int surah, int ayah) =>
+      _hafsOffsets[surah - 1] + ayah;
 
-  Future<List<Ayah>> _loadSurah(int surahNumber) async {
-    final cacheKey = 'surah_detail_$surahNumber';
-    final prefs = await SharedPreferences.getInstance();
-    try {
-      final cachedJson = prefs.getString(cacheKey);
-      if (cachedJson != null) {
-        final decoded = jsonDecode(cachedJson) as List<dynamic>;
-        final cached = decoded
-            .map((item) => Ayah.fromJson(item as Map<String, dynamic>))
-            .toList();
-        _validateSurah(surahNumber, cached);
-        return cached;
-      }
-    } catch (_) {
-      await prefs.remove(cacheKey);
-    }
+  /// The storage key of a verse's bookmark and highlight. Mushafs that number
+  /// verses as Hafs does share one key, which is the running Hafs number the
+  /// app has always stored.
+  static String markKey(MushafEdition edition, MushafAyah ayah) =>
+      edition.hafsNumbering
+      ? '${hafsGlobalNumber(ayah.surah, ayah.number)}'
+      : '${edition.textId}:${ayah.surah}:${ayah.number}';
 
-    try {
-      final url = Uri.parse(
-        'https://api.alquran.cloud/v1/surah/$surahNumber/editions/quran-tajweed,en.sahih',
+  static VerseMark? parseMark(String key) {
+    final global = int.tryParse(key);
+    if (global != null) {
+      if (global < 1 || global > 6236) return null;
+      var surah = 114;
+      while (_hafsOffsets[surah - 1] >= global) {
+        surah--;
+      }
+      return VerseMark(
+        key: key,
+        surah: surah,
+        ayah: global - _hafsOffsets[surah - 1],
       );
-      final response = await _client
-          .get(url)
-          .timeout(const Duration(seconds: 10));
-      if (response.statusCode != 200)
-        throw const FormatException('Quran service unavailable');
-      final body =
-          jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
-      if (body['code'] != 200)
-        throw const FormatException('Quran service returned an error');
-      final editions = body['data'] as List<dynamic>;
-      Map<String, dynamic> edition(String id) => editions
-          .cast<Map<String, dynamic>>()
-          .firstWhere((item) => item['edition']?['identifier'] == id);
-      final tajweed = edition('quran-tajweed');
-      final english = edition('en.sahih');
-      if (tajweed['number'] != surahNumber ||
-          english['number'] != surahNumber) {
-        throw const FormatException('Wrong Surah returned');
-      }
-      final arabicAyahs = tajweed['ayahs'] as List<dynamic>;
-      final englishAyahs = english['ayahs'] as List<dynamic>;
-      if (arabicAyahs.length != englishAyahs.length) {
-        throw const FormatException('Incomplete translation');
-      }
-      final ayahs = <Ayah>[];
-      for (var i = 0; i < arabicAyahs.length; i++) {
-        final arabic = arabicAyahs[i] as Map<String, dynamic>;
-        final translated = englishAyahs[i] as Map<String, dynamic>;
-        if (arabic['number'] != translated['number'] ||
-            arabic['numberInSurah'] != translated['numberInSurah']) {
-          throw const FormatException('Translation does not match its verse');
-        }
-        final globalNumber = arabic['number'] as int;
-        final raw = arabic['text'] as String;
-        ayahs.add(
-          Ayah(
-            number: globalNumber,
-            numberInSurah: arabic['numberInSurah'] as int,
-            juz: arabic['juz'] as int,
-            page: arabic['page'] as int,
-            tajweedText: raw,
-            cleanText: stripTajweedTags(raw),
-            translation: translated['text'] as String,
-            audioUrl:
-                'https://cdn.islamic.network/quran/audio/128/ar.alafasy/$globalNumber.mp3',
-          ),
-        );
-      }
-      _validateSurah(surahNumber, ayahs);
-      // A cache-write failure must not discard a valid network response.
-      try {
-        await prefs.setString(
-          cacheKey,
-          jsonEncode(ayahs.map((a) => a.toJson()).toList()),
-        );
-      } catch (_) {}
-      return ayahs;
-    } catch (error) {
-      debugPrint('QuranService: Surah $surahNumber unavailable ($error).');
     }
-    if (surahNumber == 1) return offlineFatiha;
-    if (surahNumber == 112) return offlineIkhlas;
-    throw const FormatException(
-      'This Surah is not saved offline. Connect and try again.',
-    );
+    final parts = key.split(':');
+    if (parts.length != 3) return null;
+    final surah = int.tryParse(parts[1]);
+    final ayah = int.tryParse(parts[2]);
+    if (surah == null || ayah == null || surah < 1 || surah > 114 || ayah < 1) {
+      return null;
+    }
+    return VerseMark(key: key, surah: surah, ayah: ayah, textId: parts[0]);
   }
 
-  /// Removes bracketed Tajweed markers for clean copy/search
-  static String stripTajweedTags(String text) {
-    // Replaces patterns like [h:1[ٱ], [q[لْ], etc.
-    final regex = RegExp(r'\[[a-z0-9:]*\[([^\]]*)\]');
-    var result = text;
-    while (regex.hasMatch(result)) {
-      result = result.replaceAllMapped(regex, (m) => m.group(1) ?? '');
-    }
-    // Remove leftover brackets if any
-    return result.replaceAll(RegExp(r'\[|\]'), '');
-  }
+  static const _bookmarksKey = 'quran_bookmarks';
+  static const _highlightsKey = 'quran_highlights';
+  static const _lastReadKey = 'quran_last_read';
 
-  /// Bookmark storage
-  Future<void> toggleBookmark(int ayahGlobalNumber) async {
+  /// Bookmarked verses, oldest first.
+  Future<List<String>> bookmarks() async {
     final prefs = await SharedPreferences.getInstance();
-    final bookmarks = prefs.getStringList('quran_bookmarks') ?? [];
-    final numStr = ayahGlobalNumber.toString();
-    if (bookmarks.contains(numStr)) {
-      bookmarks.remove(numStr);
+    return List.of(prefs.getStringList(_bookmarksKey) ?? const []);
+  }
+
+  Future<bool> isBookmarked(String key) async =>
+      (await bookmarks()).contains(key);
+
+  /// Adds or removes a bookmark and returns whether the verse is now marked.
+  Future<bool> toggleBookmark(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    final marks = List.of(prefs.getStringList(_bookmarksKey) ?? const <String>[]);
+    final added = !marks.remove(key);
+    if (added) marks.add(key);
+    await prefs.setStringList(_bookmarksKey, marks);
+    return added;
+  }
+
+  /// Highlight colours (ARGB) by verse key.
+  Future<Map<String, int>> highlights() async {
+    final prefs = await SharedPreferences.getInstance();
+    try {
+      final decoded = jsonDecode(prefs.getString(_highlightsKey) ?? '{}');
+      return {
+        for (final entry in (decoded as Map<String, dynamic>).entries)
+          if (entry.value is int) entry.key: entry.value as int,
+      };
+    } catch (_) {
+      return {};
+    }
+  }
+
+  Future<void> setHighlight(String key, int? argb) async {
+    final prefs = await SharedPreferences.getInstance();
+    final all = await highlights();
+    if (argb == null) {
+      all.remove(key);
     } else {
-      bookmarks.add(numStr);
+      all[key] = argb;
     }
-    await prefs.setStringList('quran_bookmarks', bookmarks);
+    await prefs.setString(_highlightsKey, jsonEncode(all));
   }
 
-  Future<bool> isAyahBookmarked(int ayahGlobalNumber) async {
+  Future<LastRead?> lastRead() async {
     final prefs = await SharedPreferences.getInstance();
-    final bookmarks = prefs.getStringList('quran_bookmarks') ?? [];
-    return bookmarks.contains(ayahGlobalNumber.toString());
+    try {
+      final decoded =
+          jsonDecode(prefs.getString(_lastReadKey) ?? 'null')
+              as Map<String, dynamic>?;
+      if (decoded == null) return null;
+      final surah = decoded['surah'] as int;
+      if (surah < 1 || surah > 114) return null;
+      return LastRead(
+        surah: surah,
+        page: decoded['page'] as int,
+        textId: decoded['text'] as String,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> saveLastRead(LastRead place) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      _lastReadKey,
+      jsonEncode({
+        'surah': place.surah,
+        'page': place.page,
+        'text': place.textId,
+      }),
+    );
   }
 }

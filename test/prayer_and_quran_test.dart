@@ -1,7 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_pro/models/drawing_stroke.dart';
-import 'package:flutter_pro/models/quran_models.dart';
 import 'package:flutter_pro/services/astronomical_calculator.dart';
 import 'package:flutter_pro/services/prayer_service.dart';
 import 'package:flutter_pro/services/quran_service.dart';
@@ -49,27 +47,23 @@ void main() {
     });
   });
 
-  group('Tajweed Parser & Quran Tests', () {
-    test('stripTajweedTags correctly removes bracket markup', () {
-      const sample = "بِسْمِ [h:1[ٱ]للَّهِ [h:2[ٱ]لرَّحْمَ[n[ـٰ]نِ [h:3[ٱ]لرَّحِ[p[ي]مِ";
-      final clean = QuranService.stripTajweedTags(sample);
-      expect(clean.contains('['), isFalse);
-      expect(clean.contains(']'), isFalse);
-      expect(clean.contains('بِسْمِ'), isTrue);
-      expect(clean.contains('للَّهِ'), isTrue);
-    });
-
-    test('TajweedRuleInfo returns correct colors for rule codes', () {
-      expect(TajweedRuleInfo.getColorForCode('q'), equals(const Color(0xFFDD1111))); // Qalqalah
-      expect(TajweedRuleInfo.getColorForCode('f'), equals(const Color(0xFF9400D3))); // Ikhfa
-      expect(TajweedRuleInfo.getColorForCode('a'), equals(const Color(0xFF169777))); // Idgham
-      expect(TajweedRuleInfo.getColorForCode('h'), equals(const Color(0xFF78909C))); // Hamzat Wasl
-    });
-
+  group('Surah list', () {
     test('Surah list contains 114 Surahs with valid names', () {
       expect(QuranService.surahList.length, equals(114));
       expect(QuranService.surahList.first.englishName, equals('Al-Faatiha'));
       expect(QuranService.surahList.last.englishName, equals('An-Naas'));
+    });
+
+    test('Hafs verse counts add up to 6236 and number verses in a row', () {
+      final total = QuranService.surahList.fold<int>(
+        0,
+        (sum, surah) => sum + surah.numberOfAyahs,
+      );
+      expect(total, 6236);
+      expect(QuranService.hafsGlobalNumber(1, 1), 1);
+      expect(QuranService.hafsGlobalNumber(2, 255), 262);
+      expect(QuranService.hafsGlobalNumber(112, 1), 6222);
+      expect(QuranService.hafsGlobalNumber(114, 6), 6236);
     });
   });
 

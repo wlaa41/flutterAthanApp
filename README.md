@@ -1,7 +1,8 @@
 # Athan & Quran
 
 Flutter prayer reminders with local sound playback, an offline prayer-time fallback,
-Quran reader, and editable work hours. Android 7+ (API 24); iOS 15+.
+an offline Quran reader in nine mushafs with tafsir, and editable work hours.
+Android 7+ (API 24); iOS 15+.
 
 ## Install on Android
 
@@ -42,6 +43,29 @@ an APK for every processor type would be over GitHub's 100 MB file limit.
   schedule is Monday–Friday, 09:00–17:00. Overnight hours belong to the starting day.
 - Muting a prayer immediately rebuilds its Athan and Iqama schedule.
 
+## Quran
+
+- The whole Quran is in the app and opens offline. Choose the mushaf from the
+  Quran tab: Hafs in Uthmani script, Hafs with tajweed colours, Warsh, Qalun,
+  Shu'bah, Al-Duri, Al-Susi, Al-Bazzi or Qunbul. Each is the King Fahd Complex
+  text drawn in the Complex's own font for that riwayah, so the letters join
+  as they do in print.
+- The text flows page by page like the printed mushaf, with the page and juz
+  marked. The tune button sets the text size and a night page.
+- Tap a verse for its meaning (Saheeh International), its tafsir, recitation,
+  a bookmark, a highlight or a handwritten note. Bookmarks are listed from the
+  Quran tab, which also offers to continue where you stopped.
+- Tafsir: Al-Muyassar, Al-Sa'di, Ibn Kathir, Al-Tabari, Al-Qurtubi and
+  Al-Baghawi in Arabic; Ibn Kathir (abridged), Ma'arif al-Qur'an and Tazkirul
+  Quran in English. A passage is downloaded the first time and then kept on
+  the phone. Translation and recitation also need a connection the first time.
+- Warsh, Qalun, Al-Duri, Al-Susi, Al-Bazzi and Qunbul number some verses
+  differently from Hafs. The app shows each mushaf's own numbers and looks up
+  the meaning and tafsir by the matching Hafs verses.
+
+Sources, licences and what was checked are in
+[docs/QURAN_SOURCES.md](docs/QURAN_SOURCES.md).
+
 ## Reliability and battery use
 
 Android persists up to 60 days of events and arms only the next system alarm. After
@@ -81,9 +105,6 @@ keep prayer times available offline. Calculated times are identified in the UI.
 The old option labelled “London Unified / Islamic Relief” incorrectly sent Aladhan
 method 10 (Qatar). UK presets now use Moonsighting Committee (15), and the picker
 shows actual method names. Compare the chosen method with your local mosque.
-Quran fetches validate the requested chapter and translations; an unavailable
-chapter is never replaced by a different Surah. Only Al-Fatiha and Al-Ikhlas have
-bundled offline text; other chapters need a successful initial download.
 
 The Qibla guide calculates the bearing from the selected city. Its diagram is
 north-up; it does not use a live compass sensor.
@@ -123,5 +144,13 @@ keystore; never commit it. Configure production signing before store distributio
 Preview certificate SHA-256:
 `f7f52594422cf2ce808e9510ed91ee27e42ff7efd2e9fee841d29a05a0441678`.
 
-See [audio attribution](asset/AUDIO_SOURCES.md) and
+See [audio attribution](asset/AUDIO_SOURCES.md),
+[Quran sources](docs/QURAN_SOURCES.md) and
 [verification notes](docs/verification.md) for sources and device-test coverage.
+
+To rebuild the Quran files from the King Fahd Complex data:
+
+```sh
+python3 tools/build_quran_assets.py --kfgqpc <quran-data-kfgqpc checkout> \
+  --tajweed <uthmani_tajweed.json> --crosscheck <qpc_hafs.json>
+```

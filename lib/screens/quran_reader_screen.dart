@@ -1,326 +1,639 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:just_audio/just_audio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/drawing_stroke.dart';
 import '../models/quran_models.dart';
 import '../services/annotation_storage_service.dart';
 import '../services/audio_service.dart';
+import '../services/mushaf_library.dart';
 import '../services/quran_service.dart';
+import '../services/quran_translation_service.dart';
+import '../widgets/mushaf_block.dart';
+import '../widgets/mushaf_sheets.dart';
+import '../widgets/reader_palette.dart';
 import '../widgets/stylus_canvas.dart';
-import '../widgets/tajweed_text.dart';
 import '../widgets/verse_action_sheet.dart';
+import 'tafsir_screen.dart';
 
+/// Reads one surah in the chosen mushaf. The text comes from the app's own
+/// files, so it opens without a connection.
 class QuranReaderScreen extends StatefulWidget {
+  const QuranReaderScreen({
+    super.key,
+    required this.surah,
+    this.openAtHafsAyah,
+    this.openAtPage,
+    this.library,
+    this.translations,
+  });
+
   final Surah surah;
 
-  const QuranReaderScreen({Key? key, required this.surah}) : super(key: key);
+  /// A verse (in the Hafs count) to open at, as a bookmark stores it.
+  final int? openAtHafsAyah;
+
+  /// A mushaf page to open at, where reading stopped.
+  final int? openAtPage;
+  final MushafLibrary? library;
+  final QuranTranslationService? translations;
+
+  static const fontSizeKey = 'quran_font_size';
+  static const nightKey = 'quran_night';
+  static const tapHintKey = 'quran_tap_hint_done';
 
   @override
-  _QuranReaderScreenState createState() => _QuranReaderScreenState();
+  State<QuranReaderScreen> createState() => _QuranReaderScreenState();
 }
 
 class _QuranReaderScreenState extends State<QuranReaderScreen> {
+  late final MushafLibrary _library = widget.library ?? MushafLibrary.instance;
+  late final QuranTranslationService _translations =
+      widget.translations ?? QuranTranslationService.instance;
   final GlobalKey<StylusCanvasState> _canvasKey =
       GlobalKey<StylusCanvasState>();
+  final GlobalKey _viewportKey = GlobalKey();
+  final ScrollController _scroll = ScrollController();
+  final Map<int, GlobalKey> _pageKeys = {};
 
-  List<Ayah> _ayahs = [];
+  /// Page blocks as last built, so a tap or a highlight rebuilds one block
+  /// and not the whole surah.
+  final Map<int, ({String signature, Widget block})> _blocks = {};
+
+  /// A long surah is laid out a few pages per frame, so its first page shows
+  /// at once. This is how many pages are laid out so far.
+  int _laidOut = 0;
+  static const int _pagesPerFrame = 4;
+
+  MushafText? _text;
+  List<List<MushafAyah>> _pages = const [];
   List<DrawingStroke> _strokes = [];
-  bool _isLoading = true;
+  Map<String, int> _highlights = {};
   String? _loadError;
-  StreamSubscription<PlayerState>? _audioSubscription;
-  double _fontSize = 24.0;
+  int _loadId = 0;
+  double _fontSize = 26;
+  bool _night = false;
+  int? _selected;
+
+  /// Shown until a verse has been opened once.
+  bool _tapHint = false;
+
   bool _isStylusMode = false;
-  int? _selectedAyahNumber;
-
-  // Drawing tool state
   DrawingTool _activeTool = DrawingTool.pen;
-  Color _penColor = const Color(0xFFD97706); // Amber Gold
-  Color _highlighterColor = const Color(0xFFFEF08A); // Translucent Yellow
+  Color _penColor = const Color(0xFFD97706);
+  Color _highlighterColor = const Color(0xFFFEF08A);
 
-  int? _currentPlayingAyah;
+  ReaderPalette get _palette =>
+      _night ? ReaderPalette.dark : ReaderPalette.paper;
+
+  int get _surahNumber => widget.surah.number;
 
   @override
   void initState() {
     super.initState();
-    _loadSurahAndAnnotations();
-
-    _audioSubscription = AudioService.instance.playerStateStream.listen((
-      state,
-    ) {
-      if (mounted) {
-        setState(() {
-          _currentPlayingAyah = AudioService.instance.currentPlayingAyah;
-        });
-      }
-    });
     AudioService.instance.lastError.addListener(_showAudioError);
+    _load().then((_) => _openStartingPlace());
+  }
+
+  @override
+  void dispose() {
+    AudioService.instance.lastError.removeListener(_showAudioError);
+    unawaited(AudioService.instance.stop().catchError((Object _) {}));
+    _scroll.dispose();
+    super.dispose();
   }
 
   void _showAudioError() {
-    if (!mounted) return;
     final error = AudioService.instance.lastError.value;
-    if (error != null)
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(error)));
+    if (!mounted || error == null) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
   }
 
-  Future<void> _loadSurahAndAnnotations() async {
-    setState(() {
-      _isLoading = true;
-      _loadError = null;
-    });
+  /// Drawings sit on the laid-out text, so each mushaf keeps its own. The key
+  /// is new with the bundled mushafs: notes from earlier versions were drawn
+  /// over a different text and would land on the wrong words.
+  String _strokeKey(MushafEdition edition) =>
+      'mushaf_${edition.textId}_surah_$_surahNumber';
+
+  Future<void> _load({MushafEdition? edition}) async {
+    final id = ++_loadId;
+    if (_loadError != null) setState(() => _loadError = null);
     try {
-      final ayahs = await QuranService.instance.getSurahAyahs(
-        widget.surah.number,
-      );
+      final prefs = await SharedPreferences.getInstance();
+      final chosen = edition ?? await _library.restoreChoice();
+      final text = await _library.load(chosen);
       final strokes = await AnnotationStorageService.instance.loadStrokes(
-        'surah_${widget.surah.number}',
+        _strokeKey(chosen),
       );
-      if (ayahs.isEmpty) throw const FormatException('No verses received');
-      if (mounted)
-        setState(() {
-          _ayahs = ayahs;
-          _strokes = strokes;
-        });
+      final highlights = await QuranService.instance.highlights();
+      if (!mounted || id != _loadId) return;
+      final pages = <List<MushafAyah>>[];
+      for (final ayah in text.surah(_surahNumber)) {
+        if (pages.isEmpty || pages.last.last.page != ayah.page) pages.add([]);
+        pages.last.add(ayah);
+      }
+      _blocks.clear();
+      setState(() {
+        _text = text;
+        _pages = pages;
+        _laidOut = math.min(pages.length, _pagesPerFrame);
+        _strokes = strokes;
+        _highlights = highlights;
+        _fontSize =
+            (prefs.getDouble(QuranReaderScreen.fontSizeKey) ?? _fontSize)
+                .clamp(
+                  MushafSettingsSheet.minFontSize,
+                  MushafSettingsSheet.maxFontSize,
+                )
+                .toDouble();
+        _night = prefs.getBool(QuranReaderScreen.nightKey) ?? _night;
+        _tapHint = !(prefs.getBool(QuranReaderScreen.tapHintKey) ?? false);
+      });
+      _layOutMore();
+      // Opening a surah online keeps its translation for later, offline.
+      unawaited(
+        _translations
+            .surah(_surahNumber)
+            .then<void>((_) {}, onError: (Object _) {}),
+      );
     } catch (_) {
-      if (mounted)
-        setState(
-          () => _loadError =
-              'Unable to load this Surah. Check your connection and try again.',
-        );
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (!mounted || id != _loadId) return;
+      setState(
+        () => _loadError = 'This mushaf could not be opened. Try again.',
+      );
     }
   }
 
-  void _onStrokesChanged(List<DrawingStroke> updatedStrokes) {
-    _strokes = updatedStrokes;
-    AnnotationStorageService.instance.saveStrokes(
-      'surah_${widget.surah.number}',
-      updatedStrokes,
+  /// Adds the next pages after each frame until the surah is complete.
+  void _layOutMore() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _laidOut >= _pages.length) return;
+      setState(
+        () => _laidOut = math.min(_pages.length, _laidOut + _pagesPerFrame),
+      );
+      _layOutMore();
+    });
+  }
+
+  void _openStartingPlace() {
+    final text = _text;
+    if (!mounted || text == null) return;
+    var page = widget.openAtPage;
+    final hafsAyah = widget.openAtHafsAyah;
+    if (hafsAyah != null) {
+      final ayah = text.ayahForHafs(_surahNumber, hafsAyah);
+      page = ayah.page;
+      setState(() => _selected = ayah.number);
+    }
+    _rememberPlace(page ?? _pages.first.first.page);
+    if (page != null) _showPage(page);
+  }
+
+  void _showPage(int page) {
+    if (_pages.isEmpty || page == _pages.first.first.page) return;
+    // The page must be laid out before it can be scrolled to.
+    final index = _pages.indexWhere((ayat) => ayat.first.page == page);
+    if (index + 1 > _laidOut) {
+      setState(() => _laidOut = math.min(_pages.length, index + 2));
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final target = _pageKeys[page]?.currentContext;
+      if (target != null) Scrollable.ensureVisible(target, alignment: 0.02);
+    });
+  }
+
+  /// The mushaf page at the top of the screen.
+  List<MushafAyah>? _topPage() {
+    final viewport = _viewportKey.currentContext?.findRenderObject();
+    if (viewport is! RenderBox || !viewport.attached) return null;
+    final top = viewport.localToGlobal(Offset.zero).dy;
+    for (final page in _pages) {
+      final box = _pageKeys[page.first.page]?.currentContext
+          ?.findRenderObject();
+      if (box is! RenderBox || !box.attached) continue;
+      if (box.localToGlobal(Offset(0, box.size.height)).dy > top + 60) {
+        return page;
+      }
+    }
+    return null;
+  }
+
+  void _rememberPlace(int page) {
+    final text = _text;
+    if (text == null) return;
+    unawaited(
+      QuranService.instance.saveLastRead(
+        LastRead(surah: _surahNumber, page: page, textId: text.edition.textId),
+      ),
     );
   }
 
-  void _onAyahTapped(Ayah ayah) {
+  Future<void> _changeEdition(MushafEdition edition) async {
+    if (edition.id == _text?.edition.id) return;
+    // Stay at the same passage: riwayat number and page it differently.
+    final anchor = _topPage()?.first;
+    await _library.choose(edition);
+    await _load(edition: edition);
+    final text = _text;
+    if (!mounted || text == null || anchor == null) return;
+    final page = text.ayahForHafs(_surahNumber, anchor.hafsFrom).page;
+    if (page == _pages.first.first.page) {
+      if (_scroll.hasClients) _scroll.jumpTo(0);
+    } else {
+      _showPage(page);
+    }
+    _rememberPlace(page);
+  }
+
+  Future<void> _setFontSize(double size) async {
+    setState(() => _fontSize = size);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(QuranReaderScreen.fontSizeKey, size);
+  }
+
+  Future<void> _setNight(bool night) async {
+    setState(() => _night = night);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(QuranReaderScreen.nightKey, night);
+  }
+
+  void _openSettings() {
+    final text = _text;
+    if (text == null) return;
+    MushafSettingsSheet.show(
+      context,
+      edition: text.edition,
+      onEdition: _changeEdition,
+      fontSize: _fontSize,
+      night: _night,
+      onFontSize: _setFontSize,
+      onNight: _setNight,
+    );
+  }
+
+  void _onStrokesChanged(List<DrawingStroke> strokes) {
+    final text = _text;
+    if (text == null) return;
+    _strokes = strokes;
+    AnnotationStorageService.instance.saveStrokes(
+      _strokeKey(text.edition),
+      strokes,
+    );
+  }
+
+  Color? _highlightOf(MushafEdition edition, MushafAyah ayah) {
+    final argb = _highlights[QuranService.markKey(edition, ayah)];
+    return argb == null ? null : Color(argb);
+  }
+
+  void _openVerse(MushafAyah ayah) {
+    final text = _text;
+    if (text == null) return;
     if (_isStylusMode && _activeTool != DrawingTool.pan) return;
-
+    final edition = text.edition;
+    if (_tapHint) {
+      unawaited(
+        SharedPreferences.getInstance().then(
+          (prefs) => prefs.setBool(QuranReaderScreen.tapHintKey, true),
+        ),
+      );
+    }
     setState(() {
-      _selectedAyahNumber = ayah.number;
+      _selected = ayah.number;
+      _tapHint = false;
     });
-
     VerseActionSheet.show(
       context,
       surah: widget.surah,
       ayah: ayah,
-      onHighlightChanged: () {
-        if (mounted) setState(() {});
+      edition: edition,
+      highlight: _highlightOf(edition, ayah),
+      translations: _translations,
+      onHighlight: (colour) {
+        final key = QuranService.markKey(edition, ayah);
+        setState(() {
+          if (colour == null) {
+            _highlights.remove(key);
+          } else {
+            _highlights[key] = colour.toARGB32();
+          }
+        });
+        unawaited(QuranService.instance.setHighlight(key, colour?.toARGB32()));
       },
-      onAnnotatePressed: () {
+      onAnnotate: () {
         if (!mounted) return;
         setState(() {
           _isStylusMode = true;
           _activeTool = DrawingTool.pen;
         });
+        _canvasKey.currentState
+          ?..currentTool = DrawingTool.pen
+          ..selectedColor = _penColor;
       },
-    );
-  }
-
-  @override
-  void dispose() {
-    _audioSubscription?.cancel();
-    AudioService.instance.lastError.removeListener(_showAudioError);
-    unawaited(AudioService.instance.stop().catchError((Object _) {}));
-    super.dispose();
+      onTafsir: () {
+        if (!mounted) return;
+        Navigator.push(
+          context,
+          MaterialPageRoute<void>(
+            builder: (_) => TafsirScreen(
+              surah: widget.surah,
+              text: text,
+              ayah: ayah,
+              night: _night,
+            ),
+          ),
+        );
+      },
+    ).whenComplete(() {
+      if (mounted) setState(() => _selected = null);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        await AudioService.instance.stop();
-        return true;
-      },
-      child: Scaffold(
-        backgroundColor: const Color(
-          0xFFFAF8F5,
-        ), // Traditional cream mushaf paper tone
-        appBar: AppBar(
-          backgroundColor: const Color(0xFF0F3931),
-          elevation: 1,
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back_ios_new_rounded,
-              color: Colors.white,
-            ),
-            tooltip: 'Return to Surah List',
-            onPressed: () async {
-              await AudioService.instance.stop();
-              if (!mounted) return;
-              Navigator.pop(context);
-            },
+    final palette = _palette;
+    final text = _text;
+    return Scaffold(
+      backgroundColor: palette.page,
+      appBar: AppBar(
+        backgroundColor: ReaderPalette.green,
+        elevation: 1,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
           ),
-          title: Column(
-            children: [
-              Text(
-                'سورة ${widget.surah.name}',
-                style: const TextStyle(
-                  fontFamily: 'serif',
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFFC5A059),
-                ),
+          tooltip: 'Return to Surah List',
+          onPressed: () => Navigator.maybePop(context),
+        ),
+        title: Column(
+          children: [
+            Text(
+              widget.surah.englishName,
+              style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
-              Text(
-                '${widget.surah.englishName} • ${widget.surah.numberOfAyahs} Ayahs',
-                style: const TextStyle(fontSize: 11, color: Colors.white70),
-              ),
-            ],
-          ),
-          centerTitle: true,
-          actions: [
-            // Tajweed Legend Sheet Button
-            IconButton(
-              icon: const Icon(
-                Icons.palette_outlined,
-                color: Color(0xFFC5A059),
-              ),
-              tooltip: 'Tajweed Rules Guide',
-              onPressed: () => TajweedText.showTajweedLegendModal(context),
             ),
-            // Font Size Adjustment
-            PopupMenuButton<double>(
-              icon: const Icon(Icons.format_size, color: Colors.white),
-              tooltip: 'Font Size',
-              onSelected: (size) => setState(() => _fontSize = size),
-              itemBuilder: (ctx) => [
-                const PopupMenuItem(value: 20.0, child: Text('Small (20px)')),
-                const PopupMenuItem(value: 24.0, child: Text('Medium (24px)')),
-                const PopupMenuItem(value: 28.0, child: Text('Large (28px)')),
-                const PopupMenuItem(
-                  value: 34.0,
-                  child: Text('Extra Large (34px)'),
-                ),
-              ],
+            Text(
+              text?.edition.name ?? 'Opening the mushaf',
+              style: const TextStyle(fontSize: 11.5, color: Colors.white70),
             ),
           ],
         ),
-        body: _isLoading
-            ? const Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0F3931)),
-                ),
-              )
-            : _loadError != null
-            ? Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(_loadError!, textAlign: TextAlign.center),
-                      const SizedBox(height: 16),
-                      FilledButton.icon(
-                        onPressed: _loadSurahAndAnnotations,
-                        icon: const Icon(Icons.refresh),
-                        label: const Text('Try again'),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            : Stack(
-                children: [
-                  // Stylus Canvas Wrapping Quran Content
-                  StylusCanvas(
-                    key: _canvasKey,
-                    storageKey: 'surah_${widget.surah.number}',
-                    initialStrokes: _strokes,
-                    onStrokesChanged: _onStrokesChanged,
-                    isDrawingActive: _isStylusMode,
-                    child: SingleChildScrollView(
-                      physics: (_isStylusMode && _activeTool != DrawingTool.pan)
-                          ? const NeverScrollableScrollPhysics()
-                          : const BouncingScrollPhysics(),
-                      padding: EdgeInsets.fromLTRB(
-                        16,
-                        _currentPlayingAyah != null ? 70 : 16,
-                        16,
-                        _isStylusMode ? 240 : 160,
-                      ),
+        centerTitle: true,
+        actions: [
+          if (text != null && text.edition.tajweedColours)
+            IconButton(
+              icon: const Icon(Icons.palette_outlined, color: Colors.white),
+              tooltip: 'Tajweed colours',
+              onPressed: () => TajweedGuideSheet.show(context, palette),
+            ),
+          IconButton(
+            icon: const Icon(Icons.tune, color: ReaderPalette.gold),
+            tooltip: 'Mushaf and text size',
+            onPressed: text == null ? null : _openSettings,
+          ),
+        ],
+      ),
+      body: text == null
+          ? Center(
+              child: _loadError == null
+                  ? const CircularProgressIndicator(color: ReaderPalette.green)
+                  : Padding(
+                      padding: const EdgeInsets.all(24),
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Surah Header Banner
-                          _buildSurahHeaderBanner(),
-
-                          // Bismillah (except Surah At-Tawba #9 and Al-Fatiha #1 where it is Ayah 1)
-                          if (widget.surah.number != 9 &&
-                              widget.surah.number != 1)
-                            _buildBismillah(),
-
-                          const SizedBox(height: 12),
-
-                          // Ayahs with Tajweed & Clickable behavior
-                          Wrap(
-                            alignment: WrapAlignment.center,
-                            textDirection: TextDirection.rtl,
-                            spacing: 4,
-                            runSpacing: 8,
-                            children: _ayahs.map((ayah) {
-                              return TajweedText(
-                                ayah: ayah,
-                                fontSize: _fontSize,
-                                isSelected: _selectedAyahNumber == ayah.number,
-                                onTap: () => _onAyahTapped(ayah),
-                              );
-                            }).toList(),
+                          Text(_loadError!, textAlign: TextAlign.center),
+                          const SizedBox(height: 16),
+                          FilledButton.icon(
+                            onPressed: () =>
+                                _load().then((_) => _openStartingPlace()),
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Try again'),
                           ),
                         ],
                       ),
                     ),
-                  ),
-
-                  // Floating Active Audio Reciter Bar
-                  if (_currentPlayingAyah != null)
-                    Positioned(
-                      top: 10,
-                      left: 16,
-                      right: 16,
-                      child: _buildFloatingAudioPlayer(),
+            )
+          : Stack(
+              key: _viewportKey,
+              fit: StackFit.expand,
+              children: [
+                NotificationListener<ScrollEndNotification>(
+                  onNotification: (_) {
+                    final page = _topPage();
+                    if (page != null) _rememberPlace(page.first.page);
+                    return false;
+                  },
+                  child: SingleChildScrollView(
+                    controller: _scroll,
+                    physics: (_isStylusMode && _activeTool != DrawingTool.pan)
+                        ? const NeverScrollableScrollPhysics()
+                        : const BouncingScrollPhysics(),
+                    padding: EdgeInsets.fromLTRB(
+                      16,
+                      16,
+                      16,
+                      _isStylusMode ? 240 : 96,
                     ),
-
-                  // Floating Stylus / Highlighter Control Panel
-                  Positioned(
-                    bottom: 16,
-                    left: 16,
-                    right: 16,
-                    child: SafeArea(top: false, child: _buildStylusToolbar()),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 720),
+                        // The drawing layer is part of the page, so notes
+                        // scroll with the verses they were written on.
+                        child: StylusCanvas(
+                          key: _canvasKey,
+                          storageKey: _strokeKey(text.edition),
+                          initialStrokes: _strokes,
+                          onStrokesChanged: _onStrokesChanged,
+                          isDrawingActive: _isStylusMode,
+                          child: _page(text, palette),
+                        ),
+                      ),
+                    ),
                   ),
-                ],
-              ),
+                ),
+                Positioned(
+                  top: 10,
+                  left: 16,
+                  right: 16,
+                  child: ValueListenableBuilder<RecitationNow?>(
+                    valueListenable: AudioService.instance.recitation,
+                    builder: (context, now, _) => now == null
+                        ? const SizedBox.shrink()
+                        : _buildFloatingAudioPlayer(now),
+                  ),
+                ),
+                Positioned(
+                  bottom: 16,
+                  left: 16,
+                  right: 16,
+                  child: SafeArea(
+                    top: false,
+                    child: _isStylusMode
+                        ? _buildStylusToolbar()
+                        : Align(
+                            alignment: Alignment.centerRight,
+                            child: _buildNotesButton(),
+                          ),
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+
+  Widget _page(MushafText text, ReaderPalette palette) {
+    final edition = text.edition;
+    final surah = widget.surah;
+    final count = text.surah(surah.number).length;
+    final style = MushafBlock.textStyle(edition, palette, _fontSize);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+          decoration: BoxDecoration(
+            color: palette.frame,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: palette.marker, width: 1.2),
+          ),
+          child: Text(
+            'سورة ${surah.name}',
+            textAlign: TextAlign.center,
+            textDirection: TextDirection.rtl,
+            style: TextStyle(
+              fontFamily: 'kfgqpc_hafs',
+              fontSize: 26,
+              height: 1.5,
+              color: palette.frameInk,
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 8, bottom: 4),
+          child: Text(
+            '${surah.revelationType}, $count ayat, juz ${_pages.first.first.juz}',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 12.5, color: palette.soft),
+          ),
+        ),
+        if (_tapHint)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Text(
+              'Tap a verse for its meaning, tafsir and audio.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12.5, color: palette.soft),
+            ),
+          ),
+        if (text.basmalahAbove(surah.number))
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: RichText(
+              textAlign: TextAlign.center,
+              textDirection: TextDirection.rtl,
+              text: TextSpan(text: text.basmalah, style: style),
+            ),
+          ),
+        const SizedBox(height: 6),
+        for (var index = 0; index < _laidOut; index++) ...[
+          if (index > 0) _pageRule(_pages[index], _pages[index - 1], palette),
+          _block(index, edition, palette),
+        ],
+      ],
+    );
+  }
+
+  Widget _block(int index, MushafEdition edition, ReaderPalette palette) {
+    final ayat = _pages[index];
+    final page = ayat.first.page;
+    final highlights = <int, Color>{
+      for (final ayah in ayat)
+        if (_highlightOf(edition, ayah) case final colour?) ayah.number: colour,
+    };
+    final selected = _selected;
+    final open =
+        selected != null &&
+            selected >= ayat.first.number &&
+            selected <= ayat.last.number
+        ? selected
+        : null;
+    final signature = [
+      edition.id,
+      palette.night,
+      _fontSize,
+      open,
+      for (final entry in highlights.entries)
+        '${entry.key}=${entry.value.toARGB32()}',
+    ].join('|');
+    final built = _blocks[page];
+    if (built != null && built.signature == signature) return built.block;
+    final block = MushafBlock(
+      key: _pageKeys.putIfAbsent(page, () => GlobalKey()),
+      ayat: ayat,
+      edition: edition,
+      palette: palette,
+      fontSize: _fontSize,
+      selected: open,
+      highlights: highlights,
+      onTap: _openVerse,
+    );
+    _blocks[page] = (signature: signature, block: block);
+    return block;
+  }
+
+  /// Marks where a page of the printed mushaf ends and the next begins.
+  Widget _pageRule(
+    List<MushafAyah> page,
+    List<MushafAyah> before,
+    ReaderPalette palette,
+  ) {
+    final first = page.first;
+    final label = first.juz == before.last.juz
+        ? 'Page ${first.page}'
+        : 'Page ${first.page}, juz ${first.juz}';
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        children: [
+          Expanded(child: Divider(color: palette.rule, thickness: 1)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              label,
+              style: TextStyle(fontSize: 11.5, color: palette.soft),
+            ),
+          ),
+          Expanded(child: Divider(color: palette.rule, thickness: 1)),
+        ],
       ),
     );
   }
 
-  Widget _buildFloatingAudioPlayer() {
+  Widget _buildFloatingAudioPlayer(RecitationNow now) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F3931),
+        color: ReaderPalette.green,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.25),
+            color: Colors.black.withValues(alpha: 0.25),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: const Color(0xFFC5A059), width: 1.2),
+        border: Border.all(color: ReaderPalette.gold, width: 1.2),
       ),
       child: Row(
         children: [
-          const Icon(Icons.graphic_eq, color: Color(0xFFC5A059), size: 22),
+          const Icon(Icons.graphic_eq, color: ReaderPalette.gold, size: 22),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -328,16 +641,20 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Reciting Ayah $_currentPlayingAyah',
+                  'Reciting ${now.title}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
                   ),
                 ),
-                const Text(
-                  'Sheikh Mishary Rashid Alafasy',
-                  style: TextStyle(color: Colors.white70, fontSize: 11),
+                Text(
+                  now.reciter,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.white70, fontSize: 11),
                 ),
               ],
             ),
@@ -349,67 +666,45 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
               size: 26,
             ),
             tooltip: 'Stop Recitation',
-            onPressed: () async {
-              await AudioService.instance.stop();
-              if (mounted) setState(() => _currentPlayingAyah = null);
-            },
+            onPressed: () => AudioService.instance.stop(),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSurahHeaderBanner() {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F3931),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFC5A059), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Wrap(
-        alignment: WrapAlignment.spaceBetween,
-        spacing: 12,
-        runSpacing: 8,
-        children: [
-          Text(
-            '${widget.surah.revelationType} • ${widget.surah.numberOfAyahs} Verses',
-            style: const TextStyle(color: Colors.white70, fontSize: 12),
-          ),
-          Text(
-            'سورة ${widget.surah.name}',
-            style: const TextStyle(
-              fontFamily: 'serif',
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFFC5A059),
+  /// Opens the drawing tools. While reading, this is all that floats over
+  /// the page.
+  Widget _buildNotesButton() {
+    return Tooltip(
+      message: 'Write or highlight on the page',
+      child: Material(
+        color: const Color(0xFF0F172A).withValues(alpha: 0.94),
+        elevation: 4,
+        shape: StadiumBorder(
+          side: BorderSide(color: ReaderPalette.gold.withValues(alpha: 0.4)),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => setState(() => _isStylusMode = true),
+          child: const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.edit, size: 18, color: Colors.white),
+                SizedBox(width: 8),
+                Text(
+                  'Notes',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBismillah() {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      child: const Text(
-        'بِسْمِ اللَّهِ الرَّحْمَـٰنِ الرَّحِيمِ',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontFamily: 'serif',
-          fontSize: 22,
-          fontWeight: FontWeight.bold,
-          color: Color(0xFF0F766E),
         ),
       ),
     );
@@ -419,16 +714,16 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A).withOpacity(0.94),
+        color: const Color(0xFF0F172A).withValues(alpha: 0.94),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.25),
+            color: Colors.black.withValues(alpha: 0.25),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
         ],
-        border: Border.all(color: const Color(0xFFC5A059).withOpacity(0.4)),
+        border: Border.all(color: ReaderPalette.gold.withValues(alpha: 0.4)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -440,154 +735,116 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
             spacing: 4,
             runSpacing: 4,
             children: [
-              // Toggle Read vs Draw Mode
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _isStylusMode = !_isStylusMode;
-                  });
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        _isStylusMode
-                            ? 'Stylus Mode ON: Write & Highlight on Quran'
-                            : 'Read Mode ON: Scroll & Tap Verses',
-                      ),
-                      duration: const Duration(seconds: 1),
+              Semantics(
+                button: true,
+                label: 'Finish drawing',
+                excludeSemantics: true,
+                child: GestureDetector(
+                  onTap: () => setState(() => _isStylusMode = false),
+                  child: Container(
+                    constraints: const BoxConstraints(minHeight: 48),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
                     ),
-                  );
-                },
-                child: Container(
-                  constraints: const BoxConstraints(minHeight: 48),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _isStylusMode
-                        ? const Color(0xFFC5A059)
-                        : Colors.white12,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        _isStylusMode ? Icons.edit : Icons.menu_book,
-                        size: 16,
-                        color: _isStylusMode ? Colors.black87 : Colors.white,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        _isStylusMode ? 'Stylus' : 'Read',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: _isStylusMode ? Colors.black87 : Colors.white,
+                    decoration: BoxDecoration(
+                      color: ReaderPalette.gold,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.check, size: 16, color: Colors.black87),
+                        SizedBox(width: 4),
+                        Text(
+                          'Done',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
-
-              if (_isStylusMode) ...[
-                // Pen Tool
-                IconButton(
-                  icon: Icon(
-                    Icons.create,
-                    color: _activeTool == DrawingTool.pen
-                        ? const Color(0xFFC5A059)
-                        : Colors.white60,
-                    size: 20,
-                  ),
-                  tooltip: 'Stylus Pen',
-                  onPressed: () {
-                    setState(() => _activeTool = DrawingTool.pen);
-                    _canvasKey.currentState?.currentTool = DrawingTool.pen;
-                    _canvasKey.currentState?.selectedColor = _penColor;
-                  },
+              IconButton(
+                icon: Icon(
+                  Icons.create,
+                  color: _activeTool == DrawingTool.pen
+                      ? ReaderPalette.gold
+                      : Colors.white60,
+                  size: 20,
                 ),
-
-                // Highlighter Tool
-                IconButton(
-                  icon: Icon(
-                    Icons.highlight,
-                    color: _activeTool == DrawingTool.highlighter
-                        ? const Color(0xFFFEF08A)
-                        : Colors.white60,
-                    size: 20,
-                  ),
-                  tooltip: 'Highlighter (Translucent)',
-                  onPressed: () {
-                    setState(() => _activeTool = DrawingTool.highlighter);
-                    _canvasKey.currentState?.currentTool =
-                        DrawingTool.highlighter;
-                    _canvasKey.currentState?.selectedColor = _highlighterColor;
-                  },
+                tooltip: 'Stylus Pen',
+                onPressed: () {
+                  setState(() => _activeTool = DrawingTool.pen);
+                  _canvasKey.currentState?.currentTool = DrawingTool.pen;
+                  _canvasKey.currentState?.selectedColor = _penColor;
+                },
+              ),
+              IconButton(
+                icon: Icon(
+                  Icons.highlight,
+                  color: _activeTool == DrawingTool.highlighter
+                      ? const Color(0xFFFEF08A)
+                      : Colors.white60,
+                  size: 20,
                 ),
-
-                // Eraser Tool
-                IconButton(
-                  icon: Icon(
-                    Icons.cleaning_services,
-                    color: _activeTool == DrawingTool.eraser
-                        ? Colors.redAccent
-                        : Colors.white60,
-                    size: 20,
-                  ),
-                  tooltip: 'Eraser',
-                  onPressed: () {
-                    setState(() => _activeTool = DrawingTool.eraser);
-                    _canvasKey.currentState?.currentTool = DrawingTool.eraser;
-                  },
+                tooltip: 'Highlighter (Translucent)',
+                onPressed: () {
+                  setState(() => _activeTool = DrawingTool.highlighter);
+                  _canvasKey.currentState?.currentTool =
+                      DrawingTool.highlighter;
+                  _canvasKey.currentState?.selectedColor = _highlighterColor;
+                },
+              ),
+              IconButton(
+                icon: Icon(
+                  Icons.cleaning_services,
+                  color: _activeTool == DrawingTool.eraser
+                      ? Colors.redAccent
+                      : Colors.white60,
+                  size: 20,
                 ),
-
-                // Pan / Hand Scroll Tool
-                IconButton(
-                  icon: Icon(
-                    Icons.pan_tool_outlined,
-                    color: _activeTool == DrawingTool.pan
-                        ? const Color(0xFFC5A059)
-                        : Colors.white60,
-                    size: 20,
-                  ),
-                  tooltip: 'Pan / Scroll Page',
-                  onPressed: () {
-                    setState(() => _activeTool = DrawingTool.pan);
-                    _canvasKey.currentState?.currentTool = DrawingTool.pan;
-                  },
+                tooltip: 'Eraser',
+                onPressed: () {
+                  setState(() => _activeTool = DrawingTool.eraser);
+                  _canvasKey.currentState?.currentTool = DrawingTool.eraser;
+                },
+              ),
+              IconButton(
+                icon: Icon(
+                  Icons.pan_tool_outlined,
+                  color: _activeTool == DrawingTool.pan
+                      ? ReaderPalette.gold
+                      : Colors.white60,
+                  size: 20,
                 ),
-
-                // Undo
-                IconButton(
-                  icon: const Icon(Icons.undo, color: Colors.white70, size: 20),
-                  tooltip: 'Undo',
-                  onPressed: () => _canvasKey.currentState?.undo(),
+                tooltip: 'Pan / Scroll Page',
+                onPressed: () {
+                  setState(() => _activeTool = DrawingTool.pan);
+                  _canvasKey.currentState?.currentTool = DrawingTool.pan;
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.undo, color: Colors.white70, size: 20),
+                tooltip: 'Undo',
+                onPressed: () => _canvasKey.currentState?.undo(),
+              ),
+              IconButton(
+                icon: const Icon(
+                  Icons.delete_sweep,
+                  color: Colors.white70,
+                  size: 20,
                 ),
-
-                // Clear All
-                IconButton(
-                  icon: const Icon(
-                    Icons.delete_sweep,
-                    color: Colors.white70,
-                    size: 20,
-                  ),
-                  tooltip: 'Clear Page Drawing',
-                  onPressed: () {
-                    _canvasKey.currentState?.clearAll();
-                  },
-                ),
-              ] else ...[
-                const Text(
-                  'Tap any verse for audio & translation',
-                  style: TextStyle(color: Colors.white60, fontSize: 12),
-                ),
-              ],
+                tooltip: 'Clear Page Drawing',
+                onPressed: () => _canvasKey.currentState?.clearAll(),
+              ),
             ],
           ),
-
-          // Row 2 (When in Stylus mode): Quick Color Palette
-          if (_isStylusMode && _activeTool != DrawingTool.eraser) ...[
+          if (_activeTool != DrawingTool.eraser) ...[
             const SizedBox(height: 6),
             Wrap(
               alignment: WrapAlignment.center,
@@ -600,16 +857,16 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
                   style: TextStyle(color: Colors.white60, fontSize: 11),
                 ),
                 if (_activeTool == DrawingTool.pen) ...[
-                  _buildColorDot(const Color(0xFFD97706)), // Gold
-                  _buildColorDot(const Color(0xFFEF4444)), // Coral
-                  _buildColorDot(const Color(0xFF3B82F6)), // Sky Blue
-                  _buildColorDot(const Color(0xFF10B981)), // Emerald
-                  _buildColorDot(const Color(0xFFFFFFFF)), // White
+                  _buildColorDot(const Color(0xFFD97706)),
+                  _buildColorDot(const Color(0xFFEF4444)),
+                  _buildColorDot(const Color(0xFF3B82F6)),
+                  _buildColorDot(const Color(0xFF10B981)),
+                  _buildColorDot(const Color(0xFFFFFFFF)),
                 ] else ...[
-                  _buildColorDot(const Color(0xFFFEF08A)), // Yellow
-                  _buildColorDot(const Color(0xFFA7F3D0)), // Mint
-                  _buildColorDot(const Color(0xFFBAE6FD)), // Cyan
-                  _buildColorDot(const Color(0xFFFBCFE8)), // Pink
+                  _buildColorDot(const Color(0xFFFEF08A)),
+                  _buildColorDot(const Color(0xFFA7F3D0)),
+                  _buildColorDot(const Color(0xFFBAE6FD)),
+                  _buildColorDot(const Color(0xFFFBCFE8)),
                 ],
               ],
             ),
@@ -621,9 +878,8 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
 
   Widget _buildColorDot(Color color) {
     final isSelected = _activeTool == DrawingTool.pen
-        ? _penColor.value == color.value
-        : _highlighterColor.value == color.value;
-
+        ? _penColor.toARGB32() == color.toARGB32()
+        : _highlighterColor.toARGB32() == color.toARGB32();
     final colorName =
         {
           0xFFD97706: 'Gold',
@@ -650,11 +906,10 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
           setState(() {
             if (_activeTool == DrawingTool.pen) {
               _penColor = color;
-              _canvasKey.currentState?.selectedColor = color;
             } else {
               _highlighterColor = color;
-              _canvasKey.currentState?.selectedColor = color;
             }
+            _canvasKey.currentState?.selectedColor = color;
           });
         },
         child: Container(
