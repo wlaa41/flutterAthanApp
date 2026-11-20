@@ -246,6 +246,20 @@ void main() {
       scrollable: find.byType(Scrollable).last,
     );
     await tester.pumpAndSettle();
+
+    // The page follows the slider once it rests, and the size is saved.
+    await tester.drag(find.byType(Slider), const Offset(-400, 0));
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pumpAndSettle();
+    final smaller = tester.widget<MushafBlock>(find.byType(MushafBlock));
+    expect(smaller.fontSize, 20);
+    expect(
+      (await SharedPreferences.getInstance()).getDouble(
+        QuranReaderScreen.fontSizeKey,
+      ),
+      20,
+    );
+
     await tester.tap(find.text('Night page'));
     await tester.pumpAndSettle();
     expect(
@@ -324,6 +338,115 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('No bookmarks yet'), findsOneWidget);
     expect(await QuranService.instance.bookmarks(), isEmpty);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('fits a small phone with large system text', (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(320, 568);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final library = MushafLibrary();
+    await QuranService.instance.saveLastRead(
+      const LastRead(surah: 2, page: 42, textId: 'hafs'),
+    );
+    await QuranService.instance.toggleBookmark('warsh:2:254');
+
+    Widget large(Widget home) => MaterialApp(
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(
+          context,
+        ).copyWith(textScaler: const TextScaler.linear(2)),
+        child: child!,
+      ),
+      home: home,
+    );
+
+    // The surah list, its mushaf sheet and its bookmarks.
+    await tester.pumpWidget(large(QuranIndexScreen(library: library)));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    await tester.tap(find.text('Change'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    await tester.tap(find.byTooltip('Close'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Bookmarks'));
+    await tester.pumpAndSettle();
+    expect(find.text('Al-Baqara 2:254'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    // The reader, its verse sheet, its settings and the colour guide.
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpWidget(
+      large(
+        QuranReaderScreen(
+          surah: surah(2),
+          library: library,
+          translations: meanings(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    // Large text pushes the first verses below the fold; bring them up.
+    await tester.ensureVisible(find.byType(MushafBlock).first);
+    await tester.pumpAndSettle();
+    await tester.tapAt(
+      tester.getTopRight(find.byType(MushafBlock).first) + const Offset(-8, 12),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Al-Baqara 2:1'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await tester.tap(find.byTooltip('Close'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Mushaf and text size'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    await tester.tap(find.byTooltip('Close'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Tajweed colours'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    await tester.tap(find.byTooltip('Close'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Write or highlight on the page'));
+    await tester.pumpAndSettle();
+    expect(find.text('Done'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    // The tafsir of a long verse.
+    final text = await library.load(library.current.value);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpWidget(
+      large(
+        TafsirScreen(
+          surah: surah(2),
+          text: text,
+          ayah: text.surah(2)[281],
+          service: TafsirService(
+            cache: noDisk(),
+            client: MockClient(
+              (request) async => jsonResponse({
+                'tafsirs': [
+                  {
+                    'resource_id': 16,
+                    'verse_key': '2:1',
+                    'text': 'تفسير طويل ' * 40,
+                  },
+                ],
+                'pagination': {'next_page': null},
+              }),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Show the whole verse'), findsOneWidget);
+    await tester.tap(find.text('Show the whole verse'));
+    await tester.pumpAndSettle();
+    expect(find.text('Show less'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

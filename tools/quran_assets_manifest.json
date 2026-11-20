@@ -9,6 +9,7 @@
       "data": "bazzi/data/BazziData_v07.json",
       "data_sha256": "2ff11a126e0f15f161b88f83528c0b11d24f69f474baabf02d8864cd93ed15ce",
       "font": "bazzi/font/bazzi.7.ttf",
+      "font_covers_text": true,
       "font_sha256": "7a34ffeef98b57f19e36ed2bea00a2d9dd3bbf7b330c3a6602808ecbef828791"
     },
     "doori": {
@@ -20,6 +21,7 @@
       "data": "doori/data/DooriData_v09.json",
       "data_sha256": "169b949d6cedd93ddb21728c16057d5ac7faf673ac10e0f213bb5dec1dc90d7d",
       "font": "doori/font/doori.9.ttf",
+      "font_covers_text": true,
       "font_sha256": "8a3c14c522ba4ef99d2ece6711ea45c5d7994568d98cf862c448e025592bf746"
     },
     "hafs": {
@@ -31,6 +33,7 @@
       "data": "hafs/data/hafsData_v18.json",
       "data_sha256": "5d8bb91726e482839d0057633cb1973031e4d706fa9604eea5e08892f20ba140",
       "font": "hafs/font/hafs.18.ttf",
+      "font_covers_text": true,
       "font_sha256": "a0636e68e375af9552470d67773936f54d536e6586ce2608311b2fe7f9cbec3a"
     },
     "qaloon": {
@@ -42,6 +45,7 @@
       "data": "qaloon/data/QaloonData_v10.json",
       "data_sha256": "18465c40ebeec40a92eb98745c9b89796ac6e31f6e93988883dfb6602faaea95",
       "font": "qaloon/font/qaloon.10.ttf",
+      "font_covers_text": true,
       "font_sha256": "95e7f9268fd4ab9f8b79d2ed3827e0c8a78f80195c02c6cbadb97c90d837b1e3"
     },
     "qumbul": {
@@ -53,6 +57,7 @@
       "data": "qumbul/data/QumbulData_v07.json",
       "data_sha256": "3a0377bd943def12711b15cc71a65214fb902a5df70240b87df13c7b516a7888",
       "font": "qumbul/font/qumbul.7.ttf",
+      "font_covers_text": true,
       "font_sha256": "a9ca4c7b40a7c295236271dd8559caa4ae45cc226c14ab039b5c1021cbc10c9d"
     },
     "shouba": {
@@ -64,6 +69,7 @@
       "data": "shouba/data/ShoubaData08.json",
       "data_sha256": "f105da3949e0b8092e3abcd23a539c9bef4c9b7474f15d29848471f150ade667",
       "font": "shouba/font/shouba.8.ttf",
+      "font_covers_text": true,
       "font_sha256": "9d13404a4a309f2d08501a15fed39d05baf83d3fa5e77bf43f0aac8c8614e118"
     },
     "soosi": {
@@ -75,6 +81,7 @@
       "data": "soosi/data/SoosiData09.json",
       "data_sha256": "81af638398efa88308803c06a961d7019daf2e87e822b8acae24df05a82aa81b",
       "font": "soosi/font/soosi.9.ttf",
+      "font_covers_text": true,
       "font_sha256": "8aaaa595cb13faf1d5f3232d60e74fe7a52a07b4ef84e3570f21b57472dbffcf"
     },
     "warsh": {
@@ -86,6 +93,7 @@
       "data": "warsh/data/warshData_v10.json",
       "data_sha256": "f05d0dc652fd46b38563cacb13242f76f80db4cc64d25873da0bce157253872f",
       "font": "warsh/font/warsh.10.ttf",
+      "font_covers_text": true,
       "font_sha256": "e6347a1b4cf0ca32e9cb187a7db8c9ecee0d5e384269ca6a943373a34ff747fb"
     }
   },

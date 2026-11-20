@@ -95,7 +95,7 @@ object PrayerAlarms {
         }
         val builder = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(c, channelId) else Notification.Builder(c)
         builder.setSmallIcon(R.drawable.ic_prayer_notification).setContentTitle(event.optString("title", "Prayer reminder"))
-            .setContentText(if (playing) "Tap Stop to end the recitation" else event.optString("body"))
+            .setContentText(if (playing && soundId !in BeepMode.TONES) "Tap Stop to end the recitation" else event.optString("body"))
             .setCategory(Notification.CATEGORY_REMINDER).setAutoCancel(!playing).setOngoing(playing)
             .setContentIntent(PendingIntent.getActivity(c, 0, Intent(c, MainActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
         if (Build.VERSION.SDK_INT < 26) {

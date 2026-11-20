@@ -28,6 +28,11 @@ import subprocess
 import sys
 import unicodedata
 
+try:  # Optional: lets the script prove each font can draw its own text.
+    from fontTools.ttLib import TTFont
+except ImportError:
+    TTFont = None
+
 EDITIONS = [
     # id, data file, font file, expected ayah total (the counting system of that mushaf)
     ("hafs", "hafs/data/hafsData_v18.json", "hafs/font/hafs.18.ttf", 6236),
@@ -391,6 +396,21 @@ def main():
         }
         if sha256(font_target) != sha256(os.path.join(args.kfgqpc, font_file)):
             raise SystemExit(f"{edition}: font copy differs from the source")
+        if TTFont is not None:
+            # Every character of the text, and the digits of the ayah numbers,
+            # must have a glyph in this mushaf's own font, or the phone would
+            # borrow it from another font. The no-break space is the one
+            # exception: most of these fonts leave it out and the text shaper
+            # draws it with the font's ordinary space.
+            cmap = TTFont(font_target).getBestCmap()
+            used = set(basmalah) | set("٠١٢٣٤٥٦٧٨٩ ")
+            for surah in surahs:
+                for ayah in surah:
+                    used.update(ayah["t"])
+            missing = sorted(c for c in used if ord(c) not in cmap and c != "\u00a0")
+            if missing:
+                raise SystemExit(f"{edition}: font lacks {[hex(ord(c)) for c in missing]}")
+            manifest["editions"][edition]["font_covers_text"] = True
         print(f"{edition}: {expected} ayat, {remapped} numbered differently from Hafs, "
               f"{os.path.getsize(target)} bytes")
 

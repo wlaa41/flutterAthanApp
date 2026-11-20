@@ -175,139 +175,142 @@ class _QuranIndexScreenState extends State<QuranIndexScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-            color: ReaderPalette.green,
-            child: Column(
-              children: [
-                ValueListenableBuilder<MushafEdition>(
-                  valueListenable: _library.current,
-                  builder: (context, edition, _) => Semantics(
-                    button: true,
-                    label: 'Mushaf: ${edition.name}. Change',
-                    excludeSemantics: true,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(14),
-                      onTap: _chooseMushaf,
-                      child: Container(
-                        constraints: const BoxConstraints(minHeight: 48),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: ReaderPalette.gold.withValues(alpha: 0.55),
+      // The mushaf choice and the search scroll away with the list, which
+      // leaves the whole screen to the surahs on a small phone.
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              color: ReaderPalette.green,
+              child: Column(
+                children: [
+                  ValueListenableBuilder<MushafEdition>(
+                    valueListenable: _library.current,
+                    builder: (context, edition, _) => Semantics(
+                      button: true,
+                      label: 'Mushaf: ${edition.name}. Change',
+                      excludeSemantics: true,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(14),
+                        onTap: _chooseMushaf,
+                        child: Container(
+                          constraints: const BoxConstraints(minHeight: 48),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
                           ),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.auto_stories_outlined,
-                              color: ReaderPalette.gold,
-                              size: 20,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: ReaderPalette.gold.withValues(alpha: 0.55),
                             ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Mushaf',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.white60,
-                                    ),
-                                  ),
-                                  Text(
-                                    edition.name,
-                                    style: const TextStyle(
-                                      fontSize: 14.5,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ],
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.auto_stories_outlined,
+                                color: ReaderPalette.gold,
+                                size: 20,
                               ),
-                            ),
-                            const Text(
-                              'Change',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Mushaf',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.white60,
+                                      ),
+                                    ),
+                                    Text(
+                                      edition.name,
+                                      style: const TextStyle(
+                                        fontSize: 14.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Text(
+                                'Change',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: ReaderPalette.gold,
+                                ),
+                              ),
+                              const Icon(
+                                Icons.expand_more,
                                 color: ReaderPalette.gold,
                               ),
-                            ),
-                            const Icon(
-                              Icons.expand_more,
-                              color: ReaderPalette.gold,
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: _searchController,
-                  onChanged: (val) => setState(() => _searchQuery = val),
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: 'Search Surah by name or number...',
-                    hintStyle: const TextStyle(color: Colors.white54),
-                    prefixIcon: const Icon(
-                      Icons.search,
-                      color: ReaderPalette.gold,
-                    ),
-                    suffixIcon: _searchQuery.isNotEmpty
-                        ? IconButton(
-                            tooltip: 'Clear search',
-                            icon: const Icon(
-                              Icons.clear,
-                              color: Colors.white70,
-                            ),
-                            onPressed: () {
-                              _searchController.clear();
-                              setState(() => _searchQuery = '');
-                            },
-                          )
-                        : null,
-                    filled: true,
-                    fillColor: Colors.white.withValues(alpha: 0.12),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide.none,
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: _searchController,
+                    onChanged: (val) => setState(() => _searchQuery = val),
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: 'Search Surah by name or number...',
+                      hintStyle: const TextStyle(color: Colors.white54),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: ReaderPalette.gold,
+                      ),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              tooltip: 'Clear search',
+                              icon: const Icon(
+                                Icons.clear,
+                                color: Colors.white70,
+                              ),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() => _searchQuery = '');
+                              },
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: Colors.white.withValues(alpha: 0.12),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    _buildFilterChip('All (114)', 'all'),
-                    const SizedBox(width: 8),
-                    _buildFilterChip('Meccan (86)', 'meccan'),
-                    const SizedBox(width: 8),
-                    _buildFilterChip('Medinan (28)', 'medinan'),
-                  ],
-                ),
-              ],
+                  const SizedBox(height: 10),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _buildFilterChip('All (114)', 'all'),
+                        _buildFilterChip('Meccan (86)', 'meccan'),
+                        _buildFilterChip('Medinan (28)', 'medinan'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          Expanded(
-            child: ListView.separated(
-              itemCount: surahs.length + (showContinue ? 1 : 0),
-              separatorBuilder: (_, _) =>
-                  Divider(height: 1, color: Colors.grey.shade200),
-              itemBuilder: (context, index) {
-                if (showContinue && index == 0) return _continueTile(place);
-                return _surahTile(surahs[index - (showContinue ? 1 : 0)]);
-              },
-            ),
+          if (showContinue) SliverToBoxAdapter(child: _continueTile(place)),
+          SliverList.separated(
+            itemCount: surahs.length,
+            separatorBuilder: (_, _) =>
+                Divider(height: 1, color: Colors.grey.shade200),
+            itemBuilder: (context, index) => _surahTile(surahs[index]),
           ),
         ],
       ),
@@ -359,19 +362,26 @@ class _QuranIndexScreenState extends State<QuranIndexScreen> {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: ReaderPalette.gold.withValues(alpha: 0.4)),
         ),
-        child: Text(
-          '${surah.number}',
-          style: const TextStyle(
-            color: ReaderPalette.green,
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              '${surah.number}',
+              style: const TextStyle(
+                color: ReaderPalette.green,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
           ),
         ),
       ),
       title: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Flexible(
+          Expanded(
+            flex: 3,
             child: Text(
               surah.englishName,
               style: const TextStyle(
@@ -381,14 +391,21 @@ class _QuranIndexScreenState extends State<QuranIndexScreen> {
               ),
             ),
           ),
-          Text(
-            surah.name,
-            textDirection: TextDirection.rtl,
-            style: const TextStyle(
-              fontFamily: 'kfgqpc_hafs',
-              fontSize: 21,
-              height: 1.3,
-              color: Color(0xFF0F766E),
+          const SizedBox(width: 8),
+          // The Arabic name keeps to the right edge, and may wrap rather
+          // than push the row wider at large text sizes.
+          Expanded(
+            flex: 2,
+            child: Text(
+              surah.name,
+              textDirection: TextDirection.rtl,
+              textAlign: TextAlign.right,
+              style: const TextStyle(
+                fontFamily: 'kfgqpc_hafs',
+                fontSize: 21,
+                height: 1.3,
+                color: Color(0xFF0F766E),
+              ),
             ),
           ),
         ],
@@ -440,18 +457,21 @@ class _QuranIndexScreenState extends State<QuranIndexScreen> {
         onTap: () => setState(() => _filter = value),
         child: Container(
           constraints: const BoxConstraints(minHeight: 36),
-          alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
           decoration: BoxDecoration(
             color: isSelected ? ReaderPalette.gold : Colors.white12,
             borderRadius: BorderRadius.circular(20),
           ),
-          child: Text(
-            label,
-            style: TextStyle(
-              color: isSelected ? Colors.black87 : Colors.white70,
-              fontSize: 11.5,
-              fontWeight: FontWeight.w600,
+          // Only as wide as its label, so the three sit side by side.
+          child: Center(
+            widthFactor: 1,
+            child: Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? Colors.black87 : Colors.white70,
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ),

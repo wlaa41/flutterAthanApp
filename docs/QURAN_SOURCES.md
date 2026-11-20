@@ -28,7 +28,14 @@ What `tools/build_quran_assets.py` does, and does not do:
   the end-of-ayah ornament.
 - The fonts are copied byte for byte (the script checks the SHA-256 after copying).
 - Each text is drawn only in its own font. A riwayah's text in another font would
-  show wrong or missing marks.
+  show wrong or missing marks. The script checks that every character of a text
+  has a glyph in that text's font, so the phone never borrows a letter or a mark
+  from another font. The one exception is the no-break space before each ayah
+  number, which most of these fonts leave out; the text shaper draws it with the
+  font's ordinary space.
+- The Quran files are plain JSON with one ayah per line, so they can be read and
+  compared in the repository. They are not gzipped: the Android build unpacks
+  `.gz` assets and renames them, and the app would not find them.
 - The Hafs text is compared with quran.com's independent copy of the same release
   (`text_qpc_hafs`). All 6236 ayat are identical.
 - Riwayat that divide verses differently are mapped to the Hafs (Kufi) numbering

@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.2.0-rc.4 (build 14)
+
+Review pass over the icon, Beep and Quran rounds.
+
+- The Quran screens now fit a small phone with large system text: the surah
+  list header scrolls with the list, the filter chips and the highlight colours
+  wrap, and the page rule and action labels no longer run off the edge.
+- Changing the text size keeps the passage being read on screen and lays the
+  surah out once, when the slider rests, instead of on every step.
+- Copy works at once; it adds the meaning only if it is already on the phone.
+- While a beep plays, its notification names the prayer instead of saying
+  "Tap Stop to end the recitation".
+- The asset build now proves that each mushaf's font has a glyph for every
+  character of its text (it does, for all eight).
+- Validation: 119 tests pass, including one that opens every Quran screen at
+  320 x 568 with doubled text. Still not tried on a physical phone.
+
 ## 2.2.0-rc.3 (build 13)
 
 - The Quran is now inside the app and opens offline, in the mushafs of the King

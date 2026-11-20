@@ -130,9 +130,13 @@ class _VerseActionSheetState extends State<VerseActionSheet> {
   }
 
   Future<void> _copy() async {
+    // Copy at once: the meaning is added only if it is already here.
     String? meaning;
     try {
-      meaning = QuranTranslationService.forAyah(await _meaning, widget.ayah);
+      meaning = QuranTranslationService.forAyah(
+        await _meaning.timeout(const Duration(milliseconds: 300)),
+        widget.ayah,
+      );
     } catch (_) {}
     final lines = [
       widget.ayah.text,
@@ -276,25 +280,24 @@ class _VerseActionSheetState extends State<VerseActionSheet> {
                 ),
               ],
               const Divider(height: 24),
-              Row(
+              // A Wrap, so large system text moves the colours to a second
+              // line instead of off the sheet.
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  const Text(
-                    'Highlight',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                      color: Color(0xFF475569),
+                  const Padding(
+                    padding: EdgeInsets.only(right: 6),
+                    child: Text(
+                      'Highlight',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: Color(0xFF475569),
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Wrap(
-                      children: [
-                        for (final colour in VerseActionSheet.highlightColours)
-                          _highlightDot(colour),
-                      ],
-                    ),
-                  ),
+                  for (final colour in VerseActionSheet.highlightColours)
+                    _highlightDot(colour),
                   TextButton(
                     onPressed: _highlight == null
                         ? null
@@ -422,14 +425,17 @@ class _VerseActionSheetState extends State<VerseActionSheet> {
                 child: Icon(icon, color: color, size: 24),
               ),
               const SizedBox(height: 6),
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: color,
+              // Five labels share the row; a long one shrinks before it is cut.
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
                 ),
               ),
             ],

@@ -80,6 +80,10 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
   /// Shown until a verse has been opened once.
   bool _tapHint = false;
 
+  /// Waits for the text size slider to rest before the surah is laid out
+  /// again, which for a long surah is too much work to do on every step.
+  Timer? _resize;
+
   bool _isStylusMode = false;
   DrawingTool _activeTool = DrawingTool.pen;
   Color _penColor = const Color(0xFFD97706);
@@ -101,6 +105,7 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
   void dispose() {
     AudioService.instance.lastError.removeListener(_showAudioError);
     unawaited(AudioService.instance.stop().catchError((Object _) {}));
+    _resize?.cancel();
     _scroll.dispose();
     super.dispose();
   }
@@ -247,10 +252,17 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
     _rememberPlace(page);
   }
 
-  Future<void> _setFontSize(double size) async {
-    setState(() => _fontSize = size);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble(QuranReaderScreen.fontSizeKey, size);
+  void _setFontSize(double size) {
+    _resize?.cancel();
+    _resize = Timer(const Duration(milliseconds: 120), () async {
+      if (!mounted || size == _fontSize) return;
+      // Larger text makes the page longer; stay on the passage being read.
+      final reading = _topPage()?.first.page;
+      setState(() => _fontSize = size);
+      if (reading != null) _showPage(reading);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble(QuranReaderScreen.fontSizeKey, size);
+    });
   }
 
   Future<void> _setNight(bool night) async {
@@ -600,18 +612,26 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
         : 'Page ${first.page}, juz ${first.juz}';
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        children: [
-          Expanded(child: Divider(color: palette.rule, thickness: 1)),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Text(
-              label,
-              style: TextStyle(fontSize: 11.5, color: palette.soft),
+      child: LayoutBuilder(
+        builder: (context, constraints) => Row(
+          children: [
+            Expanded(child: Divider(color: palette.rule, thickness: 1)),
+            // With very large system text the label may wrap; it never
+            // pushes the rules off the page.
+            ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: constraints.maxWidth * 0.7),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 11.5, color: palette.soft),
+                ),
+              ),
             ),
-          ),
-          Expanded(child: Divider(color: palette.rule, thickness: 1)),
-        ],
+            Expanded(child: Divider(color: palette.rule, thickness: 1)),
+          ],
+        ),
       ),
     );
   }
