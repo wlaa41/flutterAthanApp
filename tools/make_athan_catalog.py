@@ -64,6 +64,8 @@ def main():
         if "cut_from" in a:
             lines.append(f"    cutFrom: {dart(a['cut_from'])},")
             lines.append(f"    cutStart: Duration(milliseconds: {a['cut_start_ms']}),")
+        if a.get("gain_steps"):
+            lines.append(f"    gainSteps: {int(a['gain_steps'])},")
         lines.append("  ),")
     lines += ["];", ""]
     with open(os.path.join(ROOT, "lib", "services", "athan_catalog.dart"), "w", encoding="utf-8") as handle:

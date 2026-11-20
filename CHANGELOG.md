@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.2.0-rc.8 (build 18)
+
+- Hashem Al-Saqqaf, muezzin of the Grand Mosque in Makkah, joins the athans
+  asked for by name in **Trending athans**: his Dhuhr athan of 1 Safar 1444,
+  the cleanest complete recording of his that could be reached (no clipping,
+  nothing cut at either end).
+- That recording was made very quietly, about 16 dB below the other athans.
+  After it passes its checksum, the phone raises it by 16.5 dB the way mp3gain
+  does, by adding to the gain each MP3 frame already carries. The sound is
+  scaled exactly and nothing is re-encoded, so at prayer time it is as loud as
+  the others.
+- Validation: 193 tests pass, and the recording was added through the app's own
+  downloader from its real source; the kept file measures -12.6 LUFS with
+  peaks at -1.2 dBFS. Not tried on a physical phone.
+
 ## 2.2.0-rc.7 (build 17)
 
 - The Quran opens as the printed page. Both Hafs copies now show the Madinah

@@ -79,9 +79,17 @@ void main() {
   group('The catalogue', () {
     test('names the athans that were asked for, first', () {
       final ids = athanCatalog.map((athan) => athan.id).toList();
-      expect(ids.take(3), ['qassas_madinah', 'jazi_full', 'jazi_short']);
-      expect(athanCatalog.take(3).every((athan) => athan.featured), isTrue);
-      expect(athanCatalog.skip(3).any((athan) => athan.featured), isFalse);
+      expect(ids.take(4), [
+        'qassas_madinah',
+        'jazi_full',
+        'jazi_short',
+        'saqqaf_makkah',
+      ]);
+      expect(athanCatalog.take(4).every((athan) => athan.featured), isTrue);
+      expect(athanCatalog.skip(4).any((athan) => athan.featured), isFalse);
+      expect(athanCatalog[3].arabicName, 'هاشم السقاف');
+      // A quiet recording is raised to the level of the others.
+      expect(athanCatalog[3].gainSteps, 11);
       expect(athanCatalog[0].arabicName, 'محمد بن مروان قصاص');
       expect(athanCatalog[1].arabicName, contains('محمد جازي'));
       expect(athanCatalog[2].arabicName, contains('محمد جازي'));
@@ -263,6 +271,46 @@ void main() {
         ),
       );
       expect(stored(), isEmpty);
+    });
+
+    test('raises a quiet recording after it passes its check', () async {
+      final quiet = fakeMp3(60, gain: 100);
+      final athan = AthanDownload(
+        id: 'quiet',
+        name: 'Quiet',
+        arabicName: 'هادئ',
+        place: 'Somewhere',
+        seconds: 10,
+        bytes: quiet.length,
+        sha256: sha256.convert(quiet).toString(),
+        url: 'https://example.org/quiet.mp3',
+        source: 'A test',
+        gainSteps: 6,
+      );
+      final downloads = serving(quiet, catalog: [athan]);
+      final sound = await downloads.add(athan);
+      final kept = File(sound.filePath!).readAsBytesSync();
+      expect(kept, Mp3Cutter.louder(quiet, 6));
+      expect(mp3Gains(kept).toSet(), {106});
+      expect(stored(), ['dl_quiet.mp3']);
+      // A shorter athan made from it starts from the raised recording.
+      final short = AthanDownload(
+        id: 'quiet_short',
+        name: 'Quiet, short',
+        arabicName: 'هادئ',
+        place: 'Somewhere',
+        seconds: 5,
+        bytes: quiet.length,
+        sha256: sha256.convert(quiet).toString(),
+        url: 'https://example.org/quiet.mp3',
+        source: 'A test',
+        cutFrom: 'quiet',
+        cutStart: const Duration(seconds: 1),
+      );
+      final both = serving(quiet, catalog: [athan, short]);
+      final cut = await both.add(short);
+      expect(mp3Gains(File(cut.filePath!).readAsBytesSync()).toSet(), {106});
+      expect(requests, 1);
     });
 
     test('can be tried again after a failure', () async {

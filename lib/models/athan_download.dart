@@ -15,6 +15,7 @@ class AthanDownload {
     this.featured = false,
     this.cutFrom,
     this.cutStart = Duration.zero,
+    this.gainSteps = 0,
   });
 
   final String id;
@@ -42,6 +43,11 @@ class AthanDownload {
   /// describe that other recording.
   final String? cutFrom;
   final Duration cutStart;
+
+  /// How much louder the phone makes the recording once it has passed its
+  /// check, in steps of 1.5 dB, so a quietly recorded athan sounds as loud
+  /// as the others. The sound is scaled, not re-encoded.
+  final int gainSteps;
 
   String get soundId => 'dl_$id';
   String get fileName => 'dl_$id.mp3';

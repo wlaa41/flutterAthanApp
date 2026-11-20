@@ -131,19 +131,17 @@ class AthanDownloads {
       if (await target.exists()) {
         // Left by an earlier attempt that could not record it.
       } else if (parentId == null) {
-        await _fetch(athan, target, onProgress);
+        await _keep(athan, target, onProgress);
       } else {
         // A shorter athan is the end of a longer one. The longer recording
         // is fetched once and kept, so both become available.
         final parent = byId(parentId);
         if (parent == null) throw _changed;
         final full = File('${folder.path}/${parent.fileName}');
-        if (!await full.exists()) await _fetch(parent, full, onProgress);
+        if (!await full.exists()) await _keep(parent, full, onProgress);
         kept.add(parent.id);
         final cut = Mp3Cutter.tail(await full.readAsBytes(), athan.cutStart);
-        final part = File('${target.path}.part');
-        await part.writeAsBytes(cut, flush: true);
-        await part.rename(target.path);
+        await _write(target, Mp3Cutter.louder(cut, athan.gainSteps));
       }
       await _record(kept);
     } on AthanDownloadFailure {
@@ -157,6 +155,33 @@ class AthanDownloads {
     } on Object {
       throw _unreachable;
     }
+  }
+
+  /// Fetches [athan] into [target], raising its volume first when the
+  /// catalogue asks for it. The file gets its final name only when it is
+  /// complete, so a file under that name is always ready to play.
+  Future<void> _keep(
+    AthanDownload athan,
+    File target,
+    void Function(double)? onProgress,
+  ) async {
+    if (athan.gainSteps == 0) {
+      await _fetch(athan, target, onProgress);
+      return;
+    }
+    final raw = File('${target.path}.raw');
+    await _fetch(athan, raw, onProgress);
+    await _write(
+      target,
+      Mp3Cutter.louder(await raw.readAsBytes(), athan.gainSteps),
+    );
+    await raw.delete();
+  }
+
+  static Future<void> _write(File target, List<int> bytes) async {
+    final part = File('${target.path}.part');
+    await part.writeAsBytes(bytes, flush: true);
+    await part.rename(target.path);
   }
 
   /// Streams the recording to a `.part` file and renames it only when its

@@ -48,6 +48,23 @@
       "note": "The widely shared part, from \"Hayya 'ala-s-salah\" to the end"
     },
     {
+      "id": "saqqaf_makkah",
+      "name": "Hashem Al-Saqqaf",
+      "arabic": "هاشم السقاف",
+      "place": "Makkah",
+      "note": "Muezzin of the Grand Mosque. Dhuhr, 1 Safar 1444",
+      "seconds": 181,
+      "bytes": 5532454,
+      "sha256": "4476028544a16a7a1a35def4df1d1a2cd8f95212d8b101933857e376dc8bb161",
+      "url": "https://f.top4top.io/m_2432z1frv1.mp3",
+      "source": "tilawatalharamain.com, Dhuhr athan of 1 Safar 1444",
+      "source_page": "http://www.tilawatalharamain.com/miscellanies/1790",
+      "permission": "No reuse licence is stated by the source.",
+      "gain_steps": 11,
+      "featured": true,
+      "checked_on": "2026-11-20"
+    },
+    {
       "id": "ahmad_al_nafees",
       "name": "Ahmad Al-Nafees",
       "arabic": "أحمد النفيس",

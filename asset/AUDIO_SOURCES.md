@@ -66,12 +66,24 @@ fetches it from the address recorded here, refuses it unless its size and
 SHA-256 match `tools/athan_downloads.json`, and keeps it in the app's private
 storage. Reminders play the stored file; nothing streams at prayer time.
 
-They are fetched instead of bundled for two reasons. The two muezzins asked for
-by name, Muhammad Marwan Qassas and Muhammad Jazi Abdullah, have no reuse
-licence stated at the source of their recordings, so the files are not copied
+They are fetched instead of bundled for two reasons. The muezzins asked for by
+name, Muhammad Marwan Qassas, Muhammad Jazi Abdullah and Hashem Al-Saqqaf, have
+no reuse licence stated at the source of their recordings, so the files are not copied
 into a public repository. The collection entries would fit the app's
-permission statement, but fourteen more recordings would take the APK past its
+permission statement, but fifteen more recordings would take the APK past its
 size limit.
+
+The Hashem Al-Saqqaf recording (Dhuhr at the Grand Mosque, 1 Safar 1444) was
+chosen as the cleanest complete one that could be reached: no clipping, a noise
+floor near -62 dB, and nothing cut at either end. Others were rejected for a
+cut-off last phrase (Isha, 26 Rabi' al-Awwal 1445), heavy clipping (Asr,
+22 Muharram 1446), a host that no longer answers (Maghrib, 16 Dhu al-Qa'dah
+1444) or a phone recording with its start missing. The chosen file was recorded
+very quietly (-29 LUFS, against about -12 for the other athans), so after it
+passes its check the phone raises it by 16.5 dB the way mp3gain does: it adds
+eleven 1.5 dB steps to the global gain of every frame. The sound is scaled
+exactly and nothing is re-encoded (`Mp3Cutter.louder`). Its highs stop near
+11 kHz, as the source recording does.
 
 The short Jazi athan is not a separate file. The phone cuts it from the full
 recording at a frame boundary, in the pause before the first "Hayya
@@ -81,7 +93,7 @@ which players replace with 26 ms of silence; the cut sits in a pause so nothing
 is lost.
 
 "Trending" is the name of the group in the app, not a measured ranking. The
-list holds the two muezzins asked for, and muezzins and reciters whose athans
+list holds the muezzins asked for, and muezzins and reciters whose athans
 are widely shared and for which the collection holds a recording of 32 kb/s or
 better. Recordings the collection only holds at 16 kb/s were left out.
 
@@ -91,6 +103,7 @@ better. Recordings the collection only holds at 16 kb/s were left out.
 | Muhammad Marwan Qassas (محمد بن مروان قصاص) | 3:49 | 5,733,156 bytes, SHA-256 `80bb9493ca07321e…` | [tilawatalharamain.com, Asr athan of 3 Safar 1440](https://tilawatalharamain.com/miscellanies/1219) | No reuse licence is stated by the source. |
 | Muhammad Jazi Abdullah (محمد جازي عبدالله) | 4:21 | 10,426,131 bytes, SHA-256 `c04429b2e1051a7c…` | [archive.org item y-2meta.app-....-320-kbps](https://archive.org/details/y-2meta.app-....-320-kbps) | No reuse licence is stated by the source. |
 | Muhammad Jazi Abdullah · short (محمد جازي عبدالله · المقطع المتداول) | 2:13 | none: the part of Muhammad Jazi Abdullah from 2:07.2 to the end | Cut on the phone from the full recording, without re-encoding | Same recording as the full version. |
+| Hashem Al-Saqqaf (هاشم السقاف) | 3:01 | 5,532,454 bytes, SHA-256 `4476028544a16a7a…` | [tilawatalharamain.com, Dhuhr athan of 1 Safar 1444](http://www.tilawatalharamain.com/miscellanies/1790) | No reuse licence is stated by the source. |
 | Ahmad Al-Nafees (أحمد النفيس) | 3:33 | 3,409,337 bytes, SHA-256 `eca0ad96a759b375…` | [Kiwifu/adhan-mp3 collection, revision b9180a2bb769](https://raw.githubusercontent.com/Kiwifu/adhan-mp3/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/Ahmad_Al_Nafees_(%D8%A3%D8%AD%D9%85%D8%AF_%D8%A7%D9%84%D9%86%D9%81%D9%8A%D8%B3).mp3) | Collection statement: "Free for Islamic apps, prayer-time software, and personal use." |
 | Hamad Al-Daghriri (حمد الدغريري) | 3:12 | 3,078,763 bytes, SHA-256 `5b04d2330248fc26…` | [Kiwifu/adhan-mp3 collection, revision b9180a2bb769](https://raw.githubusercontent.com/Kiwifu/adhan-mp3/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/Hamad_Al_Daghriri_(%D8%AD%D9%85%D8%AF_%D8%A7%D9%84%D8%AF%D8%BA%D8%B1%D9%8A%D8%B1%D9%8A).mp3) | Collection statement: "Free for Islamic apps, prayer-time software, and personal use." |
 | Mansour Al-Zahrani (منصور الزهراني) | 3:05 | 2,959,028 bytes, SHA-256 `99bc95ab425c94b4…` | [Kiwifu/adhan-mp3 collection, revision b9180a2bb769](https://raw.githubusercontent.com/Kiwifu/adhan-mp3/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/Mansur_Al_Zahrane_(%D9%85%D9%86%D8%B5%D9%88%D8%B1_%D8%A7%D9%84%D8%B2%D9%87%D8%B1%D8%A7%D9%86%D9%8A).mp3) | Collection statement: "Free for Islamic apps, prayer-time software, and personal use." |
@@ -108,6 +121,6 @@ better. Recordings the collection only holds at 16 kb/s were left out.
 `tools/make_athan_catalog.py` writes this table and
 `lib/services/athan_catalog.dart` from `tools/athan_downloads.json`. With
 `--verify` it fetches every file and compares size and checksum. All fourteen
-files were fetched through the app's own downloader and matched on
+files of the first round were fetched through the app's own downloader and matched on
 20 November 2026. On iPhone an added athan plays in previews; its notification
 uses a beep, as other imported audio does.

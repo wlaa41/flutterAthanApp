@@ -24,6 +24,8 @@ void main() {
     assetPath: 'asset/iqama.mp3',
   );
 
+  // The athans asked for by name stay in view; the rest open on request.
+  final named = athanCatalog.where((athan) => athan.featured).length;
   final qassas = athanCatalog[0];
   final jaziFull = athanCatalog[1];
   final jaziShort = athanCatalog[2];
@@ -118,14 +120,18 @@ void main() {
       find.textContaining('made from the full recording (9.9 MB)'),
       findsOneWidget,
     );
+    await show(tester, find.text('Hashem Al-Saqqaf'));
+    expect(find.text('هاشم السقاف'), findsOneWidget);
+    expect(find.textContaining('Muezzin of the Grand Mosque'), findsOneWidget);
+    // The rest of the list opens on request, and the recordings that ship
+    // with the app come after it.
+    final rest = athanCatalog.length - named;
+    expect(find.text('Ahmad Al-Nafees'), findsNothing);
     await show(tester, find.text('Recitations'));
     expect(
-      tester.getTopLeft(find.text('Muhammad Jazi Abdullah · short')).dy,
+      tester.getTopLeft(find.text('Show $rest more athans')).dy,
       lessThan(tester.getTopLeft(find.text('Recitations')).dy),
     );
-    // The rest of the list opens on request.
-    final rest = athanCatalog.length - 3;
-    expect(find.text('Ahmad Al-Nafees'), findsNothing);
     await tester.tap(find.text('Show $rest more athans'));
     await tester.pumpAndSettle();
     for (final athan in athanCatalog) {
@@ -302,10 +308,10 @@ void main() {
       await tester.pumpAndSettle();
       await show(
         tester,
-        find.text('Show ${athanCatalog.length - 3} more athans'),
+        find.text('Show ${athanCatalog.length - named} more athans'),
       );
       await tester.tap(
-        find.text('Show ${athanCatalog.length - 3} more athans'),
+        find.text('Show ${athanCatalog.length - named} more athans'),
       );
       await tester.pumpAndSettle();
       await show(tester, find.text(athanCatalog.last.name));
