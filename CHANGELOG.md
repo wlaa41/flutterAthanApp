@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.2.0-rc.1 (build 11)
+
+- New app icon: keel arch, inner dome, crescent and two minarets drawn as pen
+  strokes of changing pressure, in OW yellow-green on the OW dark ground. Android
+  gets a proper adaptive icon (round, squircle and themed variants); iPhone no
+  longer shows the Flutter placeholder. `tools/make_app_icon.py` redraws every size.
+- The old logo artwork moved from the bundled `asset/` folder to `design/legacy/`,
+  which takes about 2 MB out of the app.
+- CI now commits the signed phone build to the repository root as `AthanApp.apk`
+  after each push to `main`.
+
 ## 2.1.0-rc.8 (build 10)
 
 - Split Settings into Basics, Reminders and Phone setup, with city and sound choices

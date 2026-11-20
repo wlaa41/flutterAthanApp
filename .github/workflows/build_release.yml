@@ -71,12 +71,32 @@ jobs:
       - name: Build the phone APK kept on main
         if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' && github.actor != 'dependabot[bot]'
         run: |
-          set -euo pipefail
-          flutter build apk --release --split-per-abi --target-platform android-arm64
+          set -uo pipefail
           apk=build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
-          signature_report="$("$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs "$apk")"
+          rm -f "$apk"
+          # The tool can report a late non-zero exit after a completed second build;
+          # the APK itself is what gets checked below.
+          set +e
+          flutter build apk --release --split-per-abi --target-platform android-arm64
+          status=$?
+          set -e
+          echo "flutter build exit code: $status"
+          ls -l build/app/outputs/flutter-apk/
+          if [ ! -s "$apk" ]; then
+            echo "::error::The phone APK was not produced."
+            exit 1
+          fi
+          if ! signature_report="$("$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs "$apk" 2>&1)"; then
+            printf '%s\n' "$signature_report"
+            echo "::error::The phone APK signature could not be verified."
+            exit 1
+          fi
+          printf '%s\n' "$signature_report"
           actual="$(printf '%s\n' "$signature_report" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
-          test "$actual" = 'f7f52594422cf2ce808e9510ed91ee27e42ff7efd2e9fee841d29a05a0441678'
+          if [ "$actual" != 'f7f52594422cf2ce808e9510ed91ee27e42ff7efd2e9fee841d29a05a0441678' ]; then
+            echo "::error::Unexpected signing certificate on the phone APK: $actual"
+            exit 1
+          fi
           size="$(stat -c %s "$apk")"
           echo "Phone APK: $size bytes"
           if [ "$size" -ge 99000000 ]; then
