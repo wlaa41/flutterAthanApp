@@ -10,6 +10,7 @@ import 'package:timezone/timezone.dart' as tz;
 import '../models/alert_preferences.dart';
 import '../models/prayer_time_model.dart';
 import 'alert_planner.dart';
+import 'beep_mode.dart';
 import 'prayer_service.dart';
 import 'sound_library.dart';
 
@@ -130,18 +131,23 @@ class NotificationService {
       await cancelAll();
       return;
     }
+    final beepMode = await BeepMode.instance.load();
     final plan = planAlerts(
       days: days,
       preferences: settings,
       enabledPrayers: enabled,
       now: DateTime.now(),
       limit: _android ? 2000 : 60,
+      quietUntil: _android ? null : beepMode.until,
     );
     final sounds = await SoundLibrary.instance.loadSounds();
-    SoundOption sound(String id) => sounds.firstWhere(
-      (s) => s.id == id,
-      orElse: () => SoundCatalog.byId('beep'),
-    );
+    SoundOption sound(String id) => sounds
+        .firstWhere(
+          (s) => s.id == id,
+          orElse: () => SoundCatalog.byId('beep'),
+        )
+        .atPower(settings.beepPower);
+    if (_android) await _sendBeepOptions(settings, sound(settings.quietSoundId));
     final events = plan.map((a) {
       final s = sound(a.soundId);
       return {
@@ -193,6 +199,63 @@ class NotificationService {
       );
     else
       await prefs.remove('scheduled_until');
+  }
+
+  /// Tells the phone which sound Beep mode uses, so it can swap the Athan for
+  /// it at the moment a reminder fires.
+  Future<void> _sendBeepOptions(AlertPreferences settings, SoundOption quiet) =>
+      _native.invokeMethod<void>(
+        'beepOptions',
+        jsonEncode({
+          'soundId': quiet.id,
+          'resource': quiet.androidResource ?? 'beep',
+          'filePath': quiet.filePath ?? '',
+          'vibrate': settings.beepVibrate,
+          'alarmVolume': settings.beepAlarmVolume,
+        }),
+      );
+
+  /// Plays the chosen beep once, the way a reminder would sound.
+  Future<bool> previewBeep(AlertPreferences settings) async {
+    if (!_android) return false;
+    final sounds = await SoundLibrary.instance.loadSounds();
+    final quiet = sounds
+        .firstWhere(
+          (s) => s.id == settings.quietSoundId,
+          orElse: () => SoundCatalog.byId('beep'),
+        )
+        .atPower(settings.beepPower);
+    if (quiet.isSilent) return true;
+    try {
+      await _native.invokeMethod<void>(
+        'previewTone',
+        jsonEncode({
+          'soundId': quiet.id,
+          'resource': quiet.androidResource ?? 'beep',
+          'filePath': quiet.filePath ?? '',
+          'vibrate': settings.beepVibrate || quiet.isVibrationOnly,
+          'alarmVolume': settings.beepAlarmVolume,
+        }),
+      );
+      return true;
+    } on MissingPluginException {
+      return false;
+    } on PlatformException {
+      return false;
+    }
+  }
+
+  /// Asks Android 13+ to offer the "Athan beep" quick settings tile.
+  /// Returns false when the phone needs it added by hand.
+  Future<bool> requestBeepTile() async {
+    if (!_android) return false;
+    try {
+      return await _native.invokeMethod<bool>('requestBeepTile') ?? false;
+    } on MissingPluginException {
+      return false;
+    } on PlatformException {
+      return false;
+    }
   }
 
   Future<NotificationHealth> getHealth() async {
@@ -287,13 +350,15 @@ class NotificationService {
       throw StateError('Allow notifications before testing an alert.');
     final settings = await AlertPreferences.load();
     final sounds = await SoundLibrary.instance.loadSounds();
-    final id = settings.isQuietAt(PrayerService.instance.now)
+    final beepMode = await BeepMode.instance.load();
+    final id =
+        settings.isQuietAt(PrayerService.instance.now) ||
+            beepMode.activeAt(DateTime.now())
         ? settings.quietSoundId
         : settings.athanSoundId;
-    final sound = sounds.firstWhere(
-      (s) => s.id == id,
-      orElse: () => SoundCatalog.byId('beep'),
-    );
+    final sound = sounds
+        .firstWhere((s) => s.id == id, orElse: () => SoundCatalog.byId('beep'))
+        .atPower(settings.beepPower);
     if (_android) {
       await _native.invokeMethod<void>(
         'test',

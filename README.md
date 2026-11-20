@@ -17,7 +17,7 @@ an APK for every processor type would be over GitHub's 100 MB file limit.
 
 - Choose Classic Athan, Beautiful Athan, Mishary Alafasy, Makkah (Ali Mulla),
   Madinah, Abdul Basit, Minshawi, or Nasser Al Qatami, plus an Iqama recitation,
-  soft beep, double beep, chime, vibration, or silence. Recordings and tones are
+  beep, double beep, chime, strong beep, vibration, or silence. Recordings and tones are
   bundled, not streamed. Audio credits are available in Settings.
 - Open **Settings → Basics → Choose or add a sound** to compare recordings, preview
   them, and add an MP3, M4A, or WAV from your phone (up to 20 MB / 10 minutes).
@@ -25,9 +25,18 @@ an APK for every processor type would be over GitHub's 100 MB file limit.
   imported files remain in your private sound library.
 - Enable Iqama, set the delay after prayer (1–120 minutes), total reminders (1–5),
   and spacing (1–30 minutes). Repeats stop before sunrise for Fajr or the next prayer.
+- Somewhere the Athan should stay quiet? Tap **Next prayer**, **Today** or
+  **Until I turn it off** on the home screen card and every Athan and Iqama
+  becomes your beep until then. On Android the same switch is an **Athan beep**
+  quick settings tile, a long-press on the app icon, and a **Beep today** button
+  on the notification while a recitation plays.
+- **Settings → Reminders → Beep sound and power** sets the tone (Beep, Double
+  beep, Gentle chime, Strong beep, vibration or silence), its power from Soft to
+  Maximum with a Test button, a buzz with the beep, and whether it follows the
+  phone's alarm volume.
 - For a beep on specific days: **Settings → Reminders → Beep on chosen days**.
   Turn on **Use a quieter reminder**, select your days (or Weekdays / Weekend /
-  Every day), then choose **All day** or **Set hours**. Soft beep is the default;
+  Every day), then choose **All day** or **Set hours**. Beep is the default;
   other days and hours keep your usual sounds. Applies to Athan and Iqama in the
   selected city's timezone. Existing schedules are preserved; the initial optional
   schedule is Monday–Friday, 09:00–17:00. Overnight hours belong to the starting day.

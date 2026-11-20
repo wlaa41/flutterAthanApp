@@ -23,6 +23,11 @@ List<PlannedAlert> planAlerts({
   required Set<int> enabledPrayers,
   required DateTime now,
   int limit = 450,
+
+  /// Beep mode: reminders before this instant use the quiet sound. Android
+  /// leaves this null and swaps the sound itself when the reminder fires, so
+  /// the quick settings tile works while the app is closed.
+  DateTime? quietUntil,
 }) {
   final alerts = <PlannedAlert>[];
   for (final day in days) {
@@ -47,7 +52,9 @@ List<PlannedAlert> planAlerts({
             body: iqama
                 ? 'Iqama reminder ${repeat} of ${preferences.iqamaRepeatCount}'
                 : 'It is time for prayer.',
-            soundId: preferences.isQuietAt(time)
+            soundId:
+                preferences.isQuietAt(time) ||
+                    (quietUntil != null && time.isBefore(quietUntil))
                 ? preferences.quietSoundId
                 : (iqama ? preferences.iqamaSoundId : preferences.athanSoundId),
             iqama: iqama,

@@ -9,6 +9,7 @@ import '../services/notification_service.dart';
 import '../services/prayer_service.dart';
 import '../services/sound_library.dart';
 import '../widgets/alert_settings_controls.dart';
+import '../widgets/beep_mode_card.dart';
 import '../widgets/sound_picker_sheet.dart';
 
 enum SettingsSection { essentials, reminders, phone }
@@ -34,6 +35,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   int _timedQuietStart = 540;
   int _timedQuietEnd = 1020;
   bool _busy = false;
+  double? _powerDraft;
   bool _previewStarted = false;
   bool _listeningAudioErrors = false;
   String? _error;
@@ -255,7 +257,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                                 SettingsSection.essentials =>
                                   'Your city and your Athan. Changes save automatically.',
                                 SettingsSection.reminders =>
-                                  'Choose when to beep and when to hear the full Athan. Changes save automatically.',
+                                  'Choose when to beep, how loud, and when to hear the full Athan. Changes save automatically.',
                                 SettingsSection.phone =>
                                   'Check permissions and send a test reminder.',
                               }),
@@ -272,6 +274,10 @@ class _SettingsScreenState extends State<SettingsScreen>
                             ],
                             if (_selectedSection ==
                                 SettingsSection.reminders) ...[
+                              const BeepModeCard(
+                                margin: EdgeInsets.only(bottom: 16),
+                              ),
+                              _beepSoundSection(prefs),
                               _quietSection(prefs),
                               _iqamaSection(prefs),
                             ],
@@ -377,7 +383,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         subtitle: Text(
           prefs.quietEnabled
               ? 'Applies to Athan and Iqama. Other times keep your usual sounds.'
-              : 'Choose days for a soft beep instead of the full Athan.',
+              : 'Choose days for a beep instead of the full Athan.',
         ),
         value: prefs.quietEnabled,
         onChanged: _busy
@@ -411,22 +417,139 @@ class _SettingsScreenState extends State<SettingsScreen>
               _save(prefs.copyWith(quietStartMinute: value)),
           onEndChanged: (value) => _save(prefs.copyWith(quietEndMinute: value)),
         ),
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text('Sound on these days'),
-          subtitle: Text(_quietLabel(prefs.quietSoundId)),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: _busy ? null : _chooseQuietSound,
-        ),
-        if (prefs.quietSoundId != 'silent' && prefs.quietSoundId != 'vibrate')
-          _previewButtons(prefs.quietSoundId),
+        const SizedBox(height: 8),
         Text(
-          'Uses the time in ${PrayerService.instance.cityName}.',
+          'Plays your beep sound (${_quietLabel(prefs.quietSoundId)}). Uses the time in ${PrayerService.instance.cityName}.',
           style: Theme.of(context).textTheme.bodySmall,
         ),
       ],
     ],
   );
+
+  static const _powerNames = ['Soft', 'Medium', 'Strong', 'Loud', 'Maximum'];
+
+  /// The beep itself: which tone, how loud, and how it reaches you. Shared by
+  /// Beep mode and by the chosen-days schedule.
+  Widget _beepSoundSection(AlertPreferences prefs) {
+    final sound = _sound(prefs.quietSoundId);
+    final power = (_powerDraft ?? prefs.beepPower.toDouble()).round();
+    return _section(
+      title: 'Beep sound and power',
+      icon: Icons.graphic_eq,
+      children: [
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Sound'),
+          subtitle: Text(_quietLabel(prefs.quietSoundId)),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: _busy ? null : _chooseQuietSound,
+        ),
+        if (sound.hasPowerLevels) ...[
+          const SizedBox(height: 4),
+          Text('Power: ${_powerNames[power - 1]}'),
+          Slider(
+            value: power.toDouble(),
+            min: 1,
+            max: 5,
+            divisions: 4,
+            label: _powerNames[power - 1],
+            semanticFormatterCallback: (value) =>
+                _powerNames[value.round() - 1],
+            onChanged: _busy
+                ? null
+                : (value) => setState(() => _powerDraft = value),
+            onChangeEnd: (value) async {
+              final next = prefs.copyWith(beepPower: value.round());
+              await _save(next);
+              if (mounted) setState(() => _powerDraft = null);
+              await _testBeep(next);
+            },
+          ),
+        ],
+        if (!sound.isSilent)
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: OutlinedButton.icon(
+              icon: const Icon(Icons.volume_up_outlined),
+              label: const Text('Test beep'),
+              onPressed: _busy ? null : () => _testBeep(prefs),
+            ),
+          ),
+        if (_android) ...[
+          const Divider(height: 24),
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Vibrate with the beep'),
+            subtitle: const Text('A short buzz, so you feel it in a pocket.'),
+            value: prefs.beepVibrate,
+            onChanged: _busy
+                ? null
+                : (value) => _save(prefs.copyWith(beepVibrate: value)),
+          ),
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Use alarm volume'),
+            subtitle: const Text(
+              'The beep follows your phone’s alarm volume, which is usually set louder than notifications.',
+            ),
+            value: prefs.beepAlarmVolume,
+            onChanged: _busy
+                ? null
+                : (value) => _save(prefs.copyWith(beepAlarmVolume: value)),
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.dashboard_customize_outlined),
+            title: const Text('Add the quick settings tile'),
+            subtitle: const Text(
+              'Swipe down and tap “Athan beep” to switch without opening the app. Long-pressing the app icon offers “Beep today” too.',
+            ),
+            onTap: _busy ? null : _addBeepTile,
+          ),
+        ],
+        if (_ios)
+          const Padding(
+            padding: EdgeInsets.only(top: 8),
+            child: Text(
+              'On iPhone the beep plays at your notification volume; the power setting chooses a louder or softer tone.',
+            ),
+          ),
+        const Padding(
+          padding: EdgeInsets.only(top: 8),
+          child: Text(
+            'Your phone’s silent mode and Do Not Disturb still apply.',
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _testBeep(AlertPreferences prefs) async {
+    try {
+      if (await NotificationService.instance.previewBeep(prefs)) return;
+      final sound = _sound(prefs.quietSoundId).atPower(prefs.beepPower);
+      if (!sound.canPreview) {
+        if (mounted) _message('${sound.name} makes no sound to test.');
+        return;
+      }
+      if (!_listeningAudioErrors) {
+        AudioService.instance.lastError.addListener(_audioErrorChanged);
+        _listeningAudioErrors = true;
+      }
+      _previewStarted = true;
+      await AudioService.instance.playSound(sound);
+    } catch (_) {
+      if (mounted) _message('The beep could not play. Try again.');
+    }
+  }
+
+  Future<void> _addBeepTile() async {
+    final offered = await NotificationService.instance.requestBeepTile();
+    if (!mounted || offered) return;
+    _message(
+      'Swipe down twice, tap the pencil, then drag “Athan beep” into your tiles.',
+    );
+  }
 
   Widget _iqamaSection(AlertPreferences prefs) => _section(
     title: 'Iqama reminders',
@@ -520,40 +643,6 @@ class _SettingsScreenState extends State<SettingsScreen>
         trailing: const Icon(Icons.chevron_right),
         onTap: _busy ? null : onTap,
       );
-
-  Widget _previewButtons(String soundId) => !_sound(soundId).canPreview
-      ? const SizedBox.shrink()
-      : Wrap(
-          spacing: 12,
-          runSpacing: 8,
-          children: [
-            OutlinedButton.icon(
-              icon: const Icon(Icons.play_arrow),
-              label: const Text('Preview'),
-              onPressed: _busy
-                  ? null
-                  : () => _run(
-                      () async {
-                        if (!_listeningAudioErrors) {
-                          AudioService.instance.lastError.addListener(
-                            _audioErrorChanged,
-                          );
-                          _listeningAudioErrors = true;
-                        }
-                        _previewStarted = true;
-                        await AudioService.instance.playSound(_sound(soundId));
-                      },
-                      failure:
-                          'This audio could not play. Try another sound or add the file again.',
-                    ),
-            ),
-            TextButton.icon(
-              icon: const Icon(Icons.stop),
-              label: const Text('Stop audio'),
-              onPressed: _stopAudio,
-            ),
-          ],
-        );
 
   Widget _permissionSection() {
     final health = _health;
@@ -802,13 +891,14 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   Future<void> _chooseQuietSound() async {
     const labels = {
-      'beep': 'Soft beep',
+      'beep': 'Beep',
       'double_beep': 'Double beep',
       'chime': 'Gentle chime',
+      'strong_beep': 'Strong beep',
       'vibrate': 'Vibration only',
       'silent': 'Silent notification',
     };
-    final selected = await _sheet<String>('During quiet hours', [
+    final selected = await _sheet<String>('Beep sound', [
       for (final entry in labels.entries)
         ListTile(
           title: Text(entry.value),

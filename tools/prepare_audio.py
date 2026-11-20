@@ -30,26 +30,6 @@ with tempfile.TemporaryDirectory(prefix='athan-audio-') as temporary:
         shutil.copyfile(asset / (name + '.mp3'), raw / (name + '.mp3'))
         subprocess.run([ffmpeg, '-y', '-i', str(source), '-t', '28', '-af', 'afade=t=out:st=27:d=1', '-ac', '1', '-ar', '22050', '-c:a', 'pcm_s16le', str(asset / (name + '_short.wav'))], check=True, capture_output=True)
 
-rate = 22050
-for name, seconds, notes in [
-    ('beep', .32, [(0,.25,660)]),
-    ('double_beep', .65, [(0,.2,660),(.35,.2,660)]),
-    ('chime', 1.2, [(0,1.1,523.25),(.18,.9,783.99)])
-]:
-    samples = []
-    for i in range(int(rate*seconds)):
-        t = i/rate
-        value = 0
-        for start, length, hz in notes:
-            local = t-start
-            if 0 <= local < length:
-                envelope = min(1,local/.015,(length-local)/.04)
-                if name == 'chime': envelope *= math.exp(-3*local)
-                value += .15*envelope*math.sin(2*math.pi*hz*local)
-        samples.append(struct.pack('<h', int(max(-1,min(1,value))*32767)))
-    path = asset/(name+'.wav')
-    with wave.open(str(path),'wb') as f:
-        f.setnchannels(1); f.setsampwidth(2); f.setframerate(rate)
-        f.writeframes(b''.join(samples))
-    shutil.copyfile(path, raw/path.name)
-print('Created MP3 recitations, 28-second iOS excerpts and three original quiet tones.')
+# The reminder tones and their five loudness levels come from make_tones.py.
+subprocess.run(['python3', str(root / 'tools' / 'make_tones.py')], check=True)
+print('Created MP3 recitations, 28-second iOS excerpts and the reminder tones.')

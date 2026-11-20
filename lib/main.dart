@@ -23,29 +23,30 @@ class AthanQuranApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Athan & Quran',
-      theme: ThemeData(
-        brightness: Brightness.light,
-        primaryColor: const Color(0xFF0F3931),
-        scaffoldBackgroundColor: const Color(0xFFF8FAFC),
-        colorScheme: const ColorScheme.light(
-          primary: Color(0xFF0F3931),
-          secondary: Color(0xFFC5A059),
-          surface: Colors.white,
-        ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF0F3931),
-          foregroundColor: Colors.white,
-          elevation: 0,
-        ),
-        cardTheme: CardThemeData(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-        fontFamily: 'Roboto',
-      ),
+      theme: appTheme(),
       home: const MainNavigationScreen(),
     );
   }
 }
+
+/// The app's look, shared with the review-screenshot tool.
+ThemeData appTheme() => ThemeData(
+  brightness: Brightness.light,
+  primaryColor: const Color(0xFF0F3931),
+  scaffoldBackgroundColor: const Color(0xFFF8FAFC),
+  colorScheme: const ColorScheme.light(
+    primary: Color(0xFF0F3931),
+    secondary: Color(0xFFC5A059),
+    surface: Colors.white,
+  ),
+  appBarTheme: const AppBarTheme(
+    backgroundColor: Color(0xFF0F3931),
+    foregroundColor: Colors.white,
+    elevation: 0,
+  ),
+  cardTheme: CardThemeData(
+    elevation: 0,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+  ),
+  fontFamily: 'Roboto',
+);

@@ -36,6 +36,30 @@ class SoundOption {
   bool get isVibrationOnly => id == 'vibrate';
   bool get canPreview => assetPath != null || filePath != null;
 
+  /// The bundled tones come in five loudness levels; recordings do not.
+  bool get hasPowerLevels => kind == SoundKind.tone && assetPath != null;
+
+  /// File stem of this tone at [power] (1 soft to 5 maximum; 4 is the default).
+  static String toneFile(String id, int power) {
+    final level = power.clamp(1, 5);
+    return level == 4 ? id : '${id}_p$level';
+  }
+
+  /// This tone at the chosen loudness. Other sounds are returned unchanged.
+  SoundOption atPower(int power) {
+    if (!hasPowerLevels) return this;
+    final file = toneFile(id, power);
+    return SoundOption(
+      id: id,
+      name: name,
+      description: description,
+      kind: kind,
+      assetPath: 'asset/$file.wav',
+      androidResource: file,
+      iosSound: '$file.wav',
+    );
+  }
+
   Map<String, dynamic> toJson() => {
     'id': id,
     'name': name,
@@ -131,8 +155,8 @@ class SoundCatalog {
     ),
     SoundOption(
       id: 'beep',
-      name: 'Soft beep',
-      description: 'One short, gentle beep',
+      name: 'Beep',
+      description: 'One clear beep',
       kind: SoundKind.tone,
       assetPath: 'asset/beep.wav',
       androidResource: 'beep',
@@ -155,6 +179,15 @@ class SoundCatalog {
       assetPath: 'asset/chime.wav',
       androidResource: 'chime',
       iosSound: 'chime.wav',
+    ),
+    SoundOption(
+      id: 'strong_beep',
+      name: 'Strong beep',
+      description: 'Three sharp beeps that carry in a noisy room',
+      kind: SoundKind.tone,
+      assetPath: 'asset/strong_beep.wav',
+      androidResource: 'strong_beep',
+      iosSound: 'strong_beep.wav',
     ),
     SoundOption(
       id: 'vibrate',
@@ -182,6 +215,8 @@ class SoundLibrary {
   SoundLibrary._();
   static const maxBytes = 20 * 1024 * 1024;
   static const _storageKey = 'custom_alert_sounds_v1';
+  static const _iosPackKey = 'ios_sound_pack';
+  static const _iosPack = 2;
   bool _importing = false;
 
   /// iOS reads local notification sounds from Library/Sounds, not Flutter assets.
@@ -191,13 +226,20 @@ class SoundLibrary {
     final library = await getLibraryDirectory();
     final directory = Directory('${library.path}/Sounds');
     await directory.create(recursive: true);
-    final names = SoundCatalog.builtIns
-        .map((s) => s.iosSound)
-        .whereType<String>()
-        .toSet();
+    final names = {
+      for (final sound in SoundCatalog.builtIns) ...[
+        if (sound.iosSound != null) sound.iosSound!,
+        if (sound.hasPowerLevels)
+          for (var power = 1; power <= 5; power++)
+            '${SoundOption.toneFile(sound.id, power)}.wav',
+      ],
+    };
+    // The tones were redrawn louder in pack 2: replace copies made by older versions.
+    final prefs = await SharedPreferences.getInstance();
+    final refresh = (prefs.getInt(_iosPackKey) ?? 1) < _iosPack;
     for (final name in names) {
       final target = File('${directory.path}/$name');
-      if (await target.exists()) continue;
+      if (!refresh && await target.exists()) continue;
       final data = await rootBundle.load('asset/$name');
       final temporary = File('${target.path}.tmp');
       await temporary.writeAsBytes(
@@ -206,6 +248,7 @@ class SoundLibrary {
       );
       await temporary.rename(target.path);
     }
+    if (refresh) await prefs.setInt(_iosPackKey, _iosPack);
   }
 
   Future<List<SoundOption>> loadSounds() async {

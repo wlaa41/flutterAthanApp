@@ -10,6 +10,10 @@ class AlertPreferences {
   final int quietStartMinute, quietEndMinute;
   final Set<int> quietWeekdays;
 
+  /// Loudness of the reminder tones, 1 (soft) to 5 (maximum).
+  final int beepPower;
+  final bool beepVibrate, beepAlarmVolume;
+
   const AlertPreferences({
     this.athanSoundId = 'smooth',
     this.iqamaSoundId = 'iqama',
@@ -22,6 +26,9 @@ class AlertPreferences {
     this.quietStartMinute = 540,
     this.quietEndMinute = 1020,
     this.quietWeekdays = const {1, 2, 3, 4, 5},
+    this.beepPower = 4,
+    this.beepVibrate = false,
+    this.beepAlarmVolume = false,
   });
 
   /// Overnight shifts belong to their starting weekday; the end is exclusive.
@@ -53,6 +60,9 @@ class AlertPreferences {
     int? quietStartMinute,
     int? quietEndMinute,
     Set<int>? quietWeekdays,
+    int? beepPower,
+    bool? beepVibrate,
+    bool? beepAlarmVolume,
   }) => AlertPreferences(
     athanSoundId: athanSoundId ?? this.athanSoundId,
     iqamaSoundId: iqamaSoundId ?? this.iqamaSoundId,
@@ -77,6 +87,9 @@ class AlertPreferences {
     quietWeekdays: Set.unmodifiable(
       (quietWeekdays ?? this.quietWeekdays).where((d) => d >= 1 && d <= 7),
     ),
+    beepPower: (beepPower ?? this.beepPower).clamp(1, 5),
+    beepVibrate: beepVibrate ?? this.beepVibrate,
+    beepAlarmVolume: beepAlarmVolume ?? this.beepAlarmVolume,
   );
 
   Map<String, dynamic> toJson() => {
@@ -91,6 +104,9 @@ class AlertPreferences {
     'quietStartMinute': quietStartMinute,
     'quietEndMinute': quietEndMinute,
     'quietWeekdays': quietWeekdays.toList()..sort(),
+    'beepPower': beepPower,
+    'beepVibrate': beepVibrate,
+    'beepAlarmVolume': beepAlarmVolume,
   };
 
   factory AlertPreferences.fromJson(Map<String, dynamic> json) {
@@ -107,6 +123,9 @@ class AlertPreferences {
       quietStartMinute: number('quietStartMinute'),
       quietEndMinute: number('quietEndMinute'),
       quietWeekdays: (json['quietWeekdays'] as List?)?.whereType<int>().toSet(),
+      beepPower: number('beepPower'),
+      beepVibrate: json['beepVibrate'] as bool?,
+      beepAlarmVolume: json['beepAlarmVolume'] as bool?,
     );
   }
 

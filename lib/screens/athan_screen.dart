@@ -4,6 +4,7 @@ import '../models/prayer_time_model.dart';
 import 'settings_screen.dart';
 import '../services/notification_service.dart';
 import '../services/prayer_service.dart';
+import '../widgets/beep_mode_card.dart';
 import '../widgets/next_prayer_hero.dart';
 import '../widgets/prayer_row_card.dart';
 
@@ -273,6 +274,9 @@ class _AthanScreenState extends State<AthanScreen> with WidgetsBindingObserver {
               today: today,
               onRefresh: () => _loadPrayerTimes(forceRefresh: true),
             ),
+
+            // One tap to swap the Athan for a beep, right under the countdown.
+            const BeepModeCard(),
 
             if (_health != null &&
                 _health!.supported &&

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="beep_tile_label">Athan beep</string>
+    <string name="shortcut_beep_today">Beep today</string>
+    <string name="shortcut_beep_today_long">Beep instead of Athan today</string>
+    <string name="shortcut_athan_usual">Athan as usual</string>
+    <string name="shortcut_athan_usual_long">Back to my usual Athan</string>
+</resources>

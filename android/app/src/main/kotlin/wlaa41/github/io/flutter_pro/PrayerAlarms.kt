@@ -80,13 +80,17 @@ object PrayerAlarms {
         val soundId = event.optString("soundId")
         val silent = soundId == "silent"
         val vibrate = soundId == "vibrate"
-        val fallbackTone = if (soundId in listOf("beep", "double_beep", "chime")) soundId else "beep"
+        // Tones come in five loudness levels; "resource" names the chosen one.
+        val wanted = event.optString("resource")
+        val fallbackTone = if (soundId in BeepMode.TONES && c.resources.getIdentifier(wanted, "raw", c.packageName) != 0) wanted else "beep"
         val fallbackUri = Uri.parse("android.resource://${c.packageName}/raw/$fallbackTone")
         val channelId = if (playing) "athan_playback_v1" else if (fallback && !silent && !vibrate) "athan_fallback_${fallbackTone}_v2" else if (vibrate) "athan_vibrate_v1" else "athan_silent_v1"
         if (Build.VERSION.SDK_INT >= 26) {
             val channel = NotificationChannel(channelId, if (playing) "Athan playback" else "Prayer reminders", NotificationManager.IMPORTANCE_DEFAULT)
             channel.setSound(if (fallback && !silent && !vibrate) fallbackUri else null, null)
             channel.enableVibration(vibrate)
+            // A channel's sound cannot change later, so each tone and loudness has its own.
+            // Old ones are left alone: deleting a channel also clears its notifications.
             nm.createNotificationChannel(channel)
         }
         val builder = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(c, channelId) else Notification.Builder(c)
@@ -101,6 +105,10 @@ object PrayerAlarms {
         if (playing) {
             val stop = PendingIntent.getService(c, 1, Intent(c, AthanPlaybackService::class.java).setAction("STOP"), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             builder.addAction(android.R.drawable.ic_media_pause, "Stop", stop)
+            if (soundId !in BeepMode.TONES) {
+                val beep = PendingIntent.getService(c, 2, Intent(c, AthanPlaybackService::class.java).setAction("BEEP_TODAY"), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+                builder.addAction(android.R.drawable.ic_lock_silent_mode, "Beep today", beep)
+            }
         }
         return builder.build()
     }
@@ -133,7 +141,9 @@ class PrayerAlarmReceiver : BroadcastReceiver() {
             PrayerAlarms.deliver(context, event, false)
             return
         }
-        PrayerAlarms.deliver(context, event, PrayerAlarms.exact(context))
+        // Beep mode is decided here, at the moment of the reminder, so the quick
+        // settings tile and the shortcuts work while the app is closed.
+        PrayerAlarms.deliver(context, BeepMode.apply(context, event), PrayerAlarms.exact(context))
     }
 }
 
@@ -144,6 +154,11 @@ class AthanPlaybackService : Service(), AudioManager.OnAudioFocusChangeListener 
     private val timeout = Runnable { stopSelf() }
     override fun onBind(intent: Intent?) = null
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == "BEEP_TODAY") {
+            BeepMode.set(this, BeepMode.endOfToday())
+            try { android.widget.Toast.makeText(applicationContext, "Athan: beep only until midnight", android.widget.Toast.LENGTH_SHORT).show() } catch (_: RuntimeException) { }
+            stopSelf(); return START_NOT_STICKY
+        }
         if (intent?.action == "STOP" || intent == null) { stopSelf(); return START_NOT_STICKY }
         val event = try { JSONObject(intent.getStringExtra("event") ?: "{}") } catch (_: Exception) { stopSelf(); return START_NOT_STICKY }
         startForeground(7822, PrayerAlarms.notification(this, event, true))
@@ -151,11 +166,17 @@ class AthanPlaybackService : Service(), AudioManager.OnAudioFocusChangeListener 
         releasePlayer()
         abandonFocus()
         val audio = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        val attributes = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_NOTIFICATION_EVENT).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build()
+        // A tone may follow the alarm volume and buzz; other audio only dips for it.
+        val tone = event.optString("soundId") in BeepMode.TONES
+        val options = BeepMode.options(this)
+        val alarmVolume = tone && options.optBoolean("alarmVolume")
+        val attributes = if (tone) Tones.attributes(alarmVolume)
+            else AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_NOTIFICATION_EVENT).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build()
+        val gain = if (tone) AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK else AudioManager.AUDIOFOCUS_GAIN_TRANSIENT
         val granted = if (Build.VERSION.SDK_INT >= 26) {
-            focus = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT).setAudioAttributes(attributes).setOnAudioFocusChangeListener(this).build()
+            focus = AudioFocusRequest.Builder(gain).setAudioAttributes(attributes).setOnAudioFocusChangeListener(this).build()
             audio.requestAudioFocus(focus!!)
-        } else audio.requestAudioFocus(this, AudioManager.STREAM_NOTIFICATION, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
+        } else audio.requestAudioFocus(this, if (alarmVolume) AudioManager.STREAM_ALARM else AudioManager.STREAM_NOTIFICATION, gain)
         if (granted != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) { finishWithReminder(event); return START_NOT_STICKY }
         try {
             // Store ownership before any configuration can throw so onDestroy
@@ -168,14 +189,18 @@ class AthanPlaybackService : Service(), AudioManager.OnAudioFocusChangeListener 
                 val path = event.optString("filePath")
                 if (path.isNotEmpty()) setDataSource(path)
                 else {
-                    val resource = resources.getIdentifier(event.optString("resource", "beep"), "raw", packageName)
+                    var resource = resources.getIdentifier(event.optString("resource", "beep"), "raw", packageName)
+                    // A reminder planned by another app version may name a file this one lacks.
+                    if (resource == 0) resource = resources.getIdentifier("beep", "raw", packageName)
                     resources.openRawResourceFd(resource).use { fd -> setDataSource(fd.fileDescriptor, fd.startOffset, fd.length) }
                 }
-                setOnCompletionListener { stopSelf() }
+                // A beep is over in a second: leave a quiet line saying which prayer it was for.
+                setOnCompletionListener { if (tone) finishWithReminder(event) else stopSelf() }
                 setOnErrorListener { _, _, _ -> finishWithReminder(event); true }
                 setOnPreparedListener { it.start() }
                 prepareAsync()
             }
+            if (tone && options.optBoolean("vibrate")) Tones.vibrate(this)
             handler.removeCallbacks(timeout)
             handler.postDelayed(timeout, 10 * 60 * 1000L)
         } catch (_: Exception) { finishWithReminder(event) }
@@ -199,5 +224,97 @@ class AthanPlaybackService : Service(), AudioManager.OnAudioFocusChangeListener 
         abandonFocus()
         stopForeground(true)
         super.onDestroy()
+    }
+}
+
+/** One switch: every Athan and Iqama becomes the chosen beep until a set time. */
+object BeepMode {
+    /** "Until I turn it off"; the same number the app uses. */
+    const val FOREVER = 253402300799000L
+    val TONES = setOf("beep", "double_beep", "chime", "strong_beep")
+    private fun prefs(c: Context) = c.getSharedPreferences("prayer_alarm_queue", Context.MODE_PRIVATE)
+
+    /** When the beep hands back to the Athan, or 0 while the mode is off. */
+    fun until(c: Context): Long {
+        val stored = prefs(c).getLong("beep_until", 0L)
+        return if (stored > System.currentTimeMillis()) stored else 0L
+    }
+    fun isOn(c: Context) = until(c) > 0L
+    fun set(c: Context, until: Long) {
+        val editor = prefs(c).edit()
+        if (until <= System.currentTimeMillis()) editor.remove("beep_until") else editor.putLong("beep_until", until)
+        editor.commit()
+        BeepTileService.refresh(c)
+    }
+    fun endOfToday(): Long = java.util.Calendar.getInstance().apply {
+        add(java.util.Calendar.DAY_OF_YEAR, 1)
+        set(java.util.Calendar.HOUR_OF_DAY, 0); set(java.util.Calendar.MINUTE, 0)
+        set(java.util.Calendar.SECOND, 0); set(java.util.Calendar.MILLISECOND, 0)
+    }.timeInMillis
+
+    /** The beep the app chose (sound, loudness file, vibration, which volume). */
+    fun options(c: Context): JSONObject = try { JSONObject(prefs(c).getString("beep_options", "{}") ?: "{}") } catch (_: Exception) { JSONObject() }
+    fun setOptions(c: Context, json: String) {
+        JSONObject(json) // Reject anything that is not an object before saving.
+        prefs(c).edit().putString("beep_options", json).commit()
+    }
+
+    /** The reminder to deliver: unchanged, or with the beep in place of its sound. */
+    fun apply(c: Context, event: JSONObject): JSONObject {
+        // Judged by the reminder's own time, so one that fires a little late still
+        // gets the choice that was in force when it was due.
+        val until = prefs(c).getLong("beep_until", 0L)
+        if (until <= 0L || event.optLong("time", System.currentTimeMillis()) >= until) return event
+        val chosen = options(c)
+        return JSONObject(event.toString())
+            .put("soundId", chosen.optString("soundId", "beep"))
+            .put("resource", chosen.optString("resource", "beep"))
+            .put("filePath", chosen.optString("filePath", ""))
+    }
+}
+
+/** Shared by the playback service and the in-app "Test" button. */
+object Tones {
+    private var preview: MediaPlayer? = null
+    fun attributes(alarmVolume: Boolean): AudioAttributes = AudioAttributes.Builder()
+        .setUsage(if (alarmVolume) AudioAttributes.USAGE_ALARM else AudioAttributes.USAGE_NOTIFICATION_EVENT)
+        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build()
+
+    fun vibrate(c: Context) {
+        try {
+            val pattern = longArrayOf(0, 260, 140, 260)
+            val vibrator = if (Build.VERSION.SDK_INT >= 31) (c.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager).defaultVibrator
+                else @Suppress("DEPRECATION") (c.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator)
+            if (Build.VERSION.SDK_INT >= 26) vibrator.vibrate(VibrationEffect.createWaveform(pattern, -1))
+            else @Suppress("DEPRECATION") vibrator.vibrate(pattern, -1)
+        } catch (_: RuntimeException) { /* No vibrator, or the phone refused: the sound still plays. */ }
+    }
+
+    /** Plays the chosen beep once, with the same file, volume and buzz as a reminder. */
+    @Synchronized fun preview(c: Context, sound: JSONObject) {
+        preview?.release(); preview = null
+        if (sound.optBoolean("vibrate")) vibrate(c)
+        val soundId = sound.optString("soundId")
+        if (soundId == "silent" || soundId == "vibrate") return
+        val player = MediaPlayer()
+        preview = player
+        try {
+            player.setAudioAttributes(attributes(sound.optBoolean("alarmVolume")))
+            val path = sound.optString("filePath")
+            if (path.isNotEmpty()) player.setDataSource(path)
+            else {
+                var resource = c.resources.getIdentifier(sound.optString("resource", "beep"), "raw", c.packageName)
+                if (resource == 0) resource = c.resources.getIdentifier("beep", "raw", c.packageName)
+                c.resources.openRawResourceFd(resource).use { fd -> player.setDataSource(fd.fileDescriptor, fd.startOffset, fd.length) }
+            }
+            val done = { finished: MediaPlayer -> finished.release(); synchronized(this) { if (preview === finished) preview = null } }
+            player.setOnCompletionListener { done(it) }
+            player.setOnErrorListener { failed, _, _ -> done(failed); true }
+            player.setOnPreparedListener { it.start() }
+            player.prepareAsync()
+        } catch (error: Exception) {
+            player.release(); preview = null
+            throw error
+        }
     }
 }

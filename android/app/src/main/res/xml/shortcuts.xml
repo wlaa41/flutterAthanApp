@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_beep"
+        android:shortcutId="beep_today"
+        android:shortcutLongLabel="@string/shortcut_beep_today_long"
+        android:shortcutShortLabel="@string/shortcut_beep_today">
+        <intent
+            android:action="wlaa41.github.io.flutter_pro.BEEP_TODAY"
+            android:targetClass="wlaa41.github.io.flutter_pro.QuickActionActivity"
+            android:targetPackage="wlaa41.github.io.flutter_pro" />
+    </shortcut>
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_athan"
+        android:shortcutId="athan_as_usual"
+        android:shortcutLongLabel="@string/shortcut_athan_usual_long"
+        android:shortcutShortLabel="@string/shortcut_athan_usual">
+        <intent
+            android:action="wlaa41.github.io.flutter_pro.ATHAN_AS_USUAL"
+            android:targetClass="wlaa41.github.io.flutter_pro.QuickActionActivity"
+            android:targetPackage="wlaa41.github.io.flutter_pro" />
+    </shortcut>
+</shortcuts>

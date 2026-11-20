@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.2.0-rc.2 (build 12)
+
+- Beep mode: one tap on the home screen swaps every Athan and Iqama for your beep,
+  for the next prayer, for today, or until you turn it off. The card shows when the
+  Athan returns and has a Back to Athan button.
+- The same switch without opening the app on Android: an "Athan beep" quick
+  settings tile, "Beep today" and "Athan as usual" when you long-press the app
+  icon, and a "Beep today" button on the notification while a recitation plays.
+  The phone applies the switch at the moment a reminder fires.
+- Beep power: five levels from Soft to Maximum, with a Test button. The old tones
+  peaked at -16.5 dBFS on a 660 Hz sine that phone speakers barely reproduce; the
+  default is now about 15 dB louder and sits between 1 and 3 kHz. Loudness is in
+  the files, so it also applies to iPhone alerts and to Android's late-alarm tone.
+- New "Strong beep" sound, optional vibration with the beep, and an option to
+  play beeps at the phone's alarm volume. A beep now leaves a quiet notification
+  saying which prayer it was for.
+- Validation: 96 tests passed (13 new); analysis reports 60 infos, no warnings or
+  errors; the Android release build compiles the new Kotlin. The tile, shortcuts,
+  vibration and loudness have not been tried on a physical phone.
+
 ## 2.2.0-rc.1 (build 11)
 
 - New app icon: keel arch, inner dome, crescent and two minarets drawn as pen
