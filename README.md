@@ -3,6 +3,15 @@
 Flutter prayer reminders with local sound playback, an offline prayer-time fallback,
 Quran reader, and editable work hours. Android 7+ (API 24); iOS 15+.
 
+## Install on Android
+
+On your phone, open
+[AthanApp.apk](https://github.com/wlaa41/flutterAthanApp/raw/main/AthanApp.apk)
+(the file at the top of this repository) and install it. Every push to `main`
+rebuilds it: once the checks pass, CI commits the freshly signed APK to the
+repository root, so that file is always the latest build and updates the
+installed app in place.
+
 ## Reminders that fit your day
 
 - Choose Classic Athan, Beautiful Athan, Mishary Alafasy, Makkah (Ali Mulla),
@@ -88,8 +97,9 @@ flutter build ios --simulator --debug --no-codesign
 bash tools/ios_smoke.sh
 ```
 
-CI runs analysis/tests and creates a preview APK for each pull request. It does not
-publish a store release or overwrite an existing GitHub release. Trusted CI preview
+CI runs analysis/tests and creates a preview APK for each pull request. On `main` it
+also commits that APK as `AthanApp.apk`. It does not publish a store release or
+overwrite an existing GitHub release. Trusted CI preview
 builds restore a stable private debug key from the `ATHAN_PREVIEW_KEYSTORE_BASE64`
 Actions secret and verify its public certificate before uploading the APK. Fork
 and Dependabot pull requests cannot access that key and produce clearly labelled

@@ -95,6 +95,51 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+  # Keeps one installable file at the repository root: AthanApp.apk on main is
+  # always the build of the commit before it, signed with the trusted preview key.
+  # Only this small job can write to the repository; it runs no build tooling.
+  publish-apk:
+    name: Keep the signed APK on main
+    needs: verify
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' && github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Fetch the verified preview APK
+        uses: actions/download-artifact@v4
+        with:
+          name: athan-android-preview-${{ github.sha }}
+          path: ${{ runner.temp }}/apk
+      - name: Commit AthanApp.apk to the repository root
+        run: |
+          set -euo pipefail
+          if [ "$(git rev-parse HEAD)" != "$GITHUB_SHA" ]; then
+            echo "::notice::main has moved on; the newer run publishes its own APK."
+            exit 0
+          fi
+          cp "$RUNNER_TEMP/apk/app-release.apk" AthanApp.apk
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f AthanApp.apk
+          if git diff --cached --quiet; then
+            echo "AthanApp.apk already matches this build."
+            exit 0
+          fi
+          git commit -m "Update AthanApp.apk to ${GITHUB_SHA::7} [skip ci]"
+          if ! git push origin HEAD:main; then
+            if [ "$(git ls-remote origin refs/heads/main | cut -f1)" != "$GITHUB_SHA" ]; then
+              echo "::notice::main moved during publishing; the newer run publishes its own APK."
+              exit 0
+            fi
+            exit 1
+          fi
+
 # Trusted Android previews use a stable private debug key. Production signing and
-# publishing are separate deliberate steps; this workflow never overwrites v2.0.0.
+# store publishing are separate deliberate steps; this workflow never overwrites v2.0.0.
 
