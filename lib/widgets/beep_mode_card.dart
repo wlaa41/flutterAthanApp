@@ -9,6 +9,7 @@ import '../services/beep_mode.dart';
 import '../services/notification_service.dart';
 import '../services/prayer_service.dart';
 import '../services/sound_library.dart';
+import 'away_from_home_tile.dart';
 import 'weekly_beep.dart';
 
 /// The quick switch on the home screen: one tap turns every Athan and Iqama
@@ -51,6 +52,9 @@ class _BeepModeCardState extends State<BeepModeCard>
   bool _busy = false;
   AlertPreferences? _preferences;
 
+  /// Weekly edits not confirmed yet; null when there are none.
+  AlertPreferences? _draft;
+
   @override
   void initState() {
     super.initState();
@@ -88,18 +92,32 @@ class _BeepModeCardState extends State<BeepModeCard>
     }
   }
 
-  /// The card answers at once; a change that cannot be saved is taken back.
-  Future<void> _saveWeekly(AlertPreferences next) async {
+  /// Taps change the draft only. Confirm saves it.
+  void _editWeekly(AlertPreferences next) {
+    final saved = _preferences;
+    if (saved == null) return;
+    setState(() => _draft = next.sameWeekly(saved) ? null : next);
+  }
+
+  /// Saves the weekly schedule in [draft]. A failure keeps the draft open.
+  Future<void> _saveWeekly(AlertPreferences draft) async {
     final before = _preferences;
-    setState(() => _preferences = next);
+    if (before == null || _busy) return;
+    final next = before.withWeeklyFrom(draft);
+    setState(() => _busy = true);
     try {
       await next.save();
-    } catch (_) {
       if (mounted) {
-        setState(() => _preferences = before);
-        _say('That did not save. Please try again.');
+        setState(() {
+          _preferences = next;
+          _draft = null;
+        });
       }
+    } catch (_) {
+      if (mounted) _say('That did not save. Please try again.');
       return;
+    } finally {
+      if (mounted) setState(() => _busy = false);
     }
     try {
       await NotificationService.instance.refreshSchedule();
@@ -110,7 +128,7 @@ class _BeepModeCardState extends State<BeepModeCard>
   }
 
   Future<void> _editWeeklyHours() async {
-    final preferences = _preferences;
+    final preferences = _draft ?? _preferences;
     if (preferences == null) return;
     await showModalBottomSheet<void>(
       context: context,
@@ -119,7 +137,7 @@ class _BeepModeCardState extends State<BeepModeCard>
       builder: (_) => WeeklyBeepSheet(
         preferences: preferences,
         cityName: PrayerService.instance.cityName,
-        onChanged: _saveWeekly,
+        onConfirm: _saveWeekly,
       ),
     );
   }
@@ -128,11 +146,14 @@ class _BeepModeCardState extends State<BeepModeCard>
     final preferences = _preferences;
     if (!widget.showWeekly || preferences == null) return null;
     return WeeklyBeepSection(
-      preferences: preferences,
+      preferences: _draft ?? preferences,
+      saved: preferences,
       now: widget.cityNow?.call() ?? PrayerService.instance.now,
-      enabled: true,
-      onChanged: _saveWeekly,
+      enabled: !_busy,
+      onChanged: _editWeekly,
       onEditHours: _editWeeklyHours,
+      onConfirm: () => _saveWeekly(_draft ?? preferences),
+      onCancel: () => setState(() => _draft = null),
     );
   }
 
@@ -313,6 +334,8 @@ class _BeepModeCardState extends State<BeepModeCard>
                   ],
                 ),
                 ?_weekly(),
+                if (widget.showWeekly)
+                  AwayFromHomeSection(onChanged: widget.onChanged),
               ],
             ),
           ),
@@ -369,6 +392,8 @@ class _BeepModeCardState extends State<BeepModeCard>
               ],
             ),
             ?_weekly(),
+            if (widget.showWeekly)
+              AwayFromHomeSection(onChanged: widget.onChanged),
           ],
         ),
       ),

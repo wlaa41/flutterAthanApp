@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../models/alert_preferences.dart';
@@ -50,8 +51,102 @@ class WeeklyBeepText {
       soundId == 'beep' ? 'One beep' : SoundCatalog.byId(soundId).name;
 }
 
+/// Weekly beep changes are a draft until Confirm is pressed, so a stray tap
+/// on a day cannot change which prayers beep.
+extension WeeklyBeepDraft on AlertPreferences {
+  bool sameWeekly(AlertPreferences other) =>
+      quietEnabled == other.quietEnabled &&
+      setEquals(quietWeekdays, other.quietWeekdays) &&
+      quietStartMinute == other.quietStartMinute &&
+      quietEndMinute == other.quietEndMinute;
+
+  /// These choices with the weekly schedule taken from [draft].
+  AlertPreferences withWeeklyFrom(AlertPreferences draft) => copyWith(
+    quietEnabled: draft.quietEnabled,
+    quietWeekdays: draft.quietWeekdays,
+    quietStartMinute: draft.quietStartMinute,
+    quietEndMinute: draft.quietEndMinute,
+  );
+
+  /// Confirm needs at least one day while the schedule is on.
+  bool get weeklyCanSave => !quietEnabled || quietWeekdays.isNotEmpty;
+}
+
+/// "Not saved yet" with Cancel and Confirm, under an edited weekly schedule.
+class WeeklyConfirmBar extends StatelessWidget {
+  const WeeklyConfirmBar({
+    super.key,
+    required this.draft,
+    required this.onConfirm,
+    required this.onCancel,
+    this.busy = false,
+  });
+
+  final AlertPreferences draft;
+  final VoidCallback onConfirm, onCancel;
+  final bool busy;
+
+  static const _green = Color(0xFF0F3931);
+
+  @override
+  Widget build(BuildContext context) {
+    final summary = draft.quietEnabled
+        ? '${WeeklyBeepText.sound(draft.quietSoundId)} on ${WeeklyBeepText.days(draft.quietWeekdays)}, ${WeeklyBeepText.hours(context, draft)}.'
+        : 'Weekly beep off.';
+    return Semantics(
+      container: true,
+      liveRegion: true,
+      child: Container(
+        margin: const EdgeInsets.only(top: 10),
+        padding: const EdgeInsets.fromLTRB(12, 10, 8, 6),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFF4D6),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFE3C78F)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Not saved yet',
+              style: TextStyle(fontWeight: FontWeight.w700, color: _green),
+            ),
+            Text(
+              draft.weeklyCanSave ? summary : 'Choose at least one day.',
+              style: const TextStyle(color: Color(0xFF334155)),
+            ),
+            Wrap(
+              alignment: WrapAlignment.end,
+              spacing: 8,
+              children: [
+                TextButton(
+                  onPressed: busy ? null : onCancel,
+                  style: TextButton.styleFrom(
+                    foregroundColor: _green,
+                    minimumSize: const Size(48, 48),
+                  ),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: busy || !draft.weeklyCanSave ? null : onConfirm,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: _green,
+                    minimumSize: const Size(48, 48),
+                  ),
+                  child: const Text('Confirm'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// The weekly part of the home Beep card: one switch, the seven days, and
-/// the hours. Days and hours start as Monday to Friday, 9 to 5.
+/// the hours. Days and hours start as Monday to Friday, 9 to 5. Edits stay a
+/// draft, shown with Cancel and Confirm, until confirmed.
 class WeeklyBeepSection extends StatelessWidget {
   const WeeklyBeepSection({
     super.key,
@@ -60,9 +155,17 @@ class WeeklyBeepSection extends StatelessWidget {
     required this.enabled,
     required this.onChanged,
     required this.onEditHours,
+    this.saved,
+    this.onConfirm,
+    this.onCancel,
   });
 
+  /// What the controls show: the draft while one is open.
   final AlertPreferences preferences;
+
+  /// What is in force. A [preferences] that differs from it is unsaved.
+  final AlertPreferences? saved;
+  final VoidCallback? onConfirm, onCancel;
 
   /// The clock in the prayer city, to say whether the schedule applies now.
   final DateTime now;
@@ -76,7 +179,9 @@ class WeeklyBeepSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final on = preferences.quietEnabled;
     final days = preferences.quietWeekdays;
-    final beepingNow = preferences.isQuietAt(now);
+    final active = saved ?? preferences;
+    final beepingNow = active.isQuietAt(now);
+    final unsaved = saved != null && !preferences.sameWeekly(saved!);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -98,8 +203,8 @@ class WeeklyBeepSection extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      on
-                          ? '${WeeklyBeepText.sound(preferences.quietSoundId)} instead of Athan and Iqama${beepingNow ? ' · on now' : ''}'
+                      active.quietEnabled
+                          ? '${WeeklyBeepText.sound(active.quietSoundId)} instead of Athan and Iqama${beepingNow ? ' · on now' : ''}'
                           : 'One beep on the same days every week, such as work days.',
                       style: const TextStyle(color: Color(0xFF334155)),
                     ),
@@ -143,7 +248,7 @@ class WeeklyBeepSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 6),
-          if (days.isEmpty)
+          if (days.isEmpty && !unsaved)
             const Padding(
               padding: EdgeInsets.only(top: 4, bottom: 2),
               child: Text('Choose at least one day.'),
@@ -164,6 +269,13 @@ class WeeklyBeepSection extends StatelessWidget {
             ),
           ),
         ],
+        if (unsaved && onConfirm != null && onCancel != null)
+          WeeklyConfirmBar(
+            draft: preferences,
+            busy: !enabled,
+            onConfirm: onConfirm!,
+            onCancel: onCancel!,
+          ),
       ],
     );
   }
@@ -226,18 +338,19 @@ class _DayToggle extends StatelessWidget {
 }
 
 /// The full weekly setup: day presets, all day or set hours, start and end.
-/// Every change is handed to [onChanged] at once; the sheet has no Save step.
+/// Nothing changes until Confirm; closing the sheet any other way drops the
+/// edits.
 class WeeklyBeepSheet extends StatefulWidget {
   const WeeklyBeepSheet({
     super.key,
     required this.preferences,
     required this.cityName,
-    required this.onChanged,
+    required this.onConfirm,
   });
 
   final AlertPreferences preferences;
   final String cityName;
-  final ValueChanged<AlertPreferences> onChanged;
+  final ValueChanged<AlertPreferences> onConfirm;
 
   @override
   State<WeeklyBeepSheet> createState() => _WeeklyBeepSheetState();
@@ -258,10 +371,7 @@ class _WeeklyBeepSheetState extends State<WeeklyBeepSheet> {
     }
   }
 
-  void _change(AlertPreferences next) {
-    setState(() => _preferences = next);
-    widget.onChanged(next);
-  }
+  void _change(AlertPreferences next) => setState(() => _preferences = next);
 
   @override
   Widget build(BuildContext context) {
@@ -349,12 +459,33 @@ class _WeeklyBeepSheetState extends State<WeeklyBeepSheet> {
             const Divider(height: 1),
             Padding(
               padding: const EdgeInsets.all(16),
-              child: SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Done'),
-                ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(48, 48),
+                      ),
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: preferences.weeklyCanSave
+                          ? () {
+                              widget.onConfirm(preferences);
+                              Navigator.pop(context);
+                            }
+                          : null,
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size(48, 48),
+                      ),
+                      child: const Text('Confirm'),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

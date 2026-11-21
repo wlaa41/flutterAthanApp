@@ -262,7 +262,12 @@ object PrayerAlarms {
 
 class PrayerAlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action != "PRAYER_ALERT") { PrayerAlarms.armNext(context); return }
+        if (intent.action != "PRAYER_ALERT") {
+            // Boot, app update, clock change: Android drops alarms and geofences.
+            PrayerAlarms.armNext(context)
+            AwayFromHome.register(context)
+            return
+        }
         val event = try { JSONObject(intent.getStringExtra("event") ?: return) } catch (_: Exception) { return }
         // Keeps the phone awake until the playback service holds its own lock.
         try {
@@ -278,7 +283,15 @@ class PrayerAlarmReceiver : BroadcastReceiver() {
         }
         // Beep mode is decided here, at the moment of the reminder, so the quick
         // settings tile and the shortcuts work while the app is closed.
-        PrayerAlarms.deliver(context, BeepMode.apply(context, event))
+        if (!AwayFromHome.enabled(context)) { PrayerAlarms.deliver(context, BeepMode.apply(context, event)); return }
+        // Away from home: where the phone is may take a moment to find out.
+        val pending: PendingResult? = goAsync()
+        AwayFromHome.decide(context) { place ->
+            try {
+                PrayerAlarms.deliver(context, BeepMode.apply(context, event, away = place == AwayFromHome.Place.AWAY))
+                AwayFromHome.register(context) // Repairs a geofence the phone dropped.
+            } finally { pending?.finish() }
+        }
     }
 }
 
@@ -410,12 +423,16 @@ object BeepMode {
         prefs(c).edit().putString("beep_options", json).commit()
     }
 
-    /** The reminder to deliver: unchanged, or with the beep in place of its sound. */
-    fun apply(c: Context, event: JSONObject): JSONObject {
+    /** The reminder to deliver: unchanged, or with the beep in place of its sound.
+     *  [away] is "Beep away from home" finding the phone outside home: it turns
+     *  a recording into the beep, never a beep, vibration or silence into sound. */
+    fun apply(c: Context, event: JSONObject, away: Boolean = false): JSONObject {
         // Judged by the reminder's own time, so one that fires a little late still
         // gets the choice that was in force when it was due.
         val until = prefs(c).getLong("beep_until", 0L)
-        if (until <= 0L || event.optLong("time", System.currentTimeMillis()) >= until) return event
+        val manual = until > 0L && event.optLong("time", System.currentTimeMillis()) < until
+        val recording = event.optString("soundId") !in TONES + setOf("silent", "vibrate")
+        if (!manual && !(away && recording)) return event
         val chosen = options(c)
         return JSONObject(event.toString())
             .put("soundId", chosen.optString("soundId", "beep"))

@@ -11,8 +11,10 @@ import '../services/notification_service.dart';
 import '../services/prayer_service.dart';
 import '../services/sound_library.dart';
 import '../widgets/alert_settings_controls.dart';
+import '../widgets/away_from_home_tile.dart';
 import '../widgets/beep_mode_card.dart';
 import '../widgets/sound_picker_sheet.dart';
+import '../widgets/weekly_beep.dart';
 
 enum SettingsSection { essentials, reminders, phone }
 
@@ -34,6 +36,9 @@ class _SettingsScreenState extends State<SettingsScreen>
   List<SoundOption> _sounds = [];
   late SettingsSection _selectedSection;
   final _scrollController = ScrollController();
+
+  /// Weekly beep edits not confirmed yet; null when there are none.
+  AlertPreferences? _weeklyDraft;
   int _timedQuietStart = 540;
   int _timedQuietEnd = 1020;
   bool _busy = false;
@@ -282,6 +287,14 @@ class _SettingsScreenState extends State<SettingsScreen>
                               ),
                               _beepSoundSection(prefs),
                               _quietSection(prefs),
+                              if (_android)
+                                _section(
+                                  title: 'Away from home',
+                                  icon: Icons.home_outlined,
+                                  children: const [
+                                    AwayFromHomeSection(divider: false),
+                                  ],
+                                ),
                               _iqamaSection(prefs),
                             ],
                             if (_selectedSection == SettingsSection.phone) ...[
@@ -377,58 +390,83 @@ class _SettingsScreenState extends State<SettingsScreen>
     ],
   );
 
-  Widget _quietSection(AlertPreferences prefs) => _section(
-    title: 'Weekly beep days',
-    icon: Icons.work_outline,
-    children: [
-      SwitchListTile.adaptive(
-        contentPadding: EdgeInsets.zero,
-        title: const Text('Beep on these days'),
-        subtitle: Text(
-          prefs.quietEnabled
-              ? 'Athan and Iqama are your beep on these days and hours. Other times keep your usual sounds.'
-              : 'One beep on the same days every week, such as work days.',
+  void _editWeekly(AlertPreferences saved, AlertPreferences next) =>
+      setState(() => _weeklyDraft = next.sameWeekly(saved) ? null : next);
+
+  Widget _quietSection(AlertPreferences saved) {
+    // The controls show the draft; Confirm saves it, Cancel drops it.
+    final prefs = _weeklyDraft ?? saved;
+    final unsaved = _weeklyDraft != null;
+    return _section(
+      title: 'Weekly beep days',
+      icon: Icons.work_outline,
+      children: [
+        SwitchListTile.adaptive(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Beep on these days'),
+          subtitle: Text(
+            prefs.quietEnabled
+                ? 'Athan and Iqama are your beep on these days and hours. Other times keep your usual sounds.'
+                : 'One beep on the same days every week, such as work days.',
+          ),
+          value: prefs.quietEnabled,
+          onChanged: _busy
+              ? null
+              : (value) =>
+                    _editWeekly(saved, prefs.copyWith(quietEnabled: value)),
         ),
-        value: prefs.quietEnabled,
-        onChanged: _busy
-            ? null
-            : (value) => _save(prefs.copyWith(quietEnabled: value)),
-      ),
-      if (prefs.quietEnabled) ...[
-        const Divider(height: 24),
-        QuietScheduleEditor(
-          weekdays: prefs.quietWeekdays,
-          startMinute: prefs.quietStartMinute,
-          endMinute: prefs.quietEndMinute,
-          enabled: !_busy,
-          onAllDayChanged: (allDay) {
-            if (allDay == (prefs.quietStartMinute == prefs.quietEndMinute))
-              return;
-            if (allDay && prefs.quietStartMinute != prefs.quietEndMinute) {
-              _timedQuietStart = prefs.quietStartMinute;
-              _timedQuietEnd = prefs.quietEndMinute;
-            }
-            _save(
-              prefs.copyWith(
-                quietStartMinute: allDay ? 0 : _timedQuietStart,
-                quietEndMinute: allDay ? 0 : _timedQuietEnd,
-              ),
-            );
-          },
-          onWeekdaysChanged: (value) =>
-              _save(prefs.copyWith(quietWeekdays: value)),
-          onStartChanged: (value) =>
-              _save(prefs.copyWith(quietStartMinute: value)),
-          onEndChanged: (value) => _save(prefs.copyWith(quietEndMinute: value)),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Plays your beep sound (${_quietLabel(prefs.quietSoundId)}). Uses the time in ${PrayerService.instance.cityName}.',
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
+        if (prefs.quietEnabled) ...[
+          const Divider(height: 24),
+          QuietScheduleEditor(
+            weekdays: prefs.quietWeekdays,
+            startMinute: prefs.quietStartMinute,
+            endMinute: prefs.quietEndMinute,
+            enabled: !_busy,
+            onAllDayChanged: (allDay) {
+              if (allDay == (prefs.quietStartMinute == prefs.quietEndMinute))
+                return;
+              if (allDay && prefs.quietStartMinute != prefs.quietEndMinute) {
+                _timedQuietStart = prefs.quietStartMinute;
+                _timedQuietEnd = prefs.quietEndMinute;
+              }
+              _editWeekly(
+                saved,
+                prefs.copyWith(
+                  quietStartMinute: allDay ? 0 : _timedQuietStart,
+                  quietEndMinute: allDay ? 0 : _timedQuietEnd,
+                ),
+              );
+            },
+            onWeekdaysChanged: (value) =>
+                _editWeekly(saved, prefs.copyWith(quietWeekdays: value)),
+            onStartChanged: (value) =>
+                _editWeekly(saved, prefs.copyWith(quietStartMinute: value)),
+            onEndChanged: (value) =>
+                _editWeekly(saved, prefs.copyWith(quietEndMinute: value)),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Plays your beep sound (${_quietLabel(prefs.quietSoundId)}). Uses the time in ${PrayerService.instance.cityName}.',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
+        if (unsaved)
+          WeeklyConfirmBar(
+            draft: prefs,
+            busy: _busy,
+            onCancel: () => setState(() => _weeklyDraft = null),
+            onConfirm: () async {
+              final draft = _weeklyDraft;
+              if (draft == null) return;
+              await _save(_preferences!.withWeeklyFrom(draft));
+              // A failed save leaves the draft open to try again.
+              if (mounted && _preferences!.sameWeekly(draft))
+                setState(() => _weeklyDraft = null);
+            },
+          ),
       ],
-    ],
-  );
+    );
+  }
 
   static const _powerNames = ['Soft', 'Medium', 'Strong', 'Loud', 'Maximum'];
 

@@ -76,6 +76,15 @@ void main() {
     await tester.scrollUntilVisible(find.text('Beep on these days'), 300);
     await tester.tap(find.text('Beep on these days'));
     await tester.pumpAndSettle();
+    expect((await AlertPreferences.load()).quietEnabled, isFalse);
+    Future<void> confirm() async {
+      await tester.scrollUntilVisible(find.text('Confirm'), 150);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Confirm'));
+      await tester.pumpAndSettle();
+    }
+
+    await confirm();
     final preferences = await AlertPreferences.load();
     expect(preferences.quietEnabled, isTrue);
     expect(preferences.quietWeekdays, {1, 2, 3, 4, 5});
@@ -88,6 +97,8 @@ void main() {
     await tester.tap(friday);
     await tester.pumpAndSettle();
     expect(tester.widget<FilterChip>(friday).selected, isFalse);
+    expect((await AlertPreferences.load()).quietWeekdays, {1, 2, 3, 4, 5});
+    await confirm();
     expect((await AlertPreferences.load()).quietWeekdays, {1, 2, 3, 4});
     expect(tester.takeException(), isNull);
   });

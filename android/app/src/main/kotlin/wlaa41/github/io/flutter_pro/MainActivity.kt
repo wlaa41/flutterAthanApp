@@ -1,5 +1,6 @@
 package wlaa41.github.io.flutter_pro
 
+import android.Manifest
 import android.app.StatusBarManager
 import android.content.ComponentName
 import android.content.Intent
@@ -13,6 +14,29 @@ import io.flutter.plugin.common.MethodChannel
 import org.json.JSONObject
 
 class MainActivity: FlutterActivity() {
+    /** The Dart call waiting for a location permission answer. */
+    private var permissionReply: MethodChannel.Result? = null
+    private var permissionAsked: String? = null
+
+    private fun askPermissions(permissions: Array<String>, reply: MethodChannel.Result) {
+        permissionReply?.success(false)
+        permissionReply = reply
+        permissionAsked = permissions.first()
+        requestPermissions(permissions, LOCATION_REQUEST)
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode != LOCATION_REQUEST) return
+        val reply = permissionReply ?: return
+        permissionReply = null
+        reply.success(if (permissionAsked == Manifest.permission.ACCESS_BACKGROUND_LOCATION) AwayFromHome.hasBackground(this) else AwayFromHome.hasLocation(this))
+        // Permission just arrived: the geofence can be armed now.
+        AwayFromHome.register(this)
+    }
+
+    private fun awayStatus(): Map<String, Any?> = AwayFromHome.status(this)
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "athan/alarms").setMethodCallHandler { call, result ->
@@ -31,6 +55,34 @@ class MainActivity: FlutterActivity() {
                         }
                         result.success(null)
                     }
+                    "awayStatus" -> {
+                        // Opening the app also repairs a geofence the phone dropped.
+                        AwayFromHome.register(this)
+                        result.success(awayStatus())
+                    }
+                    "awaySave" -> {
+                        val args = JSONObject(call.arguments as String)
+                        val home = if (args.has("lat") && args.has("lng") && !args.isNull("lat"))
+                            AwayFromHome.Home(args.getDouble("lat"), args.getDouble("lng"), args.optInt("radius", AwayFromHome.DEFAULT_RADIUS))
+                            else null
+                        AwayFromHome.save(this, args.optBoolean("enabled"), home)
+                        result.success(awayStatus())
+                    }
+                    "awayLocate" -> AwayFromHome.locate(this) { fix ->
+                        result.success(fix?.let { mapOf("lat" to it.latitude, "lng" to it.longitude, "accuracy" to (if (it.hasAccuracy()) it.accuracy.toDouble() else null)) })
+                    }
+                    "awayRequestLocation" -> {
+                        if (AwayFromHome.hasLocation(this)) result.success(true)
+                        else askPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), result)
+                    }
+                    "awayRequestBackground" -> {
+                        // Android 11+ answers this by opening the app's location page,
+                        // where "Allow all the time" is chosen.
+                        if (AwayFromHome.hasBackground(this)) result.success(true)
+                        else if (!AwayFromHome.hasLocation(this)) result.success(false)
+                        else askPermissions(arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION), result)
+                    }
+                    "locationSettings" -> { startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)); result.success(null) }
                     "getBeepMode" -> result.success(BeepMode.until(this))
                     "setBeepMode" -> { BeepMode.set(this, (call.arguments as Number).toLong()); result.success(null) }
                     "beepOptions" -> { BeepMode.setOptions(this, call.arguments as String); result.success(null) }
@@ -55,4 +107,6 @@ class MainActivity: FlutterActivity() {
             } catch(e: Exception) { result.error("alarm_error", e.message, null) }
         }
     }
+
+    companion object { private const val LOCATION_REQUEST = 7824 }
 }

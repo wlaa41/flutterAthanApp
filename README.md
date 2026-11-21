@@ -110,6 +110,12 @@ Android Force stop. Some manufacturers restrict apps further: Settings, phone,
 minute**, which goes through the same alarm as a real prayer. Lock the phone and
 wait for it.
 
+**Beep away from home** (Android): set home on the Beep card, pick a distance,
+Confirm. Outside that circle every Athan and Iqama is your beep. It uses
+Android's low-power geofence (5 minute reporting) plus, at each prayer, a
+recent location if one exists. No background tracking. Needs location "Allow
+all the time". Weekly beep days and this rule save only on **Confirm**.
+
 On iPhone, the app queues the next 60 notifications (under the system limit), so
 frequent Iqama reminders shorten the covered period. Settings shows the scheduled
 through date: reopen before then to refill. Local notification sounds must be

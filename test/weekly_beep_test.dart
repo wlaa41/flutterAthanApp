@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'dart:ui' show Tristate;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_pro/models/alert_preferences.dart';
 import 'package:flutter_pro/models/prayer_time_model.dart';
@@ -117,9 +118,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('One switch on the home card turns the weekly beep on', (
-    tester,
-  ) async {
+  testWidgets('The switch is only a draft until Confirm', (tester) async {
     await showCard(tester);
     expect(find.text('Weekly beep days'), findsOneWidget);
     expect(
@@ -129,23 +128,36 @@ void main() {
     expect(find.bySemanticsLabel('Monday'), findsNothing);
 
     await press(tester, find.byType(Switch));
+    // Nothing is saved yet: the days show, with Cancel and Confirm under them.
+    expect((await AlertPreferences.load()).quietEnabled, isFalse);
+    expect(find.text('Not saved yet'), findsOneWidget);
+    expect(
+      find.text('One beep on Mon to Fri, 9:00 AM to 5:00 PM.'),
+      findsOneWidget,
+    );
+    for (final day in WeeklyBeepText.full) {
+      expect(find.bySemanticsLabel(day), findsOneWidget);
+    }
+
+    await press(tester, find.text('Confirm'));
     final saved = await AlertPreferences.load();
     expect(saved.quietEnabled, isTrue);
     expect(saved.quietWeekdays, {1, 2, 3, 4, 5});
     expect(saved.quietStartMinute, 540);
     expect(saved.quietEndMinute, 1020);
     expect(saved.quietSoundId, 'beep');
+    expect(find.text('Not saved yet'), findsNothing);
     // It is Friday 10:00, inside the schedule.
     expect(
       find.text('One beep instead of Athan and Iqama · on now'),
       findsOneWidget,
     );
     expect(find.text('Hours: 9:00 AM to 5:00 PM'), findsOneWidget);
-    for (final day in WeeklyBeepText.full) {
-      expect(find.bySemanticsLabel(day), findsOneWidget);
-    }
 
     await press(tester, find.byType(Switch));
+    expect(find.text('Weekly beep off.'), findsOneWidget);
+    expect((await AlertPreferences.load()).quietEnabled, isTrue);
+    await press(tester, find.text('Confirm'));
     expect((await AlertPreferences.load()).quietEnabled, isFalse);
     expect(find.bySemanticsLabel('Monday'), findsNothing);
     // The days and hours are kept for the next time.
@@ -153,13 +165,19 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
-  testWidgets('Days are chosen on the card, one tap each', (tester) async {
+  testWidgets('A day tap changes nothing until Confirm; Cancel undoes it', (
+    tester,
+  ) async {
     await const AlertPreferences(quietEnabled: true).save();
     // A Saturday: outside Monday to Friday.
     await showCard(tester, cityNow: DateTime(2026, 11, 21, 10));
     expect(find.text('One beep instead of Athan and Iqama'), findsOneWidget);
 
     await press(tester, find.bySemanticsLabel('Saturday'));
+    expect((await AlertPreferences.load()).quietWeekdays, {1, 2, 3, 4, 5});
+    // What is in force does not change before Confirm.
+    expect(find.text('One beep instead of Athan and Iqama'), findsOneWidget);
+    await press(tester, find.text('Confirm'));
     expect((await AlertPreferences.load()).quietWeekdays, {1, 2, 3, 4, 5, 6});
     expect(
       find.text('One beep instead of Athan and Iqama · on now'),
@@ -168,17 +186,41 @@ void main() {
 
     await press(tester, find.bySemanticsLabel('Monday'));
     await press(tester, find.bySemanticsLabel('Tuesday'));
-    expect((await AlertPreferences.load()).quietWeekdays, {3, 4, 5, 6});
+    expect(find.text('Not saved yet'), findsOneWidget);
+    await press(tester, find.text('Cancel'));
+    expect(find.text('Not saved yet'), findsNothing);
+    expect((await AlertPreferences.load()).quietWeekdays, {1, 2, 3, 4, 5, 6});
+    expect(
+      tester
+          .getSemantics(find.bySemanticsLabel('Monday'))
+          .flagsCollection
+          .isSelected,
+      Tristate.isTrue,
+    );
 
-    for (final day in ['Wednesday', 'Thursday', 'Friday', 'Saturday']) {
+    // Taking a day off and back on again leaves nothing to confirm.
+    await press(tester, find.bySemanticsLabel('Monday'));
+    await press(tester, find.bySemanticsLabel('Monday'));
+    expect(find.text('Not saved yet'), findsNothing);
+
+    // No days at all cannot be confirmed.
+    for (final day in WeeklyBeepText.full.take(6)) {
       await press(tester, find.bySemanticsLabel(day));
     }
-    expect((await AlertPreferences.load()).quietWeekdays, isEmpty);
     expect(find.text('Choose at least one day.'), findsOneWidget);
+    expect(
+      tester
+          .widget<FilledButton>(find.widgetWithText(FilledButton, 'Confirm'))
+          .onPressed,
+      isNull,
+    );
+    expect((await AlertPreferences.load()).quietWeekdays, {1, 2, 3, 4, 5, 6});
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
-  testWidgets('Hours open from the card and can be all day', (tester) async {
+  testWidgets('Hours open from the card and save only on Confirm', (
+    tester,
+  ) async {
     await const AlertPreferences(quietEnabled: true).save();
     await showCard(tester);
     await press(tester, find.text('Hours: 9:00 AM to 5:00 PM'));
@@ -188,19 +230,23 @@ void main() {
     expect(find.textContaining('Plays one beep.'), findsOneWidget);
 
     await press(tester, find.text('All day'));
-    var saved = await AlertPreferences.load();
-    expect(saved.quietStartMinute, saved.quietEndMinute);
     expect(find.text('Beeps all day on the chosen days.'), findsOneWidget);
-
-    await press(tester, find.text('Set hours'));
-    saved = await AlertPreferences.load();
+    var saved = await AlertPreferences.load();
     expect(saved.quietStartMinute, 540);
+    // Cancel drops what the sheet changed.
+    await press(tester, find.widgetWithText(OutlinedButton, 'Cancel'));
+    expect(find.text('Hours: 9:00 AM to 5:00 PM'), findsOneWidget);
+    saved = await AlertPreferences.load();
     expect(saved.quietEndMinute, 1020);
 
+    await press(tester, find.text('Hours: 9:00 AM to 5:00 PM'));
     await press(tester, find.text('Weekend'));
-    expect((await AlertPreferences.load()).quietWeekdays, {6, 7});
     await press(tester, find.text('All day'));
-    await press(tester, find.text('Done'));
+    expect((await AlertPreferences.load()).quietWeekdays, {1, 2, 3, 4, 5});
+    await press(tester, find.text('Confirm'));
+    saved = await AlertPreferences.load();
+    expect(saved.quietWeekdays, {6, 7});
+    expect(saved.quietStartMinute, saved.quietEndMinute);
     expect(find.text('Hours: all day'), findsOneWidget);
     // Friday is no longer a beep day.
     expect(find.text('One beep instead of Athan and Iqama'), findsOneWidget);
@@ -216,6 +262,7 @@ void main() {
     expect(find.text('Beep mode is on'), findsOneWidget);
     expect(find.text('Weekly beep days'), findsOneWidget);
     await press(tester, find.bySemanticsLabel('Sunday'));
+    await press(tester, find.text('Confirm'));
     expect((await AlertPreferences.load()).quietWeekdays, contains(7));
     await press(tester, find.text('Back to Athan'));
     expect(find.text('Beep instead of Athan'), findsOneWidget);
@@ -234,10 +281,12 @@ void main() {
       expect(monday.height, greaterThanOrEqualTo(44));
       expect(monday.top, sunday.top);
       expect(sunday.right, lessThanOrEqualTo(size.width));
+      await press(tester, find.text('Confirm'));
       await press(tester, find.textContaining('Hours:'));
       await press(tester, find.text('All day'));
-      await press(tester, find.text('Done'));
+      await press(tester, find.text('Confirm'));
       expect(tester.takeException(), isNull);
+      expect((await AlertPreferences.load()).quietStartMinute, 0);
       await tester.pumpWidget(const SizedBox.shrink());
     });
   }

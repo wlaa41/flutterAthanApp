@@ -66,6 +66,13 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('All day'));
     await tester.pumpAndSettle();
+    // Nothing is saved until Confirm.
+    expect((await AlertPreferences.load()).quietEnabled, isFalse);
+    await tester.scrollUntilVisible(find.text('Confirm'), 150);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Confirm'));
+    await tester.pumpAndSettle();
+    expect(find.text('Not saved yet'), findsNothing);
 
     final saved = await AlertPreferences.load();
     expect(saved.quietEnabled, isTrue);
@@ -146,9 +153,30 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('All day'));
     await tester.pumpAndSettle();
+    expect((await AlertPreferences.load()).quietStartMinute, 600);
+    await tester.scrollUntilVisible(find.text('Confirm'), 150);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Confirm'));
+    await tester.pumpAndSettle();
     expect((await AlertPreferences.load()).quietStartMinute, 0);
     expect((await AlertPreferences.load()).quietEndMinute, 0);
+    await tester.scrollUntilVisible(find.text('Set hours'), -150);
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Set hours'));
+    await tester.pumpAndSettle();
+    // Back to the old hours is a change too: Cancel keeps all day.
+    await tester.scrollUntilVisible(find.text('Cancel'), 150);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect((await AlertPreferences.load()).quietStartMinute, 0);
+    await tester.scrollUntilVisible(find.text('Set hours'), -150);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Set hours'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('Confirm'), 150);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Confirm'));
     await tester.pumpAndSettle();
     expect((await AlertPreferences.load()).quietStartMinute, 600);
     expect((await AlertPreferences.load()).quietEndMinute, 960);

@@ -1,5 +1,30 @@
 # Changelog
 
+## 2.2.0-rc.10 (build 20)
+
+- Weekly beep days need **Confirm**. Turning the schedule on or off, a day,
+  All day or the hours: each is a draft, shown as "Not saved yet" with what
+  it will do, until Confirm is pressed. Cancel puts it back. No days at all
+  cannot be confirmed. The same on the home card, in its Hours sheet and in
+  Settings. The quick Beep buttons (Next prayer, Today, Until I turn it off)
+  still act on one tap.
+- **Beep away from home** (Android). Set home where you stand, pick where
+  "away" starts (150 m, 300 m, 500 m or 1 km) and Confirm. Away from home,
+  every Athan and Iqama recording becomes your beep; at home they play as
+  usual. Vibrate and silent choices are never turned into sound.
+- How it knows: Android's geofence around home, and at each prayer a recent
+  location if the phone has one (or one asked for, at most 3 s). Unknown
+  means the Athan plays as usual.
+- Battery: no tracking and no background location updates. The geofence is
+  Android's low-power one, set to report within 5 minutes (Google's battery
+  saving value); the prayer-time check runs only without a recent fix, at
+  balanced power. GPS is used once, when home is set. Location stays on the
+  phone.
+- Needs location set to "Allow all the time"; the app asks after Confirm and
+  the row on the Beep card says when it is missing.
+- Validation: 201 Dart tests; 26 native tests on Android 9, 14 and 16
+  (Robolectric) in CI. Not tried on a physical phone.
+
 ## 2.2.0-rc.9 (build 19)
 
 - The athan plays again. On Android 14 and later, an app may only set an

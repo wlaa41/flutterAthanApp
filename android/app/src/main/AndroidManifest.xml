@@ -13,6 +13,12 @@
     <!-- Asks once to keep the app out of battery optimisation, so the phone
          does not hold back the alarm. -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
+    <!-- "Beep away from home": a geofence around home, and a location check when
+         a reminder fires. Background location is what lets that work while the
+         app is closed. Asked for only when the feature is switched on. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
 
@@ -42,6 +48,7 @@
             android:noHistory="true"
             android:taskAffinity=""
             android:theme="@android:style/Theme.NoDisplay" />
+        <receiver android:name=".GeofenceReceiver" android:exported="false" />
         <receiver android:name=".PrayerAlarmReceiver" android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
