@@ -1003,7 +1003,8 @@ class _SettingsScreenState extends State<SettingsScreen>
         'from the source below when you add it, and checks it against the '
         'checksum recorded in tools/athan_downloads.json.\n',
       );
-      for (final athan in athanCatalog) {
+      // A bundled athan is part of the app; its credit is in the list above.
+      for (final athan in athanCatalog.where((a) => a.bundled == null)) {
         added.write('\n${athan.name}: ${athan.source}');
       }
       await _sheet<void>('Audio credits', [

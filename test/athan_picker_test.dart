@@ -26,9 +26,12 @@ void main() {
 
   // The athans asked for by name stay in view; the rest open on request.
   final named = athanCatalog.where((athan) => athan.featured).length;
-  final qassas = athanCatalog[0];
-  final jaziFull = athanCatalog[1];
-  final jaziShort = athanCatalog[2];
+  AthanDownload athanWithId(String id) =>
+      athanCatalog.singleWhere((athan) => athan.id == id);
+  final qassas = athanWithId('qassas_madinah');
+  final qassasClear = athanWithId('qassas_clear');
+  final jaziFull = athanWithId('jazi_full');
+  final jaziShort = athanWithId('jazi_short');
 
   SoundOption added(AthanDownload athan) => SoundOption(
     id: athan.soundId,
@@ -134,10 +137,64 @@ void main() {
     );
     await tester.tap(find.text('Show $rest more athans'));
     await tester.pumpAndSettle();
-    for (final athan in athanCatalog) {
+    // A bundled athan needs its built-in sound, which this list leaves out.
+    expect(find.text(qassasClear.name), findsNothing);
+    expect(find.byTooltip('Add ${qassasClear.name}'), findsNothing);
+    for (final athan in athanCatalog.where((a) => a.bundled == null)) {
       await show(tester, find.text(athan.name));
       expect(find.text(athan.arabicName), findsWidgets, reason: athan.id);
     }
+  });
+
+  testWidgets('An athan that ships in the app sits in Trending athans', (
+    tester,
+  ) async {
+    // Tall enough that every row of the sheet is built at once.
+    tester.view.physicalSize = const Size(1080, 9000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final clear = SoundCatalog.byId('qassas_clear');
+    expect(clear.id, 'qassas_clear');
+    SoundOption? result;
+    await openPicker(
+      tester,
+      sounds: [classic, clear, iqama],
+      onAdd: (athan, _) async => fail('${athan.id} must not be fetched'),
+      onClosed: (sound) => result = sound,
+    );
+    expect(find.text('محمد بن مروان قصاص · صوت نقي'), findsOneWidget);
+    expect(
+      find.text(
+        "Muezzin of the Prophet's Mosque. The clear sound edit shared on TikTok",
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.text('Madinah, Saudi Arabia · 3:42 · in the app'),
+      findsOneWidget,
+    );
+    // Listed once, under the other Qassas athan, not again in Recitations.
+    expect(find.text(qassasClear.name), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text(qassas.name)).dy,
+      lessThan(tester.getTopLeft(find.text(qassasClear.name)).dy),
+    );
+    expect(
+      tester.getTopLeft(find.text(qassasClear.name)).dy,
+      lessThan(tester.getTopLeft(find.text('Recitations')).dy),
+    );
+    // Nothing to add or remove: it is part of the app.
+    expect(find.byTooltip('Add ${qassasClear.name}'), findsNothing);
+    expect(
+      find.byTooltip('Remove ${qassasClear.name} from this phone'),
+      findsNothing,
+    );
+    expect(find.byTooltip('Preview ${qassasClear.name}'), findsOneWidget);
+    await tester.tap(find.text(qassasClear.name));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Use sound'));
+    await tester.pumpAndSettle();
+    expect(result?.id, 'qassas_clear');
   });
 
   testWidgets('Adding an athan shows progress, then selects it', (

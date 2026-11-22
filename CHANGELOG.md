@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.2.0-rc.12 (build 22)
+
+- **Muhammad Marwan Qassas · clear** now sits in Trending athans, right under
+  the other Qassas recording, with the same details: its Arabic name
+  (محمد بن مروان قصاص · صوت نقي), place (Madinah, Saudi Arabia), note (Muezzin
+  of the Prophet's Mosque) and length (3:42). It ships in the app, so it has no
+  Add or Remove button and plays offline; it is no longer listed a second time
+  under Recitations.
+- Trending athans that are on the phone keep their note line.
+- `tools/athan_downloads.json` takes `"bundled"`: a built-in sound to list in
+  Trending athans. `tools/make_athan_catalog.py` reads its size and checksum
+  from the shipped file, and the phone never fetches it. The Settings credits
+  list it once, with the recordings in the app.
+
 ## 2.2.0-rc.11 (build 21)
 
 - New built-in athan: **Muhammad Marwan Qassas · clear** (محمد بن مروان), the

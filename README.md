@@ -26,8 +26,9 @@ an APK for every processor type would be over GitHub's 100 MB file limit.
   and as the short, widely shared part, Hashem Al-Saqqaf (Makkah), and twelve
   more. The phone fetches a
   recording once from its public source, checks it against a recorded checksum
-  and keeps it, so reminders play it offline. Sources are in
-  `asset/AUDIO_SOURCES.md`.
+  and keeps it, so reminders play it offline. Muhammad Marwan Qassas · clear is
+  listed there too; it ships in the app, so there is nothing to fetch. Sources
+  are in `asset/AUDIO_SOURCES.md`.
 - Open **Settings → Basics → Choose or add a sound** to compare recordings, preview
   them, and add an MP3, M4A, or WAV from your phone (up to 20 MB / 10 minutes).
   Tap **Use sound** to apply your choice. Cancelling keeps your previous choice;

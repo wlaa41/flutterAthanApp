@@ -3,6 +3,8 @@
 
 The JSON file is the record of where each downloadable athan comes from, its
 size and its SHA-256. The app refuses a download whose bytes do not match.
+An entry with "bundled" names a built-in sound instead: it ships in the app as
+asset/<bundled>.mp3, whose size and SHA-256 are read from the file.
 
     python3 tools/make_athan_catalog.py           # write the Dart list
     python3 tools/make_athan_catalog.py --verify  # also fetch every file and
@@ -37,10 +39,13 @@ def main():
         "const List<AthanDownload> athanCatalog = [",
     ]
     for a in athans:
-        parent = by_id[a["cut_from"]] if "cut_from" in a else a
-        if not parent["url"].startswith("https://") or len(parent["sha256"]) != 64:
-            raise SystemExit(f"{a['id']}: needs an https url and a sha256")
-        if "--verify" in sys.argv and "cut_from" not in a:
+        if "bundled" in a:
+            parent = bundled_file(a)
+        else:
+            parent = by_id[a["cut_from"]] if "cut_from" in a else a
+            if not parent["url"].startswith("https://") or len(parent["sha256"]) != 64:
+                raise SystemExit(f"{a['id']}: needs an https url and a sha256")
+        if "--verify" in sys.argv and "cut_from" not in a and "bundled" not in a:
             request = urllib.request.Request(a["url"], headers={"User-Agent": "Mozilla/5.0"})
             data = urllib.request.urlopen(request, timeout=180).read()
             if len(data) != a["bytes"] or hashlib.sha256(data).hexdigest() != a["sha256"]:
@@ -61,6 +66,8 @@ def main():
         ]
         if a.get("featured"):
             lines.append("    featured: true,")
+        if "bundled" in a:
+            lines.append(f"    bundled: {dart(a['bundled'])},")
         if "cut_from" in a:
             lines.append(f"    cutFrom: {dart(a['cut_from'])},")
             lines.append(f"    cutStart: Duration(milliseconds: {a['cut_start_ms']}),")
@@ -72,6 +79,16 @@ def main():
         handle.write("\n".join(lines))
     write_sources_table(athans, by_id)
     print(f"wrote {len(athans)} athans")
+
+
+def bundled_file(a):
+    """Size and checksum of the file a bundled athan plays; it has no url."""
+    path = os.path.join(ROOT, "asset", a["bundled"] + ".mp3")
+    if "url" in a or "cut_from" in a or not os.path.exists(path):
+        raise SystemExit(f"{a['id']}: a bundled athan needs asset/{a['bundled']}.mp3 and no url")
+    with open(path, "rb") as handle:
+        data = handle.read()
+    return {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest(), "url": ""}
 
 
 START = "<!-- athan-downloads:start -->"
@@ -92,6 +109,9 @@ def write_sources_table(athans, by_id):
             start = a["cut_start_ms"] / 1000
             fetched = f"none: the part of {parent['name']} from {int(start // 60)}:{start % 60:04.1f} to the end"
             source = a["source"]
+        elif "bundled" in a:
+            fetched = f"none: in the app as `asset/{a['bundled']}.mp3`"
+            source = f"[{a['source']}]({a['source_page']})"
         else:
             fetched = f"{a['bytes']:,} bytes, SHA-256 `{a['sha256'][:16]}…`"
             source = f"[{a['source']}]({a.get('source_page') or a['url']})"
