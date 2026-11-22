@@ -27,6 +27,22 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Trending athans'), findsOneWidget);
     expect(find.text('محمد بن مروان قصاص'), findsOneWidget);
+    // The clear Qassas athan ships in the app: listed here, nothing to add.
+    await tester.scrollUntilVisible(
+      find.text('محمد بن مروان قصاص · صوت نقي'),
+      150,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(
+      find.text('Madinah, Saudi Arabia · 3:42 · in the app'),
+      findsOneWidget,
+    );
+    expect(find.byTooltip('Add Muhammad Marwan Qassas · clear'), findsNothing);
+    await tester.scrollUntilVisible(
+      find.byTooltip('Add Muhammad Jazi Abdullah'),
+      150,
+      scrollable: find.byType(Scrollable).last,
+    );
     expect(find.byTooltip('Add Muhammad Jazi Abdullah'), findsOneWidget);
     await tester.tap(find.byTooltip('Close sound picker'));
     await tester.pumpAndSettle();
@@ -40,6 +56,9 @@ void main() {
     expect(credits, contains('ATHANS YOU CAN ADD'));
     expect(credits, contains('Muhammad Marwan Qassas: tilawatalharamain.com'));
     expect(credits, contains('Muhammad Jazi Abdullah: archive.org'));
+    // Credited with the recordings in the app, not as one to fetch.
+    expect(credits, contains('MUHAMMAD MARWAN QASSAS - CLEAR'));
+    expect(credits, isNot(contains('Muhammad Marwan Qassas · clear:')));
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpAndSettle();
   });

@@ -482,7 +482,13 @@ class _SoundPickerSheetState extends State<SoundPickerSheet>
         athan.id == _addingId ||
         _addedSound(athan) != null ||
         _selected?.id == athan.soundId;
-    final hidden = widget.moreAthans.where((athan) => !pinned(athan)).length;
+    // A bundled athan is listed only with its built-in sound: it has nothing
+    // to fetch.
+    bool listed(AthanDownload athan) =>
+        athan.bundled == null || _addedSound(athan) != null;
+    final hidden = widget.moreAthans
+        .where((athan) => listed(athan) && !pinned(athan))
+        .length;
     return [
       _groupTitle('Trending athans'),
       Padding(
@@ -493,7 +499,7 @@ class _SoundPickerSheetState extends State<SoundPickerSheet>
         ),
       ),
       for (final athan in widget.moreAthans)
-        if (_showAllAthans || pinned(athan))
+        if (listed(athan) && (_showAllAthans || pinned(athan)))
           switch (_addedSound(athan)) {
             final sound? => _soundTile(sound, athan: athan),
             null => _addTile(athan),
@@ -598,8 +604,10 @@ class _SoundPickerSheetState extends State<SoundPickerSheet>
     final previewing = _previewId == sound.id;
     final scheme = Theme.of(context).colorScheme;
     // The athan in use stays: removing it would leave reminders without it.
+    // A bundled athan is part of the app and cannot be removed.
     final removable =
         athan != null &&
+        athan.bundled == null &&
         widget.onRemoveAthan != null &&
         sound.id != widget.selectedId;
     return Card(
@@ -617,6 +625,7 @@ class _SoundPickerSheetState extends State<SoundPickerSheet>
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (athan != null && athan.note != null) Text(athan.note!),
             Text(
               widget.isIOS && sound.isVibrationOnly
                   ? 'Silent alert; vibration follows iPhone settings'

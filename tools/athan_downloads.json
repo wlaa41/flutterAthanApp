@@ -1,5 +1,5 @@
 {
-  "note": "Athans the app can add from their public source. The recordings are not in this repository or in the app; a phone fetches one when its owner asks for it. Edit this file, then run tools/make_athan_catalog.py.",
+  "note": "Athans the app can add from their public source. The recordings are not in this repository or in the app; a phone fetches one when its owner asks for it. An entry with \"bundled\" is the exception: it names a built-in sound that ships in the app, so nothing is fetched. Edit this file, then run tools/make_athan_catalog.py.",
   "athans": [
     {
       "id": "qassas_madinah",
@@ -16,6 +16,20 @@
       "source_page": "https://tilawatalharamain.com/miscellanies/1219",
       "featured": true,
       "note": "Muezzin of the Prophet's Mosque"
+    },
+    {
+      "id": "qassas_clear",
+      "name": "Muhammad Marwan Qassas · clear",
+      "arabic": "محمد بن مروان قصاص · صوت نقي",
+      "place": "Madinah, Saudi Arabia",
+      "seconds": 222,
+      "bundled": "qassas_clear",
+      "source": "TikTok video by chahr_2, the clear sound edit with added reverb",
+      "permission": "No reuse licence is stated by the source. In the app at the owner's request.",
+      "checked_on": "2026-11-22",
+      "source_page": "https://www.tiktok.com/@chahr_2/video/7677998173700312353",
+      "featured": true,
+      "note": "Muezzin of the Prophet's Mosque. The clear sound edit shared on TikTok"
     },
     {
       "id": "jazi_full",

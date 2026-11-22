@@ -101,6 +101,7 @@ better. Recordings the collection only holds at 16 kb/s were left out.
 | Athan | Length | Fetched file | Source | Permission stated by the source |
 | --- | --- | --- | --- | --- |
 | Muhammad Marwan Qassas (محمد بن مروان قصاص) | 3:49 | 5,733,156 bytes, SHA-256 `80bb9493ca07321e…` | [tilawatalharamain.com, Asr athan of 3 Safar 1440](https://tilawatalharamain.com/miscellanies/1219) | No reuse licence is stated by the source. |
+| Muhammad Marwan Qassas · clear (محمد بن مروان قصاص · صوت نقي) | 3:42 | none: in the app as `asset/qassas_clear.mp3` | [TikTok video by chahr_2, the clear sound edit with added reverb](https://www.tiktok.com/@chahr_2/video/7677998173700312353) | No reuse licence is stated by the source. In the app at the owner's request. |
 | Muhammad Jazi Abdullah (محمد جازي عبدالله) | 4:21 | 10,426,131 bytes, SHA-256 `c04429b2e1051a7c…` | [archive.org item y-2meta.app-....-320-kbps](https://archive.org/details/y-2meta.app-....-320-kbps) | No reuse licence is stated by the source. |
 | Muhammad Jazi Abdullah · short (محمد جازي عبدالله · المقطع المتداول) | 2:13 | none: the part of Muhammad Jazi Abdullah from 2:07.2 to the end | Cut on the phone from the full recording, without re-encoding | Same recording as the full version. |
 | Hashem Al-Saqqaf (هاشم السقاف) | 3:01 | 5,532,454 bytes, SHA-256 `4476028544a16a7a…` | [tilawatalharamain.com, Dhuhr athan of 1 Safar 1444](http://www.tilawatalharamain.com/miscellanies/1790) | No reuse licence is stated by the source. |
@@ -134,6 +135,9 @@ uses a beep, as other imported audio does.
 Unlike the fetched athans above, this recording is in the repository and the
 APK. The app owner asked for it in the app, and its only source is a TikTok
 post, which has no fixed download address for the phone to fetch and check.
+It is listed in Trending athans as well, under the other Qassas recording:
+its entry in `tools/athan_downloads.json` is marked `"bundled"`, so the phone
+plays the copy in the app and fetches nothing.
 
 The post's audio is an edit with added reverb, the "clear sound" it is shared
 for. It is a different performance from the Qassas athan in Trending athans

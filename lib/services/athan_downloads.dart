@@ -100,6 +100,9 @@ class AthanDownloads {
     AthanDownload athan, {
     void Function(double fraction)? onProgress,
   }) async {
+    if (athan.bundled != null) {
+      throw ArgumentError.value(athan.id, 'athan', 'ships in the app');
+    }
     final folder = await _folder();
     final target = File('${folder.path}/${athan.fileName}');
     // One fetch per recording, even when Add is pressed twice. The callback

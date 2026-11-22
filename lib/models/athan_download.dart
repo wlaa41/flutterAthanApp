@@ -1,5 +1,6 @@
 /// An athan the user can add from its public source. The recording is not in
-/// the app: the phone fetches it once, checks it, and keeps it.
+/// the app: the phone fetches it once, checks it, and keeps it. A [bundled]
+/// athan is the exception: it ships in the app and is listed with the others.
 class AthanDownload {
   const AthanDownload({
     required this.id,
@@ -16,6 +17,7 @@ class AthanDownload {
     this.cutFrom,
     this.cutStart = Duration.zero,
     this.gainSteps = 0,
+    this.bundled,
   });
 
   final String id;
@@ -49,7 +51,12 @@ class AthanDownload {
   /// as the others. The sound is scaled, not re-encoded.
   final int gainSteps;
 
-  String get soundId => 'dl_$id';
+  /// The id of the built-in sound, for an athan that ships in the app. It is
+  /// always on the phone, so it is never fetched or removed: [url] is empty,
+  /// and [bytes] and [sha256] describe the bundled file.
+  final String? bundled;
+
+  String get soundId => bundled ?? 'dl_$id';
   String get fileName => 'dl_$id.mp3';
 
   String get length =>

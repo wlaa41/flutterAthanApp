@@ -149,7 +149,7 @@ class SoundCatalog {
     SoundOption(
       id: 'qassas_clear',
       name: 'Muhammad Marwan Qassas · clear',
-      description: 'محمد بن مروان · clear sound edit · available offline',
+      description: 'Madinah, Saudi Arabia · 3:42 · in the app',
       kind: SoundKind.athan,
       assetPath: 'asset/qassas_clear.mp3',
       androidResource: 'qassas_clear',

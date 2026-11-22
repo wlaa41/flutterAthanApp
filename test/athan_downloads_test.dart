@@ -79,22 +79,53 @@ void main() {
   group('The catalogue', () {
     test('names the athans that were asked for, first', () {
       final ids = athanCatalog.map((athan) => athan.id).toList();
-      expect(ids.take(4), [
+      expect(ids.take(5), [
         'qassas_madinah',
+        'qassas_clear',
         'jazi_full',
         'jazi_short',
         'saqqaf_makkah',
       ]);
-      expect(athanCatalog.take(4).every((athan) => athan.featured), isTrue);
-      expect(athanCatalog.skip(4).any((athan) => athan.featured), isFalse);
-      expect(athanCatalog[3].arabicName, 'هاشم السقاف');
+      expect(athanCatalog.take(5).every((athan) => athan.featured), isTrue);
+      expect(athanCatalog.skip(5).any((athan) => athan.featured), isFalse);
+      expect(athanCatalog[4].arabicName, 'هاشم السقاف');
       // A quiet recording is raised to the level of the others.
-      expect(athanCatalog[3].gainSteps, 11);
+      expect(athanCatalog[4].gainSteps, 11);
       expect(athanCatalog[0].arabicName, 'محمد بن مروان قصاص');
-      expect(athanCatalog[1].arabicName, contains('محمد جازي'));
+      expect(athanCatalog[1].arabicName, startsWith('محمد بن مروان قصاص'));
       expect(athanCatalog[2].arabicName, contains('محمد جازي'));
-      expect(athanCatalog[2].seconds, lessThan(athanCatalog[1].seconds));
-      expect(athanCatalog.length, greaterThanOrEqualTo(15));
+      expect(athanCatalog[3].arabicName, contains('محمد جازي'));
+      expect(athanCatalog[3].seconds, lessThan(athanCatalog[2].seconds));
+      expect(athanCatalog.length, greaterThanOrEqualTo(16));
+    });
+
+    test('lists the clear Qassas athan from the file the app ships', () {
+      final clear = athanCatalog.singleWhere((a) => a.id == 'qassas_clear');
+      expect(clear.bundled, 'qassas_clear');
+      expect(clear.soundId, 'qassas_clear');
+      expect(clear.url, isEmpty);
+      expect(clear.cutFrom, isNull);
+      expect(clear.place, 'Madinah, Saudi Arabia');
+      expect(clear.length, '3:42');
+      expect(clear.note, startsWith("Muezzin of the Prophet's Mosque"));
+      final bundled = File(SoundCatalog.byId('qassas_clear').assetPath!);
+      final data = bundled.readAsBytesSync();
+      expect(clear.bytes, data.length);
+      expect(clear.sha256, sha256.convert(data).toString());
+    });
+
+    test('never fetches an athan that ships in the app', () async {
+      final clear = athanCatalog.singleWhere((a) => a.bundled != null);
+      final downloads = AthanDownloads(
+        client: () => MockClient((_) async {
+          requests++;
+          return http.Response('', 404);
+        }),
+        folder: () async => folder,
+      );
+      await expectLater(downloads.add(clear), throwsArgumentError);
+      expect(requests, 0);
+      expect(await downloads.sounds(), isEmpty);
     });
 
     test('can fetch and check every entry', () {
@@ -102,17 +133,21 @@ void main() {
       for (final athan in athanCatalog) {
         expect(ids.add(athan.id), isTrue, reason: athan.id);
         expect(athan.id, matches(RegExp(r'^[a-z0-9_]+$')));
-        expect(Uri.parse(athan.url).scheme, 'https', reason: athan.id);
+        if (athan.bundled == null) {
+          expect(Uri.parse(athan.url).scheme, 'https', reason: athan.id);
+        }
         expect(athan.sha256, matches(RegExp(r'^[0-9a-f]{64}$')));
         expect(athan.bytes, inInclusiveRange(200000, SoundLibrary.maxBytes));
         expect(athan.seconds, inInclusiveRange(60, 600), reason: athan.id);
         expect(athan.name, isNotEmpty);
         expect(athan.arabicName, isNotEmpty);
         expect(athan.source, isNotEmpty);
-        // Every sound in the app has its own id; added athans keep theirs apart.
+        // Every sound in the app has its own id; added athans keep theirs
+        // apart. A bundled athan is the built-in sound it names.
         expect(
           SoundCatalog.builtIns.any((sound) => sound.id == athan.soundId),
-          isFalse,
+          athan.bundled != null,
+          reason: athan.id,
         );
       }
     });
@@ -139,11 +174,17 @@ void main() {
       final athans = (record['athans'] as List).cast<Map<String, dynamic>>();
       expect(athans.map((a) => a['id']), athanCatalog.map((a) => a.id));
       for (final (index, athan) in athans.indexed) {
+        expect(athan['permission'], isNotEmpty);
         if (athan['cut_from'] != null) continue;
+        if (athan['bundled'] != null) {
+          // Its size and checksum are read from the file the app ships.
+          expect(athanCatalog[index].bundled, athan['bundled']);
+          expect(athan['url'], isNull);
+          continue;
+        }
         expect(athanCatalog[index].sha256, athan['sha256']);
         expect(athanCatalog[index].url, athan['url']);
         expect(athanCatalog[index].bytes, athan['bytes']);
-        expect(athan['permission'], isNotEmpty);
       }
     });
   });
