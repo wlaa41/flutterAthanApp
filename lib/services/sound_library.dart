@@ -147,6 +147,15 @@ class SoundCatalog {
       iosSound: 'nasser_al_qatami_short.wav',
     ),
     SoundOption(
+      id: 'qassas_clear',
+      name: 'Muhammad Marwan Qassas · clear',
+      description: 'محمد بن مروان · clear sound edit · available offline',
+      kind: SoundKind.athan,
+      assetPath: 'asset/qassas_clear.mp3',
+      androidResource: 'qassas_clear',
+      iosSound: 'qassas_clear_short.wav',
+    ),
+    SoundOption(
       id: 'iqama',
       name: 'Iqama recitation',
       description: 'Aishatu98 · available offline',
