@@ -17,7 +17,8 @@ an APK for every processor type would be over GitHub's 100 MB file limit.
 ## Reminders that fit your day
 
 - Choose Classic Athan, Beautiful Athan, Mishary Alafasy, Makkah (Ali Mulla),
-  Madinah, Abdul Basit, Minshawi, or Nasser Al Qatami, plus an Iqama recitation,
+  Madinah, Abdul Basit, Minshawi, Nasser Al Qatami, or Muhammad Marwan Qassas
+  (clear sound edit), plus an Iqama recitation,
   beep, double beep, chime, strong beep, vibration, or silence. Recordings and tones are
   bundled, not streamed. Audio credits are available in Settings.
 - **Trending athans** at the top of the sound picker adds more muezzins with one

@@ -124,3 +124,29 @@ better. Recordings the collection only holds at 16 kb/s were left out.
 files of the first round were fetched through the app's own downloader and matched on
 20 November 2026. On iPhone an added athan plays in previews; its notification
 uses a beep, as other imported audio does.
+
+## Bundled at the owner's request, 22 November 2026
+
+| Asset / Android resource | Attribution | Source and permission |
+| --- | --- | --- |
+| `qassas_clear.mp3`, `qassas_clear_short.wav` | Muhammad Marwan Qassas (محمد بن مروان), as identified by the app owner | [TikTok video by @chahr_2](https://www.tiktok.com/@chahr_2/video/7677998173700312353). No reuse licence is stated by the source. |
+
+Unlike the fetched athans above, this recording is in the repository and the
+APK. The app owner asked for it in the app, and its only source is a TikTok
+post, which has no fixed download address for the phone to fetch and check.
+
+The post's audio is an edit with added reverb, the "clear sound" it is shared
+for. It is a different performance from the Qassas athan in Trending athans
+(Asr, 3 Safar 1440): their pitch contours do not line up at any offset, speed
+or key, while the same comparison still finds this recording after reverb, EQ
+and a 2% speed change are added to it.
+
+The source is the video as saved from the TikTok app: 21,495,839 bytes,
+SHA-256 `2ae07feae82510440f44a56d87ff846e55c790fba4ebc141eedc037110bbba70`.
+Its 128 kb/s AAC track is used up to 222.0 s; TikTok's end card and logo sound
+follow and are left out. (The copy TikTok serves on the web carries the same
+audio at 32 kb/s.) `tools/prepare_featured_audio.py --only qassas_clear
+--source-dir DIR`, with that file in DIR as `qassas_clear.mp4`, rebuilds the
+mono 44.1 kHz 96 kb/s MP3 and the 28-second iPhone excerpt with a one-second
+fade, as for the featured recordings. There is no gain change: it measures
+-16.7 LUFS, beside -17.1 for Nasser Al Qatami.

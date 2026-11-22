@@ -1,8 +1,13 @@
-"""Rebuild the six featured Athan recordings from checksum-pinned sources.
+"""Rebuild the featured Athan recordings from checksum-pinned sources.
 
 Install imageio-ffmpeg==0.8.1, then run this script. --source-dir optionally
-reuses downloaded originals named <id>.mp3 (or madinah.ogg). This command is
-build-time tooling only: the app never downloads these recordings at prayer time.
+reuses originals named <id> plus the source's extension (<id>.mp3, madinah.ogg,
+qassas_clear.mp4). A recording with no "url" has no public download and is
+read only from --source-dir. --only rebuilds the listed ids and keeps every
+other entry of the verification report as it is, so adding one recording does
+not re-encode the others. A recording's "end_seconds" ends it at that point.
+This command is build-time tooling only: the app never downloads these
+recordings at prayer time.
 """
 
 import argparse
@@ -35,36 +40,52 @@ def run(ffmpeg, *arguments):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source-dir", type=Path)
+    parser.add_argument("--only", help="comma-separated ids to rebuild; others are left untouched")
     args = parser.parse_args()
     ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+    encoder = imageio_ffmpeg.get_ffmpeg_version()
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    wanted = set(args.only.split(",")) if args.only else None
+    known = {record["id"] for record in manifest["recordings"]}
+    if wanted and not wanted <= known:
+        raise RuntimeError(f"Not in the manifest: {', '.join(sorted(wanted - known))}")
     report = []
     with tempfile.TemporaryDirectory(prefix="athan-featured-") as temp:
         for record in manifest["recordings"]:
             name = record["id"]
-            extension = ".ogg" if name == "madinah" else ".mp3"
+            if wanted and name not in wanted:
+                continue
+            extension = Path(record["source_filename"]).suffix.lower() or ".mp3"
             source = Path(temp) / (name + extension)
-            if args.source_dir:
+            if args.source_dir and (args.source_dir / source.name).exists():
                 data = (args.source_dir / source.name).read_bytes()
-            else:
+            elif record.get("url"):
                 request = urllib.request.Request(
                     record["url"],
                     headers={"User-Agent": "AthanApp/2.1 (https://github.com/wlaa41/flutterAthanApp)"},
                 )
                 with urllib.request.urlopen(request, timeout=60) as response:
                     data = response.read()
+            else:
+                raise RuntimeError(f"{name} has no public download; put its original at --source-dir/{source.name}")
             if hashlib.sha256(data).hexdigest() != record["sha256"]:
                 raise RuntimeError(f"Source checksum changed for {name}; review before replacing it.")
             source.write_bytes(data)
 
             # Decode the complete source, so damaged/truncated media fails here.
-            decoded = run(ffmpeg, "-i", str(source), "-f", "s16le", "-ac", "1", "-ar", "8000", "-")
+            decoded = run(ffmpeg, "-i", str(source), "-vn", "-f", "s16le", "-ac", "1", "-ar", "8000", "-")
             duration = len(decoded) / 16000
             if not 30 < duration < 600:
                 raise RuntimeError(f"Unexpected full-recording duration for {name}: {duration}")
+            end = record.get("end_seconds")
+            if end is not None:
+                if not 30 < end < duration:
+                    raise RuntimeError(f"end_seconds for {name} must fall inside the recording")
+                duration = end
+            limit = ["-t", str(end)] if end is not None else []
 
             full = ASSET / (name + ".mp3")
-            run(ffmpeg, "-y", "-i", str(source), "-vn", "-map_metadata", "-1",
+            run(ffmpeg, "-y", "-i", str(source), *limit, "-vn", "-map_metadata", "-1",
                 "-ac", "1", "-ar", "44100", "-b:a", "96k", str(full))
             shutil.copyfile(full, RAW / full.name)
             excerpt = ASSET / (name + "_short.wav")
@@ -90,10 +111,21 @@ def main():
                 "android_copy_matches": full.read_bytes() == (RAW / full.name).read_bytes(),
             })
             print(f"{name}: {full_seconds:.1f}s MP3, {seconds:.0f}s PCM WAV, Android copy verified")
-    Path(__file__).with_name("athan_audio_verification.json").write_text(
-        json.dumps({"encoder": imageio_ffmpeg.get_ffmpeg_version(), "recordings": report}, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    verification = Path(__file__).with_name("athan_audio_verification.json")
+    if wanted:
+        # Merge: entries not rebuilt keep their numbers and the encoder that made them.
+        previous = json.loads(verification.read_text(encoding="utf-8"))
+        rebuilt = {entry["id"]: entry for entry in report}
+        for entry in report:
+            if encoder != previous["encoder"]:
+                entry["encoder"] = encoder
+        kept = {entry["id"]: entry for entry in previous["recordings"] if entry["id"] not in rebuilt}
+        order = [record["id"] for record in manifest["recordings"]]
+        merged = {**kept, **rebuilt}
+        result = {"encoder": previous["encoder"], "recordings": [merged[i] for i in order if i in merged]}
+    else:
+        result = {"encoder": encoder, "recordings": report}
+    verification.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
 
 
 if __name__ == "__main__":

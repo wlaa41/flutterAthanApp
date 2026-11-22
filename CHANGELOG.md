@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.2.0-rc.11 (build 21)
+
+- New built-in athan: **Muhammad Marwan Qassas · clear** (محمد بن مروان), the
+  "clear sound" edit with added reverb shared on TikTok by @chahr_2. It is
+  bundled, so it plays offline with nothing to download: the full 3:42 on
+  Android, a 28-second excerpt for iPhone notifications.
+- It is a different recording from the Qassas athan in Trending athans (Asr,
+  3 Safar 1440). Both stay.
+- Taken from the video as saved from the TikTok app (128 kb/s AAC, four times
+  the web copy), ending before TikTok's end card and logo sound. Source,
+  checksum and permission notes are in `asset/AUDIO_SOURCES.md`; the in-app
+  Audio credits list it too.
+- `tools/prepare_featured_audio.py`: `--only` rebuilds the listed recordings
+  without re-encoding the others; a recording with no public download is read
+  from `--source-dir`; `end_seconds` ends a recording early.
+
 ## 2.2.0-rc.10 (build 20)
 
 - Weekly beep days need **Confirm**. Turning the schedule on or off, a day,

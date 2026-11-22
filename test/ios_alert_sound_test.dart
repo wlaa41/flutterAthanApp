@@ -64,6 +64,7 @@ void main() {
   for (final entry in {
     'beep': 'beep.wav',
     'iqama': 'iqama_short.wav',
+    'qassas_clear': 'qassas_clear_short.wav',
   }.entries) {
     test('${entry.key} retains its supported iOS sound', () async {
       await plugin.show(

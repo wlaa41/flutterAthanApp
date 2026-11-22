@@ -54,6 +54,16 @@
       "ios_seconds": 28.0,
       "ios_sha256": "b89ba2fed0b9d7399f1b31836f1c0fda2fd5089d14b9985e494862bece59a2b7",
       "android_copy_matches": true
+    },
+    {
+      "id": "qassas_clear",
+      "duration_seconds": 222.0,
+      "mp3_bytes": 2664848,
+      "mp3_sha256": "18495706aa71db07992c8d7bc1c8bbafba7a97116cf8f05a833a294a7d46ef77",
+      "ios_seconds": 28.0,
+      "ios_sha256": "ee2aa4e31482b2d1afec08e71a899962c2952dedeb80b76802c442eedeb886c8",
+      "android_copy_matches": true,
+      "encoder": "6.1.1-3ubuntu5"
     }
   ]
 }

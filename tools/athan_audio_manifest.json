@@ -83,6 +83,20 @@
       "sha256": "4d0fabe0e0ef52186646a256220f74a972ba698ac269165fed5d52de3202d656",
       "bytes": 2974689,
       "checked_on": "2026-11-19"
+    },
+    {
+      "id": "qassas_clear",
+      "name": "Muhammad Marwan Qassas · clear",
+      "performer": "Muhammad Marwan Qassas (محمد بن مروان), as identified by the app owner",
+      "url": null,
+      "source_page": "https://www.tiktok.com/@chahr_2/video/7677998173700312353",
+      "source_filename": "34999649-68341.mp4",
+      "source_note": "Video saved from the TikTok app by the app owner (TikTok vid v26044gc0000da6rjsvog65uorpka990). The post's audio is an edit with added reverb, the 'clear sound' effect. The athan ends at 222.0 s; TikTok's end card and logo sound follow and are left out.",
+      "end_seconds": 222.0,
+      "permission": "No reuse licence is stated by the source. Bundled at the app owner's request.",
+      "sha256": "2ae07feae82510440f44a56d87ff846e55c790fba4ebc141eedc037110bbba70",
+      "bytes": 21495839,
+      "checked_on": "2026-11-22"
     }
   ]
 }
