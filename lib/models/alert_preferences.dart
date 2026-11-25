@@ -14,6 +14,14 @@ class AlertPreferences {
   final int beepPower;
   final bool beepVibrate, beepAlarmVolume;
 
+  /// "Easier screen": any tap on the alarm screen stops the athan.
+  final bool easierScreen;
+
+  /// How long Snooze waits before the athan plays again.
+  final int snoozeMinutes;
+
+  static const snoozeChoices = [5, 10, 15, 20, 30];
+
   const AlertPreferences({
     this.athanSoundId = 'smooth',
     this.iqamaSoundId = 'iqama',
@@ -29,6 +37,8 @@ class AlertPreferences {
     this.beepPower = 4,
     this.beepVibrate = false,
     this.beepAlarmVolume = false,
+    this.easierScreen = false,
+    this.snoozeMinutes = 10,
   });
 
   /// Overnight shifts belong to their starting weekday; the end is exclusive.
@@ -63,6 +73,8 @@ class AlertPreferences {
     int? beepPower,
     bool? beepVibrate,
     bool? beepAlarmVolume,
+    bool? easierScreen,
+    int? snoozeMinutes,
   }) => AlertPreferences(
     athanSoundId: athanSoundId ?? this.athanSoundId,
     iqamaSoundId: iqamaSoundId ?? this.iqamaSoundId,
@@ -90,6 +102,8 @@ class AlertPreferences {
     beepPower: (beepPower ?? this.beepPower).clamp(1, 5),
     beepVibrate: beepVibrate ?? this.beepVibrate,
     beepAlarmVolume: beepAlarmVolume ?? this.beepAlarmVolume,
+    easierScreen: easierScreen ?? this.easierScreen,
+    snoozeMinutes: (snoozeMinutes ?? this.snoozeMinutes).clamp(1, 60),
   );
 
   Map<String, dynamic> toJson() => {
@@ -107,6 +121,8 @@ class AlertPreferences {
     'beepPower': beepPower,
     'beepVibrate': beepVibrate,
     'beepAlarmVolume': beepAlarmVolume,
+    'easierScreen': easierScreen,
+    'snoozeMinutes': snoozeMinutes,
   };
 
   factory AlertPreferences.fromJson(Map<String, dynamic> json) {
@@ -126,6 +142,8 @@ class AlertPreferences {
       beepPower: number('beepPower'),
       beepVibrate: json['beepVibrate'] as bool?,
       beepAlarmVolume: json['beepAlarmVolume'] as bool?,
+      easierScreen: json['easierScreen'] as bool?,
+      snoozeMinutes: number('snoozeMinutes'),
     );
   }
 

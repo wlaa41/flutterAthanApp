@@ -31,8 +31,15 @@ class NotificationHealth {
   final RingerMode ringer;
   final bool doNotDisturb;
 
-  /// The user turned the "Athan playback" channel down in phone settings.
+  /// The user turned the "Athan alarm" channel down in phone settings.
   final bool playbackMuted;
+
+  /// Android may open the black alarm screen over the lock screen. Android
+  /// 14+ lets the user turn this off under "Full screen notifications".
+  final bool fullScreenAllowed;
+
+  /// A snoozed athan waits to play again at this time.
+  final DateTime? snoozedUntil;
   const NotificationHealth({
     required this.notificationsEnabled,
     required this.exactAlarmsEnabled,
@@ -45,6 +52,8 @@ class NotificationHealth {
     this.ringer = RingerMode.normal,
     this.doNotDisturb = false,
     this.playbackMuted = false,
+    this.fullScreenAllowed = true,
+    this.snoozedUntil,
   });
 
   /// An Athan can play out loud right now.
@@ -177,8 +186,10 @@ class NotificationService {
     SoundOption sound(String id) => sounds
         .firstWhere((s) => s.id == id, orElse: () => SoundCatalog.byId('beep'))
         .atPower(settings.beepPower);
-    if (_android)
+    if (_android) {
       await _sendBeepOptions(settings, sound(settings.quietSoundId));
+      await _sendAlarmScreen(settings);
+    }
     final events = plan.map((a) {
       final s = sound(a.soundId);
       return {
@@ -245,6 +256,27 @@ class NotificationService {
           'alarmVolume': settings.beepAlarmVolume,
         }),
       );
+
+  /// Tells the phone how the alarm screen behaves: "Easier screen" and the
+  /// snooze length. Read there when an athan plays, with the app closed.
+  Future<void> _sendAlarmScreen(AlertPreferences settings) =>
+      _native.invokeMethod<void>('alarmScreen', alarmScreenJson(settings));
+
+  /// The alarm screen's options as the phone stores them. Public for tests.
+  static String alarmScreenJson(AlertPreferences settings) => jsonEncode({
+    'easierScreen': settings.easierScreen,
+    'snoozeMinutes': settings.snoozeMinutes,
+  });
+
+  /// Android 14+: the page where "Full screen notifications" is allowed.
+  Future<void> openFullScreenSettings() async {
+    if (_android) await _native.invokeMethod<void>('fullScreenSettings');
+  }
+
+  /// Takes back a snoozed athan before it plays again.
+  Future<void> cancelSnooze() async {
+    if (_android) await _native.invokeMethod<void>('cancelSnooze');
+  }
 
   /// Plays the chosen beep once, the way a reminder would sound.
   Future<bool> previewBeep(AlertPreferences settings) async {
@@ -354,6 +386,9 @@ class NotificationService {
       },
       doNotDisturb: native['dnd'] == true,
       playbackMuted: native['playbackMuted'] == true,
+      // An older phone side that does not report it can show the screen.
+      fullScreenAllowed: native['fullScreen'] != false,
+      snoozedUntil: at(native['snoozedUntil']),
     );
   }
 

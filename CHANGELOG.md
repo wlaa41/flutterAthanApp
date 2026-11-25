@@ -1,5 +1,42 @@
 # Changelog
 
+## 2.2.0-rc.13 (build 23)
+
+- **Alarm screen** (Android). When the athan plays with the phone locked or
+  the screen off, the whole screen turns black like an alarm clock: the prayer,
+  the time and the date, and one slider. Slide right to stop, slide left to
+  snooze. With the phone in use, the athan shows as a pop-up instead, and a tap
+  on it opens the screen. Back does nothing there; the volume keys set the alarm
+  volume. The screen closes itself when the athan ends.
+- **Snooze and Stop on the notification.** The athan's notification now has
+  Snooze, Stop and Beep today. Snooze brings the athan back through the same
+  alarm as a prayer, so it rings with the phone locked. While it waits, a quiet
+  line in the shade counts down, with **Cancel snooze**. Opening the app keeps
+  a snooze.
+- **Settings → Basics → Alarm screen**: **Easier screen** (any tap on the alarm
+  screen stops the athan; a slide to the left still snoozes), **Snooze for** 5,
+  10, 15, 20 or 30 minutes (10 by default), and **Try the alarm screen**.
+  Reminder readiness shows whether Android allows the full-screen alarm and
+  opens the page to allow it.
+- A beep, vibration only and silent reminders stay notifications, as before.
+- The athan plays in a new notification channel, "Athan alarm", at high
+  importance, which Android needs before it opens a full-screen alarm. If the
+  old "Athan playback" channel had been turned down, the new one starts turned
+  down too. The old one is renamed "Beep playback" and keeps showing a beep.
+- **Meaning challenge**, a new tab. It starts with Surah Al-Kahf: 146 words and
+  phrases, each asked as "what does it mean" with four meanings in Arabic, in
+  17 stages that follow the surah, then a final challenge on the whole surah.
+  A round asks 6 questions (the final 12), fewer than a stage holds, so a
+  replay brings other words, and words missed before come back first. 25
+  seconds a question (15 in the final), three hearts, points for speed, ×1.5
+  after three right in a row and ×2 after five, two helps (remove two answers,
+  ten more seconds), stars, best scores, a rank by words mastered, and a review
+  of every word's meaning at the end. Each stage has a list to learn the words
+  first, with the verse and al-Tafsir al-Muyassar.
+- The words are shown from the bundled Hafs text in its own font, never
+  retyped. `tools/make_kahf_quiz.py` checks every question against the text and
+  writes `lib/data/kahf_challenge.dart`.
+
 ## 2.2.0-rc.12 (build 22)
 
 - **Muhammad Marwan Qassas · clear** now sits in Trending athans, right under

@@ -22,8 +22,18 @@ object PrayerAlarms {
     private const val REQUEST = 7821
     /** A reminder that fires more than this late becomes a quiet note. */
     const val LATE_MILLIS = 10 * 60 * 1000L
+    /** A beep while it plays: normal importance, no pop-up. */
     const val CHANNEL_PLAYBACK = "athan_playback_v1"
+    /** The athan itself. High importance is what lets Android open the alarm
+     *  screen over the lock screen, and show Snooze and Stop as a pop-up. */
+    const val CHANNEL_ALARM = "athan_alarm_v1"
+    private const val PLAYBACK_NAME = "Beep playback"
+    const val CHANNEL_SNOOZED = "athan_snoozed_v1"
     const val CHANNEL_QUIET = "prayer_quiet_v3"
+    /** The one snoozed athan on its way. Planned prayers use far larger ids. */
+    const val SNOOZE_ID = 997
+    const val PLAYING_NOTICE = 7822
+    const val SNOOZED_NOTICE = 7823
     const val CHANNEL_VIBRATE = "prayer_vibrate_v3"
     private val RETIRED = listOf("athan_silent_v1", "athan_vibrate_v1")
     /** Three long pulses, a pause, three more: hard to miss in a pocket. */
@@ -45,15 +55,67 @@ object PrayerAlarms {
         return PendingIntent.getBroadcast(c, REQUEST, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     }
 
-    /** The app's new plan. A test alarm still on its way is kept: the app
-     *  refreshes its plan every time it opens. */
+    /** The app's new plan. A test alarm or a snoozed athan still on its way is
+     *  kept: the app refreshes its plan every time it opens. */
     @Synchronized fun replace(c: Context, events: String) {
         val parsed = list(JSONArray(events)) // Validate before changing a working queue.
         val now = System.currentTimeMillis()
-        val tests = list(queue(c)).filter { it.optBoolean("test") && it.optLong("time") > now }
-        save(c, parsed + tests)
-        if (parsed.isEmpty() && tests.isEmpty()) c.stopService(Intent(c, AthanPlaybackService::class.java))
+        val kept = list(queue(c)).filter { (it.optBoolean("test") || it.optBoolean("snooze")) && it.optLong("time") > now }
+        save(c, parsed + kept)
+        if (parsed.isEmpty() && kept.isEmpty()) c.stopService(Intent(c, AthanPlaybackService::class.java))
         armNext(c)
+    }
+
+    /**
+     * Snooze: the athan comes back [minutes] from now, through the same alarm as
+     * a prayer, so it rings with the phone locked. One snooze waits at a time.
+     * Returns when it will ring.
+     */
+    @Synchronized fun snooze(c: Context, event: JSONObject, minutes: Int = AlarmScreen.snoozeMinutes(c)): Long {
+        val at = System.currentTimeMillis() + minutes.coerceIn(1, 60) * 60_000L
+        val first = if (event.optBoolean("snooze")) event.optInt("snoozedFrom", event.optInt("id")) else event.optInt("id")
+        val again = JSONObject(event.toString())
+            .put("id", SNOOZE_ID).put("time", at).put("snooze", true).put("snoozedFrom", first)
+        again.remove("test")
+        save(c, list(queue(c)).filter { it.optInt("id") != SNOOZE_ID } + again)
+        armNext(c)
+        showSnoozed(c, again)
+        return at
+    }
+
+    /** "Cancel snooze": the snoozed athan will not come back. */
+    @Synchronized fun cancelSnooze(c: Context) {
+        save(c, list(queue(c)).filter { it.optInt("id") != SNOOZE_ID })
+        armNext(c)
+        try { nm(c).cancel(SNOOZED_NOTICE) } catch (_: RuntimeException) { }
+    }
+
+    fun snoozedUntil(c: Context): Long? = list(queue(c))
+        .firstOrNull { it.optInt("id") == SNOOZE_ID }?.optLong("time")?.takeIf { it > System.currentTimeMillis() }
+
+    private fun nm(c: Context) = c.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+    /** Android 14+ lets the user turn full-screen alerts off for an app. */
+    fun fullScreenAllowed(c: Context): Boolean = Build.VERSION.SDK_INT < 34 || nm(c).canUseFullScreenIntent()
+
+    /** A quiet line in the shade while a snooze waits, counting down, with "Cancel snooze". */
+    private fun showSnoozed(c: Context, event: JSONObject) {
+        channel(c, CHANNEL_SNOOZED)
+        val at = event.optLong("time")
+        val builder = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(c, CHANNEL_SNOOZED) else Notification.Builder(c)
+        val cancel = PendingIntent.getBroadcast(c, 4, Intent(c, PrayerAlarmReceiver::class.java).setAction("CANCEL_SNOOZE"),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        builder.setSmallIcon(R.drawable.ic_prayer_notification)
+            .setContentTitle("${event.optString("title", "Athan")} · snoozed")
+            .setContentText("The athan plays again at ${AlarmScreen.clock(c, at)}")
+            .setCategory(Notification.CATEGORY_ALARM)
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
+            .setOngoing(true).setShowWhen(true).setWhen(at)
+            .setUsesChronometer(true).setChronometerCountDown(true)
+            .setContentIntent(PendingIntent.getActivity(c, 0, Intent(c, MainActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
+            .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Cancel snooze", cancel)
+        if (Build.VERSION.SDK_INT < 26) @Suppress("DEPRECATION") builder.setPriority(Notification.PRIORITY_LOW)
+        try { nm(c).notify(SNOOZED_NOTICE, builder.build()) } catch (_: RuntimeException) { }
     }
 
     /** A test that goes through the same alarm as a real prayer. */
@@ -116,10 +178,12 @@ object PrayerAlarms {
         (c.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).currentInterruptionFilter.let {
             it != NotificationManager.INTERRUPTION_FILTER_ALL && it != NotificationManager.INTERRUPTION_FILTER_UNKNOWN
         }
-    /** The athan's own notification channel, turned down by the user in the phone's settings. */
-    private fun playbackMuted(c: Context): Boolean {
+    /** The channel a playing sound shows in, turned down by the user in the phone's settings. */
+    private fun playbackMuted(c: Context, tone: Boolean = false): Boolean {
         if (Build.VERSION.SDK_INT < 26) return false
-        val channel = (c.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).getNotificationChannel(CHANNEL_PLAYBACK)
+        val id = if (tone) CHANNEL_PLAYBACK else CHANNEL_ALARM
+        channel(c, id)
+        val channel = nm(c).getNotificationChannel(id)
         return channel != null && channel.importance < NotificationManager.IMPORTANCE_DEFAULT
     }
 
@@ -153,6 +217,8 @@ object PrayerAlarms {
             "dnd" to doNotDisturb(c),
             "playbackMuted" to playbackMuted(c),
             "notifications" to notificationsAllowed(c),
+            "fullScreen" to fullScreenAllowed(c),
+            "snoozedUntil" to snoozedUntil(c),
             "sdk" to Build.VERSION.SDK_INT,
             "maker" to Build.MANUFACTURER,
         )
@@ -165,9 +231,27 @@ object PrayerAlarms {
         val nm = c.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         // Older channels were created at normal importance and cannot be raised.
         for (old in nm.notificationChannels) if (old.id in RETIRED || (old.id.startsWith("athan_fallback_") && old.id.endsWith("_v2"))) nm.deleteNotificationChannel(old.id)
+        // "Athan playback" now only shows a beep as it plays; the athan has its own.
+        nm.getNotificationChannel(CHANNEL_PLAYBACK)?.let { old ->
+            if (old.name != PLAYBACK_NAME) try { old.name = PLAYBACK_NAME; nm.createNotificationChannel(old) } catch (_: RuntimeException) { }
+        }
         if (nm.getNotificationChannel(id) != null) return
         val created = when (id) {
-            CHANNEL_PLAYBACK -> NotificationChannel(id, "Athan playback", NotificationManager.IMPORTANCE_DEFAULT).apply {
+            CHANNEL_PLAYBACK -> NotificationChannel(id, PLAYBACK_NAME, NotificationManager.IMPORTANCE_DEFAULT).apply {
+                setSound(null, null); enableVibration(false)
+            }
+            CHANNEL_ALARM -> {
+                // Before this channel the athan played in "Athan playback". If the
+                // user had turned that down, the athan stays turned down.
+                val old = nm.getNotificationChannel(CHANNEL_PLAYBACK)
+                val importance = if (old != null && old.importance < NotificationManager.IMPORTANCE_DEFAULT) old.importance
+                    else NotificationManager.IMPORTANCE_HIGH
+                NotificationChannel(id, "Athan alarm", importance).apply {
+                    description = "The athan as it plays, with Snooze and Stop and the alarm screen."
+                    setSound(null, null); enableVibration(false)
+                }
+            }
+            CHANNEL_SNOOZED -> NotificationChannel(id, "Snoozed athan", NotificationManager.IMPORTANCE_LOW).apply {
                 setSound(null, null); enableVibration(false)
             }
             CHANNEL_VIBRATE -> NotificationChannel(id, "Prayer reminders (vibrate)", NotificationManager.IMPORTANCE_HIGH).apply {
@@ -196,16 +280,25 @@ object PrayerAlarms {
         return if (event.optString("soundId") in BeepMode.TONES && c.resources.getIdentifier(wanted, "raw", c.packageName) != 0) wanted else "beep"
     }
 
+    /** Where a playing sound is shown: the athan as an alarm, a beep quietly. */
+    fun playingChannel(event: JSONObject) = if (event.optString("soundId") in BeepMode.TONES) CHANNEL_PLAYBACK else CHANNEL_ALARM
+
     fun notification(c: Context, event: JSONObject, playing: Boolean, channelId: String = CHANNEL_QUIET, text: String? = null): Notification {
         val soundId = event.optString("soundId")
+        // The athan playing: the alarm screen, and Snooze beside Stop.
+        val alarm = playing && soundId !in BeepMode.TONES
         channel(c, channelId)
         val builder = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(c, channelId) else Notification.Builder(c)
+        val open = if (alarm) PendingIntent.getActivity(c, 3, AlarmActivity.intent(c, event), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            else PendingIntent.getActivity(c, 0, Intent(c, MainActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         builder.setSmallIcon(R.drawable.ic_prayer_notification).setContentTitle(event.optString("title", "Prayer reminder"))
-            .setContentText(text ?: if (playing && soundId !in BeepMode.TONES) "Tap Stop to end the athan" else event.optString("body"))
+            .setContentText(text ?: if (alarm) "Snooze ${AlarmScreen.snoozeMinutes(c)} min, or Stop the athan" else event.optString("body"))
             .setCategory(if (playing) Notification.CATEGORY_ALARM else Notification.CATEGORY_REMINDER)
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .setAutoCancel(!playing).setOngoing(playing).setShowWhen(true)
-            .setContentIntent(PendingIntent.getActivity(c, 0, Intent(c, MainActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
+            .setContentIntent(open)
+        // Locked or screen off: the black alarm screen. In use: a pop-up with the buttons.
+        if (alarm) builder.setFullScreenIntent(open, true)
         if (Build.VERSION.SDK_INT < 26) {
             @Suppress("DEPRECATION")
             builder.setPriority(Notification.PRIORITY_HIGH)
@@ -217,8 +310,12 @@ object PrayerAlarms {
         }
         if (playing) {
             val stop = PendingIntent.getService(c, 1, Intent(c, AthanPlaybackService::class.java).setAction("STOP"), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            if (alarm) {
+                val snooze = PendingIntent.getService(c, 5, Intent(c, AthanPlaybackService::class.java).setAction("SNOOZE"), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+                builder.addAction(android.R.drawable.ic_lock_idle_alarm, "Snooze", snooze)
+            }
             builder.addAction(android.R.drawable.ic_media_pause, "Stop", stop)
-            if (soundId !in BeepMode.TONES) {
+            if (alarm) {
                 val beep = PendingIntent.getService(c, 2, Intent(c, AthanPlaybackService::class.java).setAction("BEEP_TODAY"), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
                 builder.addAction(android.R.drawable.ic_lock_silent_mode, "Beep today", beep)
             }
@@ -239,9 +336,11 @@ object PrayerAlarms {
     fun showFallback(c: Context, event: JSONObject) = show(c, event, "athan_fallback_${fallbackTone(c, event)}_v3")
 
     /** Delivers [event] now. [onTime] is false for a reminder that arrived late. */
-    fun deliver(c: Context, event: JSONObject, onTime: Boolean = true) {
-        if (!onTime) { show(c, event, CHANNEL_QUIET); return }
-        when (decide(event.optString("soundId"), ringer(c), doNotDisturb(c), playbackMuted(c))) {
+    fun deliver(c: Context, event: JSONObject, onTime: Boolean = true): Delivery {
+        if (!onTime) { show(c, event, CHANNEL_QUIET); return Delivery.QUIET }
+        val soundId = event.optString("soundId")
+        val decision = decide(soundId, ringer(c), doNotDisturb(c), playbackMuted(c, soundId in BeepMode.TONES))
+        when (decision) {
             Delivery.QUIET -> show(c, event, CHANNEL_QUIET)
             Delivery.NOTIFY -> show(c, event, CHANNEL_VIBRATE)
             Delivery.VIBRATE -> {
@@ -257,11 +356,13 @@ object PrayerAlarms {
                 showFallback(c, event)
             }
         }
+        return decision
     }
 }
 
 class PrayerAlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action == "CANCEL_SNOOZE") { PrayerAlarms.cancelSnooze(context); return }
         if (intent.action != "PRAYER_ALERT") {
             // Boot, app update, clock change: Android drops alarms and geofences.
             PrayerAlarms.armNext(context)
@@ -275,6 +376,10 @@ class PrayerAlarmReceiver : BroadcastReceiver() {
                 .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "athan:deliver").acquire(30_000L)
         } catch (_: RuntimeException) { }
         if (!PrayerAlarms.consume(context, event)) return
+        // The snoozed athan is here: its countdown line goes.
+        if (event.optBoolean("snooze")) try {
+            (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).cancel(PrayerAlarms.SNOOZED_NOTICE)
+        } catch (_: RuntimeException) { }
         // A delayed alarm should leave a useful reminder, never a late athan.
         if (System.currentTimeMillis() - event.optLong("time") > PrayerAlarms.LATE_MILLIS) {
             event.put("soundId", "silent").put("body", "This reminder arrived late. Open Athan and check Reminder readiness.")
@@ -296,6 +401,10 @@ class PrayerAlarmReceiver : BroadcastReceiver() {
 }
 
 class AthanPlaybackService : Service(), AudioManager.OnAudioFocusChangeListener {
+    companion object {
+        /** The reminder playing now, which the alarm screen stops or snoozes. */
+        @Volatile var current: JSONObject? = null
+    }
     private var player: MediaPlayer? = null
     private var focus: AudioFocusRequest? = null
     private val handler = Handler(Looper.getMainLooper())
@@ -307,12 +416,20 @@ class AthanPlaybackService : Service(), AudioManager.OnAudioFocusChangeListener 
             try { android.widget.Toast.makeText(applicationContext, "Athan: beep only until midnight", android.widget.Toast.LENGTH_SHORT).show() } catch (_: RuntimeException) { }
             stopSelf(); return START_NOT_STICKY
         }
+        if (intent?.action == "SNOOZE") {
+            current?.let { playing ->
+                val at = PrayerAlarms.snooze(this, playing)
+                try { android.widget.Toast.makeText(applicationContext, "Athan snoozed until ${AlarmScreen.clock(this, at)}", android.widget.Toast.LENGTH_SHORT).show() } catch (_: RuntimeException) { }
+            }
+            stopSelf(); return START_NOT_STICKY
+        }
         if (intent?.action == "STOP" || intent == null) { stopSelf(); return START_NOT_STICKY }
         val event = try { JSONObject(intent.getStringExtra("event") ?: "{}") } catch (_: Exception) { stopSelf(); return START_NOT_STICKY }
+        current = event
         try {
-            val notice = PrayerAlarms.notification(this, event, true, PrayerAlarms.CHANNEL_PLAYBACK)
-            if (Build.VERSION.SDK_INT >= 29) startForeground(7822, notice, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
-            else startForeground(7822, notice)
+            val notice = PrayerAlarms.notification(this, event, true, PrayerAlarms.playingChannel(event))
+            if (Build.VERSION.SDK_INT >= 29) startForeground(PrayerAlarms.PLAYING_NOTICE, notice, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
+            else startForeground(PrayerAlarms.PLAYING_NOTICE, notice)
         } catch (_: RuntimeException) {
             PrayerAlarms.showFallback(this, event)
             stopSelf(); return START_NOT_STICKY
@@ -383,6 +500,8 @@ class AthanPlaybackService : Service(), AudioManager.OnAudioFocusChangeListener 
         focus = null
     }
     override fun onDestroy() {
+        current = null
+        AlarmActivity.closeAll()
         handler.removeCallbacks(timeout)
         releasePlayer()
         abandonFocus()

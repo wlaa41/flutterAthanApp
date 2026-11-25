@@ -21,6 +21,9 @@
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
+    <!-- The black alarm screen over the lock screen, as alarm clocks do. Granted
+         at install; Android 14+ lists it under "Full screen notifications". -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
 
     <application
         android:label="Athan &amp; Quran"
@@ -48,6 +51,17 @@
             android:noHistory="true"
             android:taskAffinity=""
             android:theme="@android:style/Theme.NoDisplay" />
+        <!-- The alarm screen: the time and one slider, right to stop, left to snooze. -->
+        <activity
+            android:name=".AlarmActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleInstance"
+            android:taskAffinity="wlaa41.github.io.flutter_pro.alarm"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|screenLayout|density|uiMode"
+            android:theme="@style/AlarmTheme" />
         <receiver android:name=".GeofenceReceiver" android:exported="false" />
         <receiver android:name=".PrayerAlarmReceiver" android:exported="false">
             <intent-filter>

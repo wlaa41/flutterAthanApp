@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'athan_screen.dart';
+import 'challenge_screen.dart';
 import 'qibla_screen.dart';
 import 'quran_index_screen.dart';
 import 'settings_screen.dart';
@@ -18,6 +19,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   final List<Widget> _screens = const [
     AthanScreen(),
     QuranIndexScreen(),
+    ChallengeScreen(),
     QiblaScreen(),
     SettingsScreen(),
   ];
@@ -58,6 +60,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             BottomNavigationBarItem(
               icon: Icon(Icons.menu_book_rounded),
               label: 'Quran',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.emoji_events_rounded),
+              label: 'Challenge',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.explore_rounded),

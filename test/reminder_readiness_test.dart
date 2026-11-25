@@ -93,6 +93,9 @@ void main() {
     );
     final button = find.text('Test in 1 minute');
     await tester.scrollUntilVisible(button, 150);
+    // The Alarm screen row sits above it now; bring the whole button in view.
+    await tester.ensureVisible(button);
+    await tester.pumpAndSettle();
     final before = DateTime.now();
     await tester.tap(button);
     await tester.pumpAndSettle();

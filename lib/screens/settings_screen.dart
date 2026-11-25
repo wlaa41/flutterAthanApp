@@ -277,6 +277,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                                 SettingsSection.essentials) ...[
                               _locationSection(prefs),
                               _athanSection(prefs),
+                              if (_android) _alarmScreenSection(prefs),
                               if (_needsSetup) _setupBanner(_health!),
                             ],
                             if (_selectedSection ==
@@ -389,6 +390,102 @@ class _SettingsScreenState extends State<SettingsScreen>
         ),
     ],
   );
+
+  /// The black screen the athan opens on Android, like an alarm clock's.
+  Widget _alarmScreenSection(AlertPreferences prefs) {
+    final health = _health;
+    final snoozed = health?.snoozedUntil;
+    return _section(
+      title: 'Alarm screen',
+      icon: Icons.alarm_on_outlined,
+      children: [
+        const Text(
+          'When the athan plays, the screen turns black with the time, like an alarm clock. Slide right to stop, slide left to snooze. The notification has Snooze and Stop too.',
+        ),
+        const SizedBox(height: 4),
+        SwitchListTile.adaptive(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Easier screen'),
+          subtitle: const Text(
+            'Any tap on the alarm screen stops the athan. Slide left still snoozes.',
+          ),
+          value: prefs.easierScreen,
+          onChanged: _busy
+              ? null
+              : (value) => _save(prefs.copyWith(easierScreen: value)),
+        ),
+        const SizedBox(height: 4),
+        Text('Snooze for', style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 8,
+          runSpacing: 4,
+          children: [
+            for (final minutes in AlertPreferences.snoozeChoices)
+              ChoiceChip(
+                label: Text('$minutes min'),
+                selected: prefs.snoozeMinutes == minutes,
+                onSelected: _busy || prefs.snoozeMinutes == minutes
+                    ? null
+                    : (_) => _save(prefs.copyWith(snoozeMinutes: minutes)),
+              ),
+          ],
+        ),
+        if (health != null && !health.fullScreenAllowed) ...[
+          const SizedBox(height: 8),
+          _statusTile(
+            'Full-screen alarm is off',
+            'The athan still plays, but the black screen cannot open over the lock screen. Tap and allow full screen notifications for Athan.',
+            false,
+            () => _run(() async {
+              await NotificationService.instance.openFullScreenSettings();
+              await _loadHealth();
+            }),
+          ),
+        ],
+        if (snoozed != null && snoozed.isAfter(DateTime.now()))
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.snooze),
+            title: Text('Snoozed until ${_when(snoozed)}'),
+            trailing: TextButton(
+              onPressed: _busy
+                  ? null
+                  : () => _run(() async {
+                      await NotificationService.instance.cancelSnooze();
+                      await _loadHealth();
+                    }, success: 'Snooze cancelled.'),
+              child: const Text('Cancel snooze'),
+            ),
+          ),
+        const SizedBox(height: 8),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: OutlinedButton.icon(
+            icon: const Icon(Icons.play_arrow_outlined),
+            label: const Text('Try the alarm screen'),
+            onPressed: _busy
+                ? null
+                : () => _run(() async {
+                    await NotificationService.instance.testNotification();
+                    final health = _health;
+                    if (mounted && health != null && !health.canPlayAloud)
+                      _message(
+                        'The phone is on silent or Do Not Disturb, so the athan does not play and the alarm screen stays closed.',
+                      );
+                  }, failure: 'The test could not start. Try again.'),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: Text(
+            'Plays your athan now and opens the screen. A beep, vibration or silent reminder stays a notification.',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ),
+      ],
+    );
+  }
 
   void _editWeekly(AlertPreferences saved, AlertPreferences next) =>
       setState(() => _weeklyDraft = next.sameWeekly(saved) ? null : next);
@@ -758,6 +855,17 @@ class _SettingsScreenState extends State<SettingsScreen>
                 await _loadHealth();
               }),
             ),
+            _statusTile(
+              'Alarm screen',
+              health.fullScreenAllowed
+                  ? 'Allowed. The athan opens the black alarm screen over the lock screen.'
+                  : 'Off. The athan plays, but the alarm screen cannot open over the lock screen. Tap to allow full screen notifications.',
+              health.fullScreenAllowed,
+              () => _run(() async {
+                await NotificationService.instance.openFullScreenSettings();
+                await _loadHealth();
+              }),
+            ),
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: Icon(
@@ -862,7 +970,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         return 'Phone is on ${health.ringer.name}. It vibrates at prayer time instead of playing the Athan.';
       case RingerMode.normal:
         return health.playbackMuted
-            ? 'The "Athan playback" notification category is turned down in phone settings, so the Athan cannot play.'
+            ? 'The "Athan alarm" notification category is turned down in phone settings, so the Athan cannot play.'
             : 'Ring mode. The Athan plays at alarm volume.';
     }
   }

@@ -44,7 +44,24 @@ class MainActivity: FlutterActivity() {
                 when(call.method) {
                     "replace" -> { PrayerAlarms.replace(this, call.arguments as String); result.success(null) }
                     "health" -> result.success(PrayerAlarms.health(this))
-                    "test" -> { PrayerAlarms.deliver(this, JSONObject(call.arguments as String)); result.success(null) }
+                    "test" -> {
+                        val event = JSONObject(call.arguments as String)
+                        // The app is open, so Android would only show a pop-up:
+                        // open the alarm screen itself to show what it looks like.
+                        if (PrayerAlarms.deliver(this, event) == PrayerAlarms.Delivery.PLAY && event.optString("soundId") !in BeepMode.TONES)
+                            startActivity(AlarmActivity.intent(this, event))
+                        result.success(null)
+                    }
+                    "alarmScreen" -> { AlarmScreen.setOptions(this, call.arguments as String); result.success(null) }
+                    "cancelSnooze" -> { PrayerAlarms.cancelSnooze(this); result.success(null) }
+                    "fullScreenSettings" -> {
+                        // Android 14+: Settings, Apps, Special app access, Full screen notifications.
+                        val page = if (Build.VERSION.SDK_INT >= 34) Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT, Uri.parse("package:$packageName"))
+                            else Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                        try { startActivity(page) }
+                        catch (_: Exception) { startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName"))) }
+                        result.success(null)
+                    }
                     "testSoon" -> { PrayerAlarms.addTest(this, JSONObject(call.arguments as String)); result.success(null) }
                     "requestBatteryExemption" -> {
                         // The system dialog "Let app always run in the background?".

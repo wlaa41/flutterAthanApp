@@ -52,6 +52,25 @@ an APK for every processor type would be over GitHub's 100 MB file limit.
   city, and overnight hours belong to the day they start on. The same schedule
   is under **Settings → Reminders → Weekly beep days**.
 - Muting a prayer immediately rebuilds its Athan and Iqama schedule.
+- **Alarm screen** (Android): when the athan plays on a locked phone, the screen
+  turns black with the time, like an alarm clock. Slide right to stop, slide left
+  to snooze. **Settings → Basics → Alarm screen** has **Easier screen** (any tap
+  stops), the snooze length and **Try the alarm screen**. The athan's
+  notification has Snooze, Stop and Beep today.
+
+## Meaning challenge
+
+The Challenge tab tests what the words of a surah mean, starting with Surah
+Al-Kahf: 146 words and phrases in 17 stages along the surah, and a final
+challenge on all of it. Each question shows the word in the mushaf's own text
+and font, with its verse, and four meanings in Arabic. A round asks 6 of a
+stage's words, so a replay brings others, and missed words come back first. It
+is timed, with three hearts, points for speed and for a streak, two helps,
+stars and best scores. **تعلّم كلمات المرحلة أولًا** (learn the stage's words
+first) lists them with their meanings and verses, and al-Tafsir al-Muyassar is
+one tap away. The meanings
+follow al-Tafsir al-Muyassar and the books of gharib al-Quran; the questions
+live in `tools/make_kahf_quiz.py`.
 
 ## Quran
 
@@ -88,8 +107,8 @@ Sources, licences and what was checked are in
 Android persists up to 60 days of events and arms only the next system alarm. After
 an event it arms the following one, and restores the queue after reboot, app
 update, clock changes, or granting precise-alarm access. Full recordings use a
-foreground service only while playing, with a visible Stop action and a 10 minute
-maximum. There is no periodic background polling, location tracking, or permanent
+foreground service only while playing, with Snooze and Stop actions and a 10 minute
+maximum. A snoozed athan goes back into the same queue. There is no periodic background polling, location tracking, or permanent
 service. Screen countdowns stop when the app is not active.
 
 Athan is an alarm app on Android: it declares `USE_EXACT_ALARM`, which Android
@@ -101,7 +120,7 @@ At prayer time the phone's sound mode decides what happens:
 
 | Phone | What you get |
 | --- | --- |
-| Ring | The athan, at alarm volume, with a Stop button |
+| Ring | The athan at alarm volume. Locked or screen off: the black alarm screen. In use: a pop-up with Snooze and Stop |
 | Vibrate or silent | Alarm vibration (felt on silent) and a lock-screen reminder |
 | Do Not Disturb | A reminder only |
 

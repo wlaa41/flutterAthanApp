@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The alarm screen's views and its slider's accessibility actions. -->
+    <item name="alarm_root" type="id" />
+    <item name="alarm_title" type="id" />
+    <item name="alarm_clock" type="id" />
+    <item name="alarm_hint" type="id" />
+    <item name="alarm_slider" type="id" />
+    <item name="alarm_action_stop" type="id" />
+    <item name="alarm_action_snooze" type="id" />
+</resources>
