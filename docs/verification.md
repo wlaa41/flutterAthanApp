@@ -45,6 +45,13 @@
   99,000,000 limit. It holds the speech runtime's three libraries, compressed,
   none for other processors, the game's content and fonts, and the microphone
   permission.
+- CI on GitHub, for the commit on `main`: 259 tests and the native Android
+  tests passed, the iPhone app was built for the simulator with the two new
+  packages and started there, and the signed APK it published is 88,575,461
+  bytes. The iPhone build job of pull request #4 built the unsigned release
+  app from the same code: version 2.2.0 build 25, 69,980,967 bytes, holding
+  the speech runtime (`SherpaOnnxC.framework`), the recorder, the game's
+  content and fonts, and the microphone text.
 - **Not checked, with no phone or emulator here:** the microphone and its
   permission question on Android and on iPhone; a voice through a phone's
   microphone; an everyday reciter instead of a studio recording; loading the
