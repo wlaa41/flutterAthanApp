@@ -14,6 +14,31 @@ repository root, so that file is always the latest build and updates the
 installed app in place. It is built for 64-bit ARM, which is what phones use;
 an APK for every processor type would be over GitHub's 100 MB file limit.
 
+## Install on iPhone (free, for testing)
+
+Every push to `main` also builds an unsigned iPhone app,
+[AthanApp.ipa](https://github.com/wlaa41/flutterAthanApp/releases/download/ios-latest/AthanApp.ipa),
+kept on the [iPhone app release](https://github.com/wlaa41/flutterAthanApp/releases/tag/ios-latest).
+Sign and install it from a Windows PC or a Mac with a free Apple ID; no paid
+developer account is needed.
+
+1. On Windows, install iTunes from apple.com (not the Microsoft Store one), then
+   [Sideloadly](https://sideloadly.io). On a Mac, just Sideloadly.
+2. Connect the iPhone by USB, unlock it and tap **Trust**.
+3. In Sideloadly, drop in `AthanApp.ipa`, enter your Apple ID and press **Start**.
+   Leave **Remove app extensions** unticked under Advanced options: the alarm's
+   Stop and Snooze are in an extension.
+4. On the iPhone (iOS 16 and later), turn on **Settings → Privacy & Security →
+   Developer Mode**; the phone restarts.
+5. Trust your Apple ID under **Settings → General → VPN & Device Management**,
+   then open the app and allow notifications and, on iOS 26, alarms.
+
+A free Apple ID signs the app for 7 days. After that it stops opening until it
+is signed again: repeat step 3 with the same Apple ID, which keeps your
+settings, or turn on Sideloadly's automatic refresh. A free Apple ID can have 3
+sideloaded apps at once. TestFlight and the App Store need the paid Apple
+Developer Program (99 USD a year).
+
 ## Reminders that fit your day
 
 - Choose Classic Athan, Beautiful Athan, Mishary Alafasy, Makkah (Ali Mulla),
@@ -206,11 +231,14 @@ flutter build apk --debug
 flutter build ios --simulator --debug --no-codesign
 bash tools/ios_smoke.sh
 bash tools/ios_alarm_check.sh   # rings two athan alarms on a simulator: build/review/alarm
+flutter build ios --release --no-codesign   # unsigned iPhone app, for sideloading
 ```
 
-CI runs analysis/tests and creates a preview APK for each pull request. On `main` it
-also commits that APK as `AthanApp.apk`. It does not publish a store release or
-overwrite an existing GitHub release. Trusted CI preview
+CI runs analysis/tests and creates a preview APK and an unsigned iPhone app for
+each pull request. On `main` it also commits that APK as `AthanApp.apk` and puts
+the iPhone app on the `ios-latest` pre-release as `AthanApp.ipa`, replacing the
+one before. It does not publish a store release or touch any other GitHub
+release. Trusted CI preview
 builds restore a stable private debug key from the `ATHAN_PREVIEW_KEYSTORE_BASE64`
 Actions secret and verify its public certificate before uploading the APK. Fork
 and Dependabot pull requests cannot access that key and produce clearly labelled
