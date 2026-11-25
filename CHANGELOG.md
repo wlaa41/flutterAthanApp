@@ -1,5 +1,48 @@
 # Changelog
 
+## 2.2.0-rc.15 (build 25)
+
+- **Al-Kahf Journey**, a new game in place of the Meaning challenge, which is
+  removed. The **Journey** tab walks through Surah Al-Kahf from its first ayah
+  to its last as a story in 28 stops. A stop tells its part of the story, asks
+  three or four questions about its ayahs, and lights a lantern when all of
+  them are answered right. There is no clock, no hearts and no score: a wrong
+  answer comes back at the end of the stop. Stops open in order, and a lit one
+  can be played again.
+- The four stories each end with a keepsake named in their own ayahs: the
+  silver coin of the Cave, the vine of the Two Gardens, the ship of Musa and
+  Al-Khidr, and the iron of Dhul-Qarnayn. The ayahs between the stories are
+  stops on the way.
+- **Three levels**, chosen on the first screen and changed at any time from the
+  map. Every level asks about whole ayahs.
+  - **English**, for someone who does not read Arabic: the story and the
+    questions in English, 110 questions in all, with each ayah shown and
+    played.
+  - **Arabic**: the ayah is shown and its meaning is chosen. **معاني الكلمات**
+    opens the harder words of that ayah; it is optional and never needed to go
+    on.
+  - **Arabic, strong**: the meaning is given and the ayah is chosen from three
+    of the same story, with no help.
+- **Recite the next ayah**, after a lantern is lit, at every level. You are
+  given an ayah and recite the one after it. The phone listens and marks each
+  word as heard, or as missed or unclear, and counts them ("14 of 16 words").
+  The ayah stays hidden until it is recited, or **Show the ayah** to read it.
+  It checks the words, not tajweed.
+- The listening runs on the phone. The first time, the app fetches a small
+  Quran speech model (19 MB), checks it against a recorded checksum and keeps
+  it; after that reciting works offline, and the recording is checked on the
+  phone and deleted. The app now asks for the microphone, the first time
+  **Recite** is tapped.
+- The game has its own look: a light sky, ink outlines, lanterns and drawn
+  scenes, in Baloo Bhaijaan 2, with every ayah in the mushaf's own font. The
+  Arabic levels read right to left throughout.
+- `tools/make_kahf_journey.py` holds the stories, the questions, a meaning for
+  each of the 110 ayahs and the 146 word meanings, checks them against the
+  bundled Hafs text and writes `asset/journey/kahf.json`. No Quran text is
+  typed anywhere: an ayah is always shown from the bundled text.
+- Android: native libraries are stored compressed in the APK, so that it stays
+  under GitHub's file limit with the speech runtime added.
+
 ## 2.2.0-rc.14 (build 24)
 
 - **Alarm screen on iPhone** (iOS 26 and later). The athan now rings as an

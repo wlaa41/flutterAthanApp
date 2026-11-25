@@ -1,0 +1,2934 @@
+{
+ "surah": 18,
+ "sections": [
+  {
+   "id": "opening",
+   "kind": "bridge",
+   "en": "The Opening",
+   "ar": "مطلع السورة",
+   "art": "book",
+   "stops": [
+    {
+     "id": "opening-1",
+     "en": "The straight Book",
+     "ar": "الكتاب القيّم",
+     "first": 1,
+     "last": 5,
+     "storyEn": [
+      "The surah opens with praise: Allah sent down the Book to His servant, with nothing crooked in it.",
+      "It is straight. It warns of a severe punishment, brings good news to believers who do good, and warns those who say Allah has taken a son."
+     ],
+     "storyAr": [
+      "تبدأ السورة بحمد الله الذي أنزل الكتاب على عبده، ولم يجعل فيه عوجًا.",
+      "هو كتاب مستقيم: ينذر بعذاب شديد، ويبشّر المؤمنين الذين يعملون الصالحات، وينذر الذين قالوا اتخذ الله ولدًا."
+     ],
+     "questions": [
+      {
+       "ayah": 1,
+       "q": "What does the surah begin with?",
+       "a": "Praise of Allah, who sent down the Book",
+       "w": [
+        "A promise of victory in battle",
+        "The story of the first man"
+       ]
+      },
+      {
+       "ayah": 2,
+       "q": "What good news does the Book bring?",
+       "a": "A fine reward for believers who do good",
+       "w": [
+        "Long life for everyone who reads it",
+        "Wealth for those who memorise it"
+       ]
+      },
+      {
+       "ayah": 4,
+       "q": "Whom does this ayah warn?",
+       "a": "Those who say Allah has taken a son",
+       "w": [
+        "Those who travel far from home",
+        "Those who sleep through the night"
+       ]
+      },
+      {
+       "ayah": 5,
+       "q": "What does the ayah say about that claim?",
+       "a": "They have no knowledge of it; it is a lie",
+       "w": [
+        "Their fathers had proof of it",
+        "It was written in the Book"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "opening-2",
+     "en": "What adorns the earth",
+     "ar": "زينة الأرض",
+     "first": 6,
+     "last": 8,
+     "storyEn": [
+      "The Prophet, peace be upon him, grieved deeply for those who would not believe. Allah tells him not to wear himself out with sorrow over them.",
+      "Everything on the earth is an adornment and a test: who does best? And all of it will end as bare ground."
+     ],
+     "storyAr": [
+      "حزن النبي صلى الله عليه وسلم حزنًا شديدًا على من لم يؤمن، فنهاه الله أن يُهلك نفسه أسفًا عليهم.",
+      "كل ما على الأرض زينة واختبار: أيّ الناس أحسن عملًا؟ ثم يصير كله ترابًا لا نبات فيه."
+     ],
+     "questions": [
+      {
+       "ayah": 6,
+       "q": "Why was the Prophet, peace be upon him, so grieved?",
+       "a": "Because his people would not believe",
+       "w": [
+        "Because he had lost his wealth",
+        "Because the journey was long"
+       ]
+      },
+      {
+       "ayah": 7,
+       "q": "Why was the earth adorned?",
+       "a": "To test who is best in deeds",
+       "w": [
+        "So people would never leave it",
+        "To hide what lies beneath it"
+       ]
+      },
+      {
+       "ayah": 8,
+       "q": "What will become of everything on the earth?",
+       "a": "Bare, dry ground",
+       "w": [
+        "Gardens that never fade",
+        "A sea without a shore"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cave",
+   "kind": "story",
+   "en": "The Cave",
+   "ar": "أصحاب الكهف",
+   "art": "cave",
+   "stops": [
+    {
+     "id": "cave-1",
+     "en": "Into the cave",
+     "ar": "إلى الكهف",
+     "first": 9,
+     "last": 12,
+     "storyEn": [
+      "A group of young men took shelter in a cave and called on their Lord: grant us mercy from Yourself, and set our affair right.",
+      "Allah let them sleep there for many years, then woke them. Their story is one of His signs."
+     ],
+     "storyAr": [
+      "لجأ فتيةٌ إلى كهف ودعوا ربهم أن يؤتيهم من عنده رحمة، وأن ييسّر لهم أمرهم على الرشاد.",
+      "فأنامهم الله فيه سنين كثيرة ثم أيقظهم، وقصتهم آية من آياته."
+     ],
+     "questions": [
+      {
+       "ayah": 9,
+       "q": "Who is this story about?",
+       "a": "The people of the Cave",
+       "w": [
+        "The builders of a great city",
+        "Travellers lost at sea"
+       ]
+      },
+      {
+       "ayah": 10,
+       "q": "What did the young men ask for in the cave?",
+       "a": "Mercy from their Lord, and right guidance",
+       "w": [
+        "Food and water for a long stay",
+        "Victory over their people"
+       ]
+      },
+      {
+       "ayah": 11,
+       "q": "What happened to them in the cave?",
+       "a": "Allah made them sleep for many years",
+       "w": [
+        "They dug a tunnel to escape",
+        "They wrote down their story"
+       ]
+      },
+      {
+       "ayah": 12,
+       "q": "What came after their long sleep?",
+       "a": "Allah woke them",
+       "w": [
+        "Their people forgave them",
+        "The cave was closed forever"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "cave-2",
+     "en": "Standing firm",
+     "ar": "الثبات على الحق",
+     "first": 13,
+     "last": 16,
+     "storyEn": [
+      "They were young men who believed in their Lord, and He gave them more guidance and made their hearts firm.",
+      "They stood and said: our Lord is the Lord of the heavens and the earth. Leaving what their people worshipped, they made for the cave, trusting in His mercy."
+     ],
+     "storyAr": [
+      "كانوا فتية آمنوا بربهم، فزادهم الله هدى وثبّت قلوبهم.",
+      "قاموا فقالوا: ربنا رب السماوات والأرض. واعتزلوا ما يعبد قومهم ولجؤوا إلى الكهف راجين رحمة ربهم."
+     ],
+     "questions": [
+      {
+       "ayah": 13,
+       "q": "What did Allah give the young men who believed?",
+       "a": "More guidance",
+       "w": [
+        "A hidden treasure",
+        "An army to defend them"
+       ]
+      },
+      {
+       "ayah": 14,
+       "q": "What did they declare when they stood up?",
+       "a": "Our Lord is the Lord of the heavens and the earth",
+       "w": [
+        "We will rule this city",
+        "We will leave at sunrise"
+       ]
+      },
+      {
+       "ayah": 15,
+       "q": "What did they say their people lacked?",
+       "a": "Any clear proof for their gods",
+       "w": [
+        "Enough food for the winter",
+        "A wise king to lead them"
+       ]
+      },
+      {
+       "ayah": 16,
+       "q": "Where were they told to take shelter?",
+       "a": "In the cave",
+       "w": [
+        "In the king's palace",
+        "In a far-off city"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "cave-3",
+     "en": "Asleep, yet guarded",
+     "ar": "نيام في حفظ الله",
+     "first": 17,
+     "last": 18,
+     "storyEn": [
+      "Inside the cave they slept in an open space. The rising sun leaned away from them and the setting sun passed them by.",
+      "Anyone looking would have thought them awake. Allah turned them to the right and the left, and their dog lay stretched at the entrance."
+     ],
+     "storyAr": [
+      "ناموا في متّسعٍ من الكهف؛ تميل عنهم الشمس إذا طلعت وتتركهم إذا غربت.",
+      "من رآهم حسبهم أيقاظًا. يقلّبهم الله يمينًا وشمالًا، وكلبهم باسطٌ ذراعيه عند المدخل."
+     ],
+     "questions": [
+      {
+       "ayah": 17,
+       "q": "What did the sun do as it rose over their cave?",
+       "a": "It leaned away from them",
+       "w": [
+        "It shone straight on their faces",
+        "It stopped in the sky"
+       ]
+      },
+      {
+       "ayah": 17,
+       "q": "What does the ayah call this?",
+       "a": "One of the signs of Allah",
+       "w": [
+        "A trick of the eye",
+        "A custom of that land"
+       ]
+      },
+      {
+       "ayah": 18,
+       "q": "What would someone seeing them have thought?",
+       "a": "That they were awake",
+       "w": [
+        "That they were statues",
+        "That the cave was empty"
+       ]
+      },
+      {
+       "ayah": 18,
+       "q": "Where was their dog?",
+       "a": "Stretched out at the entrance",
+       "w": [
+        "Asleep beside the king",
+        "Lost in the city"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "cave-4",
+     "en": "Awake",
+     "ar": "اليقظة",
+     "first": 19,
+     "last": 20,
+     "storyEn": [
+      "Allah woke them, and they asked each other how long they had slept. A day, or part of a day, some said. Your Lord knows best, said others.",
+      "They sent one of them to the city with a silver coin to buy pure food, carefully, so that no one would notice him."
+     ],
+     "storyAr": [
+      "أيقظهم الله فتساءلوا عن مدة نومهم؛ فظنّ بعضهم أنها يوم أو بعض يوم، وردّ آخرون علمها إلى الله.",
+      "ثم بعثوا أحدهم إلى المدينة بدراهم من الفضة ليشتري طعامًا طيّبًا، وليتلطّف حتى لا يشعر بهم أحد."
+     ],
+     "questions": [
+      {
+       "ayah": 19,
+       "q": "How long did they first think they had slept?",
+       "a": "A day, or part of a day",
+       "w": [
+        "Seven full years",
+        "A single hour"
+       ]
+      },
+      {
+       "ayah": 19,
+       "q": "What did they send one of them to the city with?",
+       "a": "Their silver coin",
+       "w": [
+        "A letter for the king",
+        "A sword and a shield"
+       ]
+      },
+      {
+       "ayah": 19,
+       "q": "What was he to bring back?",
+       "a": "Pure, good food",
+       "w": [
+        "News of their families",
+        "Water from the river"
+       ]
+      },
+      {
+       "ayah": 20,
+       "q": "What did they fear if their people found them?",
+       "a": "Being stoned or forced back to their religion",
+       "w": [
+        "Being sent to another land",
+        "Being made to work in the fields"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "cave-5",
+     "en": "Found",
+     "ar": "العثور عليهم",
+     "first": 21,
+     "last": 22,
+     "storyEn": [
+      "Allah let the people find them, so they would know His promise is true and the Hour is certain.",
+      "Later people argued over how many they were: three, five, seven. Say: my Lord knows their number best."
+     ],
+     "storyAr": [
+      "أطلع الله الناس عليهم؛ ليعلموا أن وعده حق وأن الساعة لا شك فيها.",
+      "ثم اختلف الناس في عددهم: ثلاثة أو خمسة أو سبعة. والجواب: ربي أعلم بعددهم."
+     ],
+     "questions": [
+      {
+       "ayah": 21,
+       "q": "Why did Allah let the people find them?",
+       "a": "So they would know His promise is true",
+       "w": [
+        "So the city could take their coin",
+        "So the young men could be punished"
+       ]
+      },
+      {
+       "ayah": 21,
+       "q": "What did the people argue about putting over them?",
+       "a": "A structure, or a place of worship",
+       "w": [
+        "A market for travellers",
+        "A wall around the city"
+       ]
+      },
+      {
+       "ayah": 22,
+       "q": "What do people guess about?",
+       "a": "How many they were",
+       "w": [
+        "The name of their city",
+        "The colour of their dog"
+       ]
+      },
+      {
+       "ayah": 22,
+       "q": "What is the right answer to give?",
+       "a": "My Lord knows their number best",
+       "w": [
+        "They were surely nine",
+        "No one may ever speak of them"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "cave-6",
+     "en": "If Allah wills",
+     "ar": "إن شاء الله",
+     "first": 23,
+     "last": 26,
+     "storyEn": [
+      "A lesson comes with the story: never say you will do something tomorrow without adding, if Allah wills. And remember your Lord when you forget.",
+      "They stayed in the cave three hundred years and nine more. Allah knows best how long; the unseen belongs to Him."
+     ],
+     "storyAr": [
+      "مع القصة أدب: لا تقل لشيء إنك فاعله غدًا حتى تقول: إن شاء الله، واذكر ربك إذا نسيت.",
+      "ولبثوا في كهفهم ثلاثمئة سنة وتسع سنين. والله أعلم بمدة لبثهم، له غيب السماوات والأرض."
+     ],
+     "questions": [
+      {
+       "ayah": 23,
+       "q": "What should you not say about tomorrow?",
+       "a": "I will do that tomorrow, without adding: if Allah wills",
+       "w": [
+        "Tomorrow will be a hard day",
+        "Tomorrow I will rest"
+       ]
+      },
+      {
+       "ayah": 24,
+       "q": "What should you do when you forget?",
+       "a": "Remember your Lord",
+       "w": [
+        "Blame the one beside you",
+        "Give up what you intended"
+       ]
+      },
+      {
+       "ayah": 25,
+       "q": "How long did they stay in the cave?",
+       "a": "Three hundred years and nine more",
+       "w": [
+        "Forty years",
+        "Seven nights"
+       ]
+      },
+      {
+       "ayah": 26,
+       "q": "Who knows best how long they stayed?",
+       "a": "Allah",
+       "w": [
+        "The people of the city",
+        "The one sent to buy food"
+       ]
+      }
+     ]
+    }
+   ],
+   "number": 1,
+   "keepsake": {
+    "id": "coin",
+    "en": "the silver coin",
+    "ar": "الدرهم الفضي",
+    "ayah": 19,
+    "first": 20,
+    "last": 25,
+    "line": "So send one of you to the city with this silver coin of yours."
+   }
+  },
+  {
+   "id": "book",
+   "kind": "bridge",
+   "en": "Stay with the Book",
+   "ar": "اتلُ واصبر",
+   "art": "book",
+   "stops": [
+    {
+     "id": "book-1",
+     "en": "Patience with the faithful",
+     "ar": "اصبر نفسك",
+     "first": 27,
+     "last": 31,
+     "storyEn": [
+      "Recite the Book of your Lord; no one can change His words. And stay patiently with those who call on Him morning and evening.",
+      "The truth has come: believe or refuse. A Fire waits for the wrongdoers; for those who believe and do good, gardens with rivers flowing beneath them."
+     ],
+     "storyAr": [
+      "اتلُ كتاب ربك فلا مبدّل لكلماته، واصبر نفسك مع الذين يدعونه صباحًا ومساءً.",
+      "جاء الحق من الله: فمن شاء آمن ومن شاء كفر. للظالمين نار، وللذين آمنوا وعملوا الصالحات جنات تجري من تحتها الأنهار."
+     ],
+     "questions": [
+      {
+       "ayah": 27,
+       "q": "What is said about the words of Allah?",
+       "a": "No one can change them",
+       "w": [
+        "Only kings may read them",
+        "They are kept in a cave"
+       ]
+      },
+      {
+       "ayah": 28,
+       "q": "Whom should you stay patiently with?",
+       "a": "Those who call on their Lord morning and evening",
+       "w": [
+        "Those with the most wealth",
+        "Those who travel the farthest"
+       ]
+      },
+      {
+       "ayah": 29,
+       "q": "Where does the truth come from?",
+       "a": "From your Lord",
+       "w": [
+        "From the elders of the city",
+        "From whoever speaks loudest"
+       ]
+      },
+      {
+       "ayah": 31,
+       "q": "What is promised to those who believe and do good?",
+       "a": "Gardens with rivers flowing beneath them",
+       "w": [
+        "A kingdom on earth",
+        "A long life without work"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gardens",
+   "kind": "story",
+   "en": "The Two Gardens",
+   "ar": "صاحب الجنتين",
+   "art": "gardens",
+   "stops": [
+    {
+     "id": "gardens-1",
+     "en": "Two gardens, one boast",
+     "ar": "الجنتان",
+     "first": 32,
+     "last": 36,
+     "storyEn": [
+      "A man was given two gardens of grapevines, ringed with date palms, with crops between and a river running through. Both gave their fruit in full.",
+      "He boasted to his companion: I have more wealth and more men than you. He walked into his garden and said: this will never perish, and I do not think the Hour will come."
+     ],
+     "storyAr": [
+      "رجل أُعطي حديقتين من أعناب، يحيط بهما النخل، وبينهما زرع ونهر، وقد أثمرتا ثمرًا كاملًا.",
+      "ففاخر صاحبه بكثرة ماله ورجاله، ودخل حديقته وهو يظن أنها لن تهلك أبدًا وأن الساعة لن تقوم."
+     ],
+     "questions": [
+      {
+       "ayah": 32,
+       "q": "What grew in the two gardens?",
+       "a": "Grapevines, with date palms around them",
+       "w": [
+        "Only thorns and wild grass",
+        "Olive trees on a hill"
+       ]
+      },
+      {
+       "ayah": 34,
+       "q": "What did the owner boast of?",
+       "a": "More wealth and stronger men",
+       "w": [
+        "More knowledge of the Book",
+        "More years of travel"
+       ]
+      },
+      {
+       "ayah": 35,
+       "q": "What did he say on entering his garden?",
+       "a": "I do not think this will ever perish",
+       "w": [
+        "All of this is from my Lord",
+        "I will give half of it away"
+       ]
+      },
+      {
+       "ayah": 36,
+       "q": "What did he think about the Hour?",
+       "a": "That it would never come",
+       "w": [
+        "That it was very near",
+        "That only he would be saved"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "gardens-2",
+     "en": "A friend's reminder",
+     "ar": "موعظة الصاحب",
+     "first": 37,
+     "last": 41,
+     "storyEn": [
+      "His companion answered: do you deny the One who made you from dust? He is Allah, my Lord, and I set no one beside Him.",
+      "If only you had said: this is what Allah willed; there is no power except through Allah. He may give me better than your garden, and send ruin on yours."
+     ],
+     "storyAr": [
+      "أجابه صاحبه المؤمن: أتكفر بمن خلقك من تراب؟ أما أنا فالله ربي ولا أشرك به أحدًا.",
+      "وذكّره أن يقول إذا دخل حديقته: ما شاء الله، لا قوة إلا بالله؛ فقد يعطيه ربه خيرًا منها، ويرسل عليها ما يهلكها."
+     ],
+     "questions": [
+      {
+       "ayah": 37,
+       "q": "What did his companion remind him of?",
+       "a": "That Allah created him from dust",
+       "w": [
+        "That his father planted the garden",
+        "That the river belonged to the king"
+       ]
+      },
+      {
+       "ayah": 38,
+       "q": "What did the companion say of himself?",
+       "a": "Allah is my Lord; I associate no one with Him",
+       "w": [
+        "I will soon own a garden like yours",
+        "I have no need of anyone's advice"
+       ]
+      },
+      {
+       "ayah": 39,
+       "q": "What should the owner have said in his garden?",
+       "a": "This is what Allah willed; there is no power except through Allah",
+       "w": [
+        "This is the work of my own hands",
+        "No one may enter here but me"
+       ]
+      },
+      {
+       "ayah": 41,
+       "q": "What might happen to the garden's water?",
+       "a": "It could sink deep into the ground",
+       "w": [
+        "It could turn to wine",
+        "It could flood the city"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "gardens-3",
+     "en": "All of it gone",
+     "ar": "ذهاب النعمة",
+     "first": 42,
+     "last": 44,
+     "storyEn": [
+      "Then it happened. His fruit was destroyed, and he stood wringing his hands over all he had spent, the garden fallen on its trellises.",
+      "I wish I had set no one beside my Lord, he said. He had no one to help him. Real protection belongs to Allah alone."
+     ],
+     "storyAr": [
+      "ثم وقع ما حُذّر منه: هلك ثمره، فصار يقلّب كفّيه ندمًا على ما أنفق فيها وقد سقطت على عروشها.",
+      "وتمنّى لو لم يشرك بربه أحدًا، ولم يجد من ينصره؛ فالنصرة الحقة لله وحده."
+     ],
+     "questions": [
+      {
+       "ayah": 42,
+       "q": "What happened to his fruit?",
+       "a": "It was all destroyed",
+       "w": [
+        "It was sold at a high price",
+        "It ripened twice that year"
+       ]
+      },
+      {
+       "ayah": 42,
+       "q": "What did he say when he saw the ruin?",
+       "a": "I wish I had associated no one with my Lord",
+       "w": [
+        "I will plant it again tomorrow",
+        "My companion has done this to me"
+       ]
+      },
+      {
+       "ayah": 43,
+       "q": "Who came to help him?",
+       "a": "No one; he could not even help himself",
+       "w": [
+        "His sons and his servants",
+        "The people of the next town"
+       ]
+      },
+      {
+       "ayah": 44,
+       "q": "To whom does protection belong?",
+       "a": "To Allah, the True",
+       "w": [
+        "To the one with the most wealth",
+        "To the strongest tribe"
+       ]
+      }
+     ]
+    }
+   ],
+   "number": 2,
+   "keepsake": {
+    "id": "vine",
+    "en": "the vine",
+    "ar": "عنقود العنب",
+    "ayah": 32,
+    "first": 4,
+    "last": 10,
+    "line": "We gave one of them two gardens of grapevines, and ringed them with date palms."
+   }
+  },
+  {
+   "id": "world",
+   "kind": "bridge",
+   "en": "This World and the Day",
+   "ar": "الدنيا والآخرة",
+   "art": "rain",
+   "stops": [
+    {
+     "id": "world-1",
+     "en": "Like rain on the earth",
+     "ar": "مثل الحياة الدنيا",
+     "first": 45,
+     "last": 49,
+     "storyEn": [
+      "This life is like rain: plants grow thick with it, then dry into stalks the wind scatters. Wealth and children adorn it, but lasting good deeds are better.",
+      "A Day is coming when the mountains move and everyone is gathered. The record of deeds is laid open, leaving out nothing small or great."
+     ],
+     "storyAr": [
+      "الدنيا كماء المطر: ينبت به الزرع ثم ييبس فتفرّقه الرياح. المال والبنون زينتها، والأعمال الصالحة الباقية خير.",
+      "ويأتي يوم تزول فيه الجبال ويُحشر الناس جميعًا، ويوضع كتاب الأعمال لا يترك صغيرة ولا كبيرة."
+     ],
+     "questions": [
+      {
+       "ayah": 45,
+       "q": "What is the life of this world compared to?",
+       "a": "Rain that makes plants grow, then they dry and scatter",
+       "w": [
+        "A mountain that never moves",
+        "A river that always runs full"
+       ]
+      },
+      {
+       "ayah": 46,
+       "q": "What is better with your Lord than wealth and children?",
+       "a": "Lasting good deeds",
+       "w": [
+        "A famous name",
+        "A strong house"
+       ]
+      },
+      {
+       "ayah": 47,
+       "q": "What happens to the mountains on that Day?",
+       "a": "They are set moving",
+       "w": [
+        "They grow taller",
+        "They turn to gold"
+       ]
+      },
+      {
+       "ayah": 49,
+       "q": "What does the record of deeds leave out?",
+       "a": "Nothing, small or great",
+       "w": [
+        "Whatever was done in secret",
+        "The deeds of the young"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "world-2",
+     "en": "The old enemy",
+     "ar": "عداوة إبليس",
+     "first": 50,
+     "last": 53,
+     "storyEn": [
+      "When the angels were told to bow to Adam, they bowed. Iblis did not. He was of the jinn, and he disobeyed his Lord.",
+      "Would you take him and his offspring as allies, when they are your enemy? On that Day those once called on will not answer."
+     ],
+     "storyAr": [
+      "أُمر الملائكة بالسجود لآدم فسجدوا إلا إبليس؛ كان من الجن فخرج عن طاعة ربه.",
+      "فكيف يُتخذ هو وذريته أولياء وهم أعداء؟ ويوم القيامة لا يستجيب الشركاء لمن دعاهم."
+     ],
+     "questions": [
+      {
+       "ayah": 50,
+       "q": "Who refused to bow to Adam?",
+       "a": "Iblis",
+       "w": [
+        "One of the angels",
+        "A king of that time"
+       ]
+      },
+      {
+       "ayah": 50,
+       "q": "What was Iblis?",
+       "a": "One of the jinn",
+       "w": [
+        "One of the angels",
+        "One of the sons of Adam"
+       ]
+      },
+      {
+       "ayah": 52,
+       "q": "What happens when they call their so-called partners?",
+       "a": "They get no answer",
+       "w": [
+        "They are carried to safety",
+        "They are given a second life"
+       ]
+      },
+      {
+       "ayah": 53,
+       "q": "What do the guilty realise when they see the Fire?",
+       "a": "That they are about to fall into it",
+       "w": [
+        "That it is far away",
+        "That it will soon go out"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "world-3",
+     "en": "Every kind of example",
+     "ar": "من كل مثل",
+     "first": 54,
+     "last": 59,
+     "storyEn": [
+      "The Quran sets out every kind of example for people, yet man argues more than anything. Messengers come only to bring good news and to warn.",
+      "Your Lord is forgiving and full of mercy. He does not rush to punish, but there is an appointed time no one escapes."
+     ],
+     "storyAr": [
+      "بيّن الله في القرآن للناس من كل مثل، والإنسان أكثر شيء جدلًا. وما يُرسَل الرسل إلا مبشّرين ومنذرين.",
+      "وربك الغفور ذو الرحمة لا يعاجل بالعقوبة، ولكن لهم موعد لا مهرب منه."
+     ],
+     "questions": [
+      {
+       "ayah": 54,
+       "q": "What is man most given to?",
+       "a": "Argument",
+       "w": [
+        "Silence",
+        "Gratitude"
+       ]
+      },
+      {
+       "ayah": 56,
+       "q": "Why are the messengers sent?",
+       "a": "To bring good news and to warn",
+       "w": [
+        "To collect wealth",
+        "To rule over cities"
+       ]
+      },
+      {
+       "ayah": 58,
+       "q": "How is your Lord described here?",
+       "a": "The Forgiving, full of mercy",
+       "w": [
+        "Quick to punish every fault",
+        "Far from His servants"
+       ]
+      },
+      {
+       "ayah": 59,
+       "q": "Why were those towns destroyed?",
+       "a": "Because they did wrong",
+       "w": [
+        "Because they grew too large",
+        "Because of a great flood"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "khidr",
+   "kind": "story",
+   "en": "Musa and Al-Khidr",
+   "ar": "موسى والخضر",
+   "art": "sea",
+   "stops": [
+    {
+     "id": "khidr-1",
+     "en": "Where the two seas meet",
+     "ar": "مجمع البحرين",
+     "first": 60,
+     "last": 64,
+     "storyEn": [
+      "Musa set out with his young servant, saying he would not stop until he reached the place where the two seas meet.",
+      "At a rock there, their fish slipped away into the sea, and the servant forgot to say so. When Musa heard, he said: that is the place we were looking for. They turned back."
+     ],
+     "storyAr": [
+      "خرج موسى مع فتاه عازمًا ألّا يتوقف حتى يبلغ ملتقى البحرين.",
+      "وعند صخرة هناك انسلّ حوتهما إلى البحر ونسي الفتى أن يخبره. فلما علم موسى عرف أنه المكان المطلوب، فرجعا على آثارهما."
+     ],
+     "questions": [
+      {
+       "ayah": 60,
+       "q": "Where did Musa want to reach?",
+       "a": "The place where the two seas meet",
+       "w": [
+        "The top of a high mountain",
+        "The gates of a great city"
+       ]
+      },
+      {
+       "ayah": 61,
+       "q": "What did they forget at that place?",
+       "a": "Their fish",
+       "w": [
+        "Their staff",
+        "Their water"
+       ]
+      },
+      {
+       "ayah": 63,
+       "q": "Whom did the servant blame for his forgetting?",
+       "a": "Satan",
+       "w": [
+        "Musa",
+        "The sea"
+       ]
+      },
+      {
+       "ayah": 64,
+       "q": "What did Musa say when he heard about the fish?",
+       "a": "That is what we were looking for",
+       "w": [
+        "We must find other food",
+        "We have lost our way"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "khidr-2",
+     "en": "A servant given knowledge",
+     "ar": "عبدٌ آتاه الله علمًا",
+     "first": 65,
+     "last": 70,
+     "storyEn": [
+      "There they found a servant of Allah, given mercy and taught knowledge from Him. Musa asked: may I follow you, so that you teach me?",
+      "You will not have the patience, he said. Musa promised to be patient, if Allah willed. Then ask me about nothing, he said, until I speak of it myself."
+     ],
+     "storyAr": [
+      "وجدا عبدًا من عباد الله آتاه رحمة وعلّمه من عنده علمًا، فاستأذنه موسى أن يتبعه ليتعلم منه.",
+      "فأخبره أنه لن يستطيع الصبر معه. ووعد موسى بالصبر إن شاء الله، فشرط عليه ألّا يسأله عن شيء حتى يحدّثه عنه."
+     ],
+     "questions": [
+      {
+       "ayah": 65,
+       "q": "What had Allah given this servant?",
+       "a": "Mercy, and knowledge from Himself",
+       "w": [
+        "A kingdom and an army",
+        "A ship and a crew"
+       ]
+      },
+      {
+       "ayah": 66,
+       "q": "What did Musa ask of him?",
+       "a": "To follow him and learn from him",
+       "w": [
+        "To carry his message to a king",
+        "To show him the way home"
+       ]
+      },
+      {
+       "ayah": 67,
+       "q": "What did he say Musa would lack?",
+       "a": "Patience",
+       "w": [
+        "Strength",
+        "Food for the road"
+       ]
+      },
+      {
+       "ayah": 70,
+       "q": "What condition did he set?",
+       "a": "Ask me about nothing until I mention it",
+       "w": [
+        "Walk behind me in silence all day",
+        "Tell no one my name"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "khidr-3",
+     "en": "The ship",
+     "ar": "السفينة",
+     "first": 71,
+     "last": 73,
+     "storyEn": [
+      "They boarded a ship, and he made a hole in it. Musa could not hold back: did you do that to drown its people?",
+      "Did I not say you would not have the patience? Musa asked him to excuse his forgetting and not to be hard on him."
+     ],
+     "storyAr": [
+      "ركبا في السفينة فخرقها، فلم يصبر موسى وأنكر عليه: أتريد أن تُغرق أهلها؟",
+      "فذكّره بأنه لن يستطيع الصبر معه، فاعتذر موسى بالنسيان وسأله ألّا يشقّ عليه."
+     ],
+     "questions": [
+      {
+       "ayah": 71,
+       "q": "What did he do to the ship?",
+       "a": "He made a hole in it",
+       "w": [
+        "He bought it from its owners",
+        "He sailed it out to sea alone"
+       ]
+      },
+      {
+       "ayah": 71,
+       "q": "What did Musa fear would happen?",
+       "a": "That its people would drown",
+       "w": [
+        "That the king would be angry",
+        "That they would be late"
+       ]
+      },
+      {
+       "ayah": 72,
+       "q": "What did he remind Musa of?",
+       "a": "That he had said Musa would not be patient",
+       "w": [
+        "That the ship was his own",
+        "That the sea was calm"
+       ]
+      },
+      {
+       "ayah": 73,
+       "q": "What did Musa ask?",
+       "a": "Not to be blamed for forgetting",
+       "w": [
+        "To be given the ship",
+        "To go back to the rock"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "khidr-4",
+     "en": "The boy",
+     "ar": "الغلام",
+     "first": 74,
+     "last": 76,
+     "storyEn": [
+      "They went on and met a boy, and he killed him. Musa cried out: have you killed an innocent soul? That is a terrible thing.",
+      "Again he was reminded. Musa said: if I ask you about anything after this, keep me with you no longer."
+     ],
+     "storyAr": [
+      "ثم انطلقا فلقيا غلامًا فقتله، فأنكر موسى قتل نفس بريئة وعدّه أمرًا فظيعًا.",
+      "فذكّره مرة أخرى، فقال موسى: إن سألتك عن شيء بعدها فلا تصاحبني."
+     ],
+     "questions": [
+      {
+       "ayah": 74,
+       "q": "Whom did they meet next?",
+       "a": "A boy",
+       "w": [
+        "An old king",
+        "A group of fishermen"
+       ]
+      },
+      {
+       "ayah": 74,
+       "q": "What did Musa call the boy?",
+       "a": "An innocent soul",
+       "w": [
+        "A known thief",
+        "A lost traveller"
+       ]
+      },
+      {
+       "ayah": 75,
+       "q": "What was Musa reminded of again?",
+       "a": "That he would not be able to be patient",
+       "w": [
+        "That the journey was nearly over",
+        "That the boy was his kin"
+       ]
+      },
+      {
+       "ayah": 76,
+       "q": "What did Musa say should happen if he asked again?",
+       "a": "He should no longer be kept as a companion",
+       "w": [
+        "He would pay a fine in silver",
+        "He would walk ahead alone"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "khidr-5",
+     "en": "The wall",
+     "ar": "الجدار",
+     "first": 77,
+     "last": 78,
+     "storyEn": [
+      "They came to a town and asked its people for food, but were refused. There stood a wall about to fall, and he set it straight.",
+      "Musa said: you could have asked payment for that. This is where we part, he answered. Now I will tell you the meaning of what you could not bear."
+     ],
+     "storyAr": [
+      "أتيا أهل قرية فطلبا منهم طعامًا فأبوا أن يضيّفوهما، ووجدا فيها جدارًا يوشك أن يسقط فأقامه.",
+      "فقال موسى: لو شئت لأخذت عليه أجرًا. قال: هذا فراق بيني وبينك، وسأخبرك بتأويل ما لم تصبر عليه."
+     ],
+     "questions": [
+      {
+       "ayah": 77,
+       "q": "How did the people of the town treat them?",
+       "a": "They refused to host them",
+       "w": [
+        "They gave them a feast",
+        "They asked them to stay a year"
+       ]
+      },
+      {
+       "ayah": 77,
+       "q": "What did he do with the leaning wall?",
+       "a": "He set it straight",
+       "w": [
+        "He pulled it down",
+        "He painted it white"
+       ]
+      },
+      {
+       "ayah": 77,
+       "q": "What did Musa suggest?",
+       "a": "Taking payment for the work",
+       "w": [
+        "Leaving before nightfall",
+        "Building a second wall"
+       ]
+      },
+      {
+       "ayah": 78,
+       "q": "What did he say then?",
+       "a": "This is the parting between you and me",
+       "w": [
+        "Let us rest here tonight",
+        "You have passed the test"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "khidr-6",
+     "en": "What it all meant",
+     "ar": "التأويل",
+     "first": 79,
+     "last": 82,
+     "storyEn": [
+      "The ship belonged to poor people, and a king was seizing every sound ship. The boy's parents were believers, and Allah would give them a better child.",
+      "Under the wall lay a treasure for two orphans whose father had been righteous. I did none of it of my own accord, he said."
+     ],
+     "storyAr": [
+      "كانت السفينة لمساكين، ووراءهم ملك يأخذ كل سفينة صالحة غصبًا. وكان أبوا الغلام مؤمنين، فأراد الله أن يبدلهما خيرًا منه.",
+      "وتحت الجدار كنز ليتيمين كان أبوهما صالحًا. وبيّن أنه لم يفعل شيئًا من ذلك من تلقاء نفسه."
+     ],
+     "questions": [
+      {
+       "ayah": 79,
+       "q": "Whose ship was it?",
+       "a": "Poor people who worked at sea",
+       "w": [
+        "A rich merchant from the city",
+        "The king's own sailors"
+       ]
+      },
+      {
+       "ayah": 79,
+       "q": "Why was the ship damaged?",
+       "a": "A king was seizing every sound ship",
+       "w": [
+        "It was too old to sail",
+        "Its owners had asked for it"
+       ]
+      },
+      {
+       "ayah": 80,
+       "q": "What is said about the boy's parents?",
+       "a": "They were believers",
+       "w": [
+        "They were rulers of the town",
+        "They had left him long ago"
+       ]
+      },
+      {
+       "ayah": 82,
+       "q": "What lay under the wall?",
+       "a": "A treasure belonging to two orphans",
+       "w": [
+        "A well of sweet water",
+        "The grave of a king"
+       ]
+      }
+     ]
+    }
+   ],
+   "number": 3,
+   "keepsake": {
+    "id": "ship",
+    "en": "the ship",
+    "ar": "السفينة",
+    "ayah": 79,
+    "first": 0,
+    "last": 6,
+    "line": "As for the ship, it belonged to poor people who worked at sea."
+   }
+  },
+  {
+   "id": "qarnayn",
+   "kind": "story",
+   "en": "Dhul-Qarnayn",
+   "ar": "ذو القرنين",
+   "art": "wall",
+   "stops": [
+    {
+     "id": "qarnayn-1",
+     "en": "To the setting sun",
+     "ar": "مغرب الشمس",
+     "first": 83,
+     "last": 88,
+     "storyEn": [
+      "Dhul-Qarnayn was given power in the land and a way to everything. He travelled until he reached the setting of the sun and found a people there.",
+      "He said: whoever does wrong will be punished, and whoever believes and does good will have the best reward and a gentle word."
+     ],
+     "storyAr": [
+      "مكّن الله لذي القرنين في الأرض وآتاه من كل شيء سببًا، فسار حتى بلغ مغرب الشمس ووجد عندها قومًا.",
+      "فحكم بأن من ظلم يُعذَّب، وأن من آمن وعمل صالحًا فله الجزاء الحسن والقول الليّن."
+     ],
+     "questions": [
+      {
+       "ayah": 83,
+       "q": "Whom do they ask about?",
+       "a": "Dhul-Qarnayn",
+       "w": [
+        "The people of the Cave",
+        "The owner of the two gardens"
+       ]
+      },
+      {
+       "ayah": 84,
+       "q": "What was he given?",
+       "a": "Power in the land and a way to everything",
+       "w": [
+        "A ship that never sank",
+        "A garden with a river"
+       ]
+      },
+      {
+       "ayah": 86,
+       "q": "Where did his first journey take him?",
+       "a": "To the setting of the sun",
+       "w": [
+        "To the bottom of the sea",
+        "To a city of gold"
+       ]
+      },
+      {
+       "ayah": 88,
+       "q": "What did he promise whoever believes and does good?",
+       "a": "The best reward and a gentle word",
+       "w": [
+        "A share of his army",
+        "Freedom from all work"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "qarnayn-2",
+     "en": "To the rising sun",
+     "ar": "مطلع الشمس",
+     "first": 89,
+     "last": 91,
+     "storyEn": [
+      "Then he took another way, until he reached the rising of the sun.",
+      "He found it rising on a people with no shelter from it. And Allah knew fully all that he had with him."
+     ],
+     "storyAr": [
+      "ثم سلك طريقًا آخر حتى بلغ مطلع الشمس.",
+      "فوجدها تطلع على قوم ليس لهم ما يسترهم منها. وقد أحاط الله علمًا بكل ما عنده."
+     ],
+     "questions": [
+      {
+       "ayah": 90,
+       "q": "Where did his second journey take him?",
+       "a": "To the rising of the sun",
+       "w": [
+        "Back to his own city",
+        "To the meeting of two seas"
+       ]
+      },
+      {
+       "ayah": 90,
+       "q": "What did the people there lack?",
+       "a": "Any shelter from the sun",
+       "w": [
+        "Any water to drink",
+        "Any animals to ride"
+       ]
+      },
+      {
+       "ayah": 91,
+       "q": "What does Allah say of all that he had?",
+       "a": "We knew it fully",
+       "w": [
+        "It was soon lost",
+        "It was given to another"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "qarnayn-3",
+     "en": "Between two mountains",
+     "ar": "بين السدّين",
+     "first": 92,
+     "last": 95,
+     "storyEn": [
+      "A third way brought him between two mountains, to a people who could hardly understand speech.",
+      "They asked him to build a barrier against Yajuj and Majuj, and offered to pay. What my Lord has given me is better, he said. Help me with your strength."
+     ],
+     "storyAr": [
+      "ثم سار حتى بلغ ما بين الجبلين، فوجد قومًا لا يكادون يفهمون كلامًا.",
+      "فسألوه أن يبني بينهم وبين يأجوج ومأجوج سدًّا مقابل أجر، فأخبرهم أن ما أعطاه ربه خير، وطلب عونهم بقوتهم."
+     ],
+     "questions": [
+      {
+       "ayah": 93,
+       "q": "Where did his third journey take him?",
+       "a": "Between two mountains",
+       "w": [
+        "To an island in the sea",
+        "To the cave of the sleepers"
+       ]
+      },
+      {
+       "ayah": 94,
+       "q": "Whom did the people complain of?",
+       "a": "Yajuj and Majuj",
+       "w": [
+        "The king who seized ships",
+        "The owner of the two gardens"
+       ]
+      },
+      {
+       "ayah": 94,
+       "q": "What did they ask him to build?",
+       "a": "A barrier between them",
+       "w": [
+        "A city with high towers",
+        "A road through the mountains"
+       ]
+      },
+      {
+       "ayah": 95,
+       "q": "How did he answer their offer of payment?",
+       "a": "What my Lord has given me is better",
+       "w": [
+        "Double it and I will begin",
+        "Pay me when the work is done"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "qarnayn-4",
+     "en": "Iron and copper",
+     "ar": "زُبَر الحديد",
+     "first": 96,
+     "last": 98,
+     "storyEn": [
+      "He called for blocks of iron and filled the gap between the mountainsides. Blow, he said, until it glowed like fire, then poured molten copper over it.",
+      "They could neither climb it nor break through. This is a mercy from my Lord, he said. When His promise comes, He will level it."
+     ],
+     "storyAr": [
+      "طلب قطع الحديد حتى ملأ ما بين الجبلين، ثم أمرهم بالنفخ حتى صار كالنار، فصبّ عليه النحاس المذاب.",
+      "فلم يقدروا أن يصعدوه ولا أن ينقبوه. وقال: هذا رحمة من ربي، فإذا جاء وعده سوّاه بالأرض."
+     ],
+     "questions": [
+      {
+       "ayah": 96,
+       "q": "What did he build the barrier from?",
+       "a": "Blocks of iron, with molten copper poured over",
+       "w": [
+        "Stone and river clay",
+        "Palm trunks and rope"
+       ]
+      },
+      {
+       "ayah": 97,
+       "q": "What could they not do to the barrier?",
+       "a": "Climb over it or break through it",
+       "w": [
+        "See it from far away",
+        "Walk along beside it"
+       ]
+      },
+      {
+       "ayah": 98,
+       "q": "What did he call the barrier?",
+       "a": "A mercy from my Lord",
+       "w": [
+        "The work of my own hands",
+        "A gift to my people"
+       ]
+      },
+      {
+       "ayah": 98,
+       "q": "What will happen when his Lord's promise comes?",
+       "a": "He will level it to the ground",
+       "w": [
+        "It will grow higher",
+        "It will turn to gold"
+       ]
+      }
+     ]
+    }
+   ],
+   "number": 4,
+   "keepsake": {
+    "id": "iron",
+    "en": "the iron",
+    "ar": "قطعة الحديد",
+    "ayah": 96,
+    "first": 0,
+    "last": 2,
+    "line": "Bring me blocks of iron."
+   }
+  },
+  {
+   "id": "closing",
+   "kind": "bridge",
+   "en": "The Closing",
+   "ar": "خاتمة السورة",
+   "art": "sea",
+   "stops": [
+    {
+     "id": "closing-1",
+     "en": "That Day",
+     "ar": "يوم يُنفخ في الصور",
+     "first": 99,
+     "last": 102,
+     "storyEn": [
+      "On that Day they will surge like waves against one another. The Horn is blown, and all are gathered.",
+      "Hell is shown plainly to those whose eyes were veiled from Allah's reminder and who could not bear to listen."
+     ],
+     "storyAr": [
+      "يومئذ يموج الناس بعضهم في بعض، ويُنفخ في الصور فيُجمع الخلق جميعًا.",
+      "وتُعرض جهنم على الذين كانت أعينهم في غطاء عن ذكر الله وكانوا لا يطيقون سماع الحق."
+     ],
+     "questions": [
+      {
+       "ayah": 99,
+       "q": "What is blown on that Day?",
+       "a": "The Horn",
+       "w": [
+        "A wind from the east",
+        "A fire across the sea"
+       ]
+      },
+      {
+       "ayah": 100,
+       "q": "What is shown plainly to the disbelievers?",
+       "a": "Hell",
+       "w": [
+        "The barrier of iron",
+        "The two gardens"
+       ]
+      },
+      {
+       "ayah": 101,
+       "q": "What had covered their eyes?",
+       "a": "A veil from Allah's reminder",
+       "w": [
+        "The dust of travel",
+        "The dark of the cave"
+       ]
+      },
+      {
+       "ayah": 102,
+       "q": "What do they wrongly think they can do?",
+       "a": "Take Allah's servants as protectors instead of Him",
+       "w": [
+        "Hide in the mountains",
+        "Buy their way out"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "closing-2",
+     "en": "The greatest losers",
+     "ar": "الأخسرون أعمالًا",
+     "first": 103,
+     "last": 106,
+     "storyEn": [
+      "Shall we tell you who loses most in their deeds? Those whose effort in this life is wasted while they think they are doing well.",
+      "They denied the signs of their Lord and the meeting with Him, so their deeds count for nothing."
+     ],
+     "storyAr": [
+      "من أخسر الناس أعمالًا؟ الذين ضاع سعيهم في الدنيا وهم يظنون أنهم يحسنون.",
+      "كفروا بآيات ربهم ولقائه، فبطلت أعمالهم فلا وزن لها يوم القيامة."
+     ],
+     "questions": [
+      {
+       "ayah": 103,
+       "q": "Whom does this passage describe?",
+       "a": "The greatest losers in their deeds",
+       "w": [
+        "The richest of all people",
+        "The first to reach the cave"
+       ]
+      },
+      {
+       "ayah": 104,
+       "q": "What do they think of their own work?",
+       "a": "That they are doing good",
+       "w": [
+        "That it is worthless",
+        "That no one sees it"
+       ]
+      },
+      {
+       "ayah": 105,
+       "q": "What did they deny?",
+       "a": "Their Lord's signs and the meeting with Him",
+       "w": [
+        "The length of the journey",
+        "The price of the food"
+       ]
+      },
+      {
+       "ayah": 106,
+       "q": "What did they make of Allah's signs and messengers?",
+       "a": "A mockery",
+       "w": [
+        "A song",
+        "A law for the city"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "closing-3",
+     "en": "The words of my Lord",
+     "ar": "كلمات ربي",
+     "first": 107,
+     "last": 110,
+     "storyEn": [
+      "Those who believe and do good will have the Gardens of Firdaws, and will never wish to leave.",
+      "If the sea were ink for the words of my Lord, it would run dry first. Say: I am only human like you; your God is One. Do good, and worship Him alone."
+     ],
+     "storyAr": [
+      "للذين آمنوا وعملوا الصالحات جنات الفردوس، لا يريدون التحوّل عنها.",
+      "ولو كان البحر حبرًا لكلمات الله لنفد قبل أن تنفد. والنبي بشر يوحى إليه أن الإله واحد؛ فمن رجا لقاء ربه عمل صالحًا ولم يشرك به أحدًا."
+     ],
+     "questions": [
+      {
+       "ayah": 107,
+       "q": "What will believers who do good have?",
+       "a": "The Gardens of Firdaws",
+       "w": [
+        "The two gardens of the boaster",
+        "A palace by the sea"
+       ]
+      },
+      {
+       "ayah": 108,
+       "q": "Will they wish to leave?",
+       "a": "No, never",
+       "w": [
+        "Yes, after a time",
+        "Only to visit their old home"
+       ]
+      },
+      {
+       "ayah": 109,
+       "q": "What would run out first?",
+       "a": "The sea, if it were ink",
+       "w": [
+        "The words of my Lord",
+        "The pens of the writers"
+       ]
+      },
+      {
+       "ayah": 110,
+       "q": "What should one who hopes to meet his Lord do?",
+       "a": "Do good and worship Him alone",
+       "w": [
+        "Travel to the two seas",
+        "Wait in a cave"
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "ayahs": [
+  {
+   "en": "Praise be to Allah, who sent down the Book to His servant and put no crookedness in it.",
+   "ar": "الحمد لله الذي أنزل القرآن على عبده، ولم يجعل فيه ميلًا عن الحق."
+  },
+  {
+   "en": "He made it straight, to warn of a severe punishment from Him and to give the believers who do good the news of a fine reward.",
+   "ar": "جعله مستقيمًا؛ لينذر بعذاب شديد، ويبشّر المؤمنين العاملين بالصالحات بأجر حسن."
+  },
+  {
+   "en": "They will stay in that reward forever.",
+   "ar": "يقيمون في ذلك النعيم لا يفارقونه أبدًا."
+  },
+  {
+   "en": "And it warns those who say: Allah has taken a son.",
+   "ar": "وينذر الذين قالوا: اتخذ الله ولدًا."
+  },
+  {
+   "en": "They have no knowledge of it, nor had their fathers. It is a grave word that leaves their mouths; they speak nothing but a lie.",
+   "ar": "لا علم لهم بذلك ولا لآبائهم؛ عظُمت مقالتهم، وما يقولون إلا كذبًا."
+  },
+  {
+   "en": "Perhaps you would grieve yourself to death over them if they do not believe in this message.",
+   "ar": "لعلّك مُهلكٌ نفسك حزنًا عليهم إن لم يؤمنوا بهذا القرآن."
+  },
+  {
+   "en": "We made what is on the earth an adornment for it, to test which of them is best in deeds.",
+   "ar": "جعلنا ما على الأرض زينةً لها؛ لنختبر الناس أيّهم أحسن عملًا."
+  },
+  {
+   "en": "And We will surely turn what is on it into bare, dry ground.",
+   "ar": "وسنجعل ما على الأرض ترابًا لا نبات فيه."
+  },
+  {
+   "en": "Do you think the people of the Cave and the Inscription were the only wonder among Our signs?",
+   "ar": "ليست قصة أصحاب الكهف والرقيم بأعجب آياتنا."
+  },
+  {
+   "en": "The young men took refuge in the cave and said: Our Lord, grant us mercy from Yourself and guide us rightly in our affair.",
+   "ar": "لجأ الفتية إلى الكهف، ودعوا ربهم أن يرحمهم وييسّر لهم طريق الرشاد."
+  },
+  {
+   "en": "So We made them sleep deeply in the cave for many years.",
+   "ar": "فأنمناهم في الكهف نومًا عميقًا سنين كثيرة."
+  },
+  {
+   "en": "Then We woke them, to show which of the two groups counted best how long they had stayed.",
+   "ar": "ثم أيقظناهم؛ ليظهر أيّ الفريقين أضبط لمدة لبثهم."
+  },
+  {
+   "en": "We tell you their story in truth: they were young men who believed in their Lord, and We increased them in guidance.",
+   "ar": "نقصّ عليك خبرهم بالحق: فتيةٌ آمنوا بربهم، وزدناهم هدى."
+  },
+  {
+   "en": "We made their hearts firm when they stood up and said: Our Lord is the Lord of the heavens and the earth; we will call on no god besides Him.",
+   "ar": "ثبّتنا قلوبهم حين قاموا وقالوا: ربنا رب السماوات والأرض، لن نعبد غيره."
+  },
+  {
+   "en": "These people of ours have taken gods besides Him. Why do they bring no clear proof? Who does more wrong than one who invents a lie about Allah?",
+   "ar": "قومنا اتخذوا آلهة من دون الله بلا حجة واضحة، ولا أظلم ممن افترى على الله كذبًا."
+  },
+  {
+   "en": "Since you have left them and what they worship besides Allah, take shelter in the cave; your Lord will spread His mercy for you and ease your affair.",
+   "ar": "إذ اعتزلتم قومكم وما يعبدون فالجؤوا إلى الكهف؛ ينشر لكم ربكم من رحمته وييسّر أمركم."
+  },
+  {
+   "en": "You would see the sun lean away from their cave as it rose and pass them by as it set, while they lay in its open space. That is one of Allah's signs.",
+   "ar": "ترى الشمس تميل عن كهفهم إذا طلعت وتتركهم إذا غربت وهم في متّسع منه؛ ذلك من آيات الله."
+  },
+  {
+   "en": "You would think them awake though they slept. We turned them to the right and the left, and their dog stretched its forelegs at the entrance.",
+   "ar": "تحسبهم أيقاظًا وهم نيام، ونقلّبهم يمينًا وشمالًا، وكلبهم باسطٌ ذراعيه بفِناء الكهف."
+  },
+  {
+   "en": "We woke them so they would ask one another how long they had stayed. Then they sent one of them to the city with their silver coin, to find pure food and to be careful.",
+   "ar": "أيقظناهم فتساءلوا عن مدة نومهم، ثم بعثوا أحدهم بدراهمهم إلى المدينة ليأتيهم بطعام طيّب متلطّفًا."
+  },
+  {
+   "en": "If they find you out, they will stone you or force you back into their religion, and then you would never succeed.",
+   "ar": "إن يطّلع قومكم عليكم يرجموكم أو يردّوكم إلى دينهم، فلا تفلحون أبدًا."
+  },
+  {
+   "en": "So We made them known to the people, that they might know Allah's promise is true and the Hour is beyond doubt. Then they argued over them: some said build a structure over them, and those who prevailed said a place of worship.",
+   "ar": "أطلعنا الناس عليهم ليعلموا أن وعد الله حق وأن الساعة آتية، ثم تنازعوا في أمرهم وما يبنون عليهم."
+  },
+  {
+   "en": "People will guess at their number: three, five or seven, with their dog. Say: my Lord knows their number best. Do not argue about them except briefly.",
+   "ar": "سيختلف الناس في عددهم رجمًا بالغيب؛ قل: ربي أعلم بعدّتهم، فلا تجادل فيهم إلا جدالًا ظاهرًا."
+  },
+  {
+   "en": "Never say of anything: I will do that tomorrow,",
+   "ar": "لا تقل لشيء تعزم عليه: سأفعله غدًا."
+  },
+  {
+   "en": "without adding: if Allah wills. Remember your Lord when you forget, and say: may my Lord guide me to what is nearer to right than this.",
+   "ar": "إلا أن تقول: إن شاء الله، واذكر ربك إذا نسيت، واسأله الهداية لأقرب الرشد."
+  },
+  {
+   "en": "They stayed in their cave three hundred years, and nine more.",
+   "ar": "لبثوا في كهفهم ثلاثمئة سنة وتسع سنين."
+  },
+  {
+   "en": "Say: Allah knows best how long they stayed. His is the unseen of the heavens and the earth; they have no protector but Him, and He shares His rule with no one.",
+   "ar": "قل: الله أعلم بمدة لبثهم، له غيب السماوات والأرض، ولا يشرك في حكمه أحدًا."
+  },
+  {
+   "en": "Recite what has been revealed to you of your Lord's Book. No one can change His words, and you will find no refuge except with Him.",
+   "ar": "اتلُ ما أُوحي إليك من كتاب ربك، لا مبدّل لكلماته، ولن تجد ملجأً سواه."
+  },
+  {
+   "en": "Keep yourself patient with those who call on their Lord morning and evening, seeking His face. Do not look past them for the glitter of this life, and do not obey one whose heart is heedless.",
+   "ar": "اصبر نفسك مع الذين يدعون ربهم صباحًا ومساءً، ولا تنصرف عنهم لزينة الدنيا، ولا تطع غافل القلب."
+  },
+  {
+   "en": "Say: the truth is from your Lord, so let whoever wills believe and whoever wills disbelieve. We have prepared a Fire for the wrongdoers, and scalding water for their thirst.",
+   "ar": "قل: الحق من ربكم؛ فمن شاء فليؤمن ومن شاء فليكفر، وللظالمين نار تحيط بهم وماء يشوي الوجوه."
+  },
+  {
+   "en": "Those who believe and do good: We do not let the reward of anyone who does good be lost.",
+   "ar": "الذين آمنوا وعملوا الصالحات لا نضيع أجر من أحسن منهم عملًا."
+  },
+  {
+   "en": "They will have gardens of Eden with rivers flowing beneath them, bracelets of gold and green garments of silk, reclining on couches. What a fine reward!",
+   "ar": "لهم جنات إقامة تجري من تحتها الأنهار، يُحلَّون بأساور الذهب ويلبسون الحرير الأخضر متكئين على الأرائك."
+  },
+  {
+   "en": "Tell them the example of two men: to one We gave two gardens of grapevines, ringed with date palms, with crops between them.",
+   "ar": "اضرب لهم مثل رجلين: لأحدهما حديقتان من أعناب، محاطتان بالنخل، وبينهما زرع."
+  },
+  {
+   "en": "Both gardens gave their fruit in full, and We made a river flow between them.",
+   "ar": "أثمرت الحديقتان ثمرهما كاملًا، وفجّرنا بينهما نهرًا."
+  },
+  {
+   "en": "He had fruit in plenty, and he said to his companion as they talked: I have more wealth than you and stronger men.",
+   "ar": "وكان له ثمر كثير، فقال لصاحبه مفتخرًا: أنا أكثر منك مالًا وأعزّ أنصارًا."
+  },
+  {
+   "en": "He entered his garden, wronging himself, and said: I do not think this will ever perish.",
+   "ar": "دخل حديقته ظالمًا لنفسه وقال: ما أظن أن تهلك هذه أبدًا."
+  },
+  {
+   "en": "And I do not think the Hour will come. Even if I am brought back to my Lord, I will surely find something better than this.",
+   "ar": "وما أظن القيامة واقعة، ولئن رُجعت إلى ربي لأجدنّ خيرًا من هذه الحديقة."
+  },
+  {
+   "en": "His companion said to him: do you deny the One who created you from dust, then from a drop, then shaped you into a man?",
+   "ar": "قال له صاحبه المؤمن: أتكفر بالذي خلقك من تراب ثم من نطفة ثم سوّاك رجلًا؟"
+  },
+  {
+   "en": "But as for me: He is Allah, my Lord, and I associate no one with my Lord.",
+   "ar": "أما أنا فأقول: هو الله ربي، ولا أشرك بربي أحدًا."
+  },
+  {
+   "en": "If only, when you entered your garden, you had said: this is what Allah willed; there is no power except through Allah. Though you see me with less wealth and fewer children,",
+   "ar": "هلّا قلت حين دخلت حديقتك: ما شاء الله، لا قوة إلا بالله، وإن رأيتني أقلّ منك مالًا وولدًا."
+  },
+  {
+   "en": "my Lord may give me better than your garden, and send on yours a calamity from the sky, leaving it bare, slippery ground.",
+   "ar": "فعسى ربي أن يعطيني خيرًا من حديقتك، ويرسل عليها عذابًا من السماء فتصبح أرضًا ملساء."
+  },
+  {
+   "en": "Or its water may sink deep into the ground, so that you could never reach it.",
+   "ar": "أو يغور ماؤها في الأرض فلا تقدر على طلبه."
+  },
+  {
+   "en": "His fruit was destroyed, and he began wringing his hands over what he had spent on it, as it lay fallen on its trellises, saying: I wish I had associated no one with my Lord.",
+   "ar": "أُهلك ثمره فصار يقلّب كفّيه ندمًا على ما أنفق فيها وهي خاوية، ويقول: ليتني لم أشرك بربي أحدًا."
+  },
+  {
+   "en": "He had no group to help him besides Allah, and he could not help himself.",
+   "ar": "لم تكن له جماعة تنصره من دون الله، وما كان منتصرًا بنفسه."
+  },
+  {
+   "en": "There, protection belongs to Allah, the True. He is best in reward and best in outcome.",
+   "ar": "هنالك النصرة لله الحق وحده، هو خير ثوابًا وخير عاقبة."
+  },
+  {
+   "en": "Give them the example of this life: it is like rain We send down, and the plants of the earth grow thick with it, then turn to dry stalks the winds scatter.",
+   "ar": "مثل الحياة الدنيا كماء نزل من السماء فاخضرّ به النبات، ثم صار يابسًا تفرّقه الرياح."
+  },
+  {
+   "en": "Wealth and children are the adornment of this life, but lasting good deeds are better with your Lord in reward and better in hope.",
+   "ar": "المال والبنون زينة الحياة الدنيا، والأعمال الصالحة الباقية خير ثوابًا وخير أملًا."
+  },
+  {
+   "en": "On the Day We set the mountains moving and you see the earth laid bare, We will gather them and leave none of them behind.",
+   "ar": "يوم نُزيل الجبال وترى الأرض ظاهرة، ونحشر الناس فلا نترك منهم أحدًا."
+  },
+  {
+   "en": "They will be set before your Lord in rows: you have come to Us as We created you the first time, though you claimed We had set no appointment for you.",
+   "ar": "يُعرضون على ربك صفًّا: جئتمونا كما خلقناكم أول مرة، وقد زعمتم ألّا موعد لكم."
+  },
+  {
+   "en": "The record will be laid open, and you will see the guilty fearful of what is in it, saying: what a book, that leaves out nothing small or great! And your Lord wrongs no one.",
+   "ar": "يوضع كتاب الأعمال فيخاف المجرمون مما فيه؛ لا يترك صغيرة ولا كبيرة، ولا يظلم ربك أحدًا."
+  },
+  {
+   "en": "When We told the angels to bow to Adam, they bowed, but not Iblis; he was of the jinn and disobeyed his Lord. Will you take him and his offspring as allies when they are your enemy?",
+   "ar": "سجد الملائكة لآدم إلا إبليس، كان من الجن فعصى ربه؛ أفتتخذونه وذريته أولياء وهم لكم عدو؟"
+  },
+  {
+   "en": "I did not make them witnesses to the creation of the heavens and the earth, nor to their own creation, and I do not take those who mislead as helpers.",
+   "ar": "ما أشهدتهم خلق السماوات والأرض ولا خلق أنفسهم، وما كنت لأتخذ المضلّين أعوانًا."
+  },
+  {
+   "en": "On the Day He says: call those you claimed were My partners. They will call them, but get no answer, and We will set a pit of ruin between them.",
+   "ar": "يوم يقول: نادوا شركائي الذين زعمتم، فيدعونهم فلا يستجيبون لهم، وجعلنا بينهم مَهلكًا."
+  },
+  {
+   "en": "The guilty will see the Fire and know they are about to fall into it, and they will find no way to escape it.",
+   "ar": "يرى المجرمون النار فيوقنون أنهم واقعون فيها، ولا يجدون عنها مهربًا."
+  },
+  {
+   "en": "We have set out every kind of example for people in this Quran, but man is, more than anything, given to argument.",
+   "ar": "صرّفنا في هذا القرآن للناس من كل مثل، وكان الإنسان أكثر شيء جدلًا."
+  },
+  {
+   "en": "Nothing kept people from believing when guidance came, and from asking their Lord's forgiveness, except waiting for the fate of earlier peoples, or to face the punishment.",
+   "ar": "ما منع الناس من الإيمان والاستغفار حين جاءهم الهدى إلا طلبهم سنّة الأولين أو معاينة العذاب."
+  },
+  {
+   "en": "We send the messengers only to bring good news and to warn. Yet the disbelievers argue with falsehood to weaken the truth, and they make a mockery of My signs.",
+   "ar": "ما نرسل الرسل إلا مبشّرين ومنذرين، ويجادل الكافرون بالباطل ليبطلوا الحق ويستهزئون بآياتي."
+  },
+  {
+   "en": "Who does more wrong than one who is reminded of his Lord's signs, then turns away and forgets what his hands have done? Their hearts are covered and their ears are heavy.",
+   "ar": "لا أظلم ممن ذُكّر بآيات ربه فأعرض عنها ونسي ذنوبه؛ على قلوبهم أغطية وفي آذانهم صمم."
+  },
+  {
+   "en": "Your Lord is the Forgiving, full of mercy. If He took them to task for what they earned, He would hasten their punishment; but they have an appointed time they cannot escape.",
+   "ar": "ربك الغفور ذو الرحمة؛ لو آخذهم بذنوبهم لعجّل لهم العذاب، لكن لهم موعدًا لا مفرّ منه."
+  },
+  {
+   "en": "Those towns: We destroyed them when they did wrong, and We set an appointed time for their destruction.",
+   "ar": "تلك القرى أهلكناها لمّا ظلمت، وجعلنا لهلاكها موعدًا."
+  },
+  {
+   "en": "Musa said to his young servant: I will not stop until I reach the meeting of the two seas, even if I travel for ages.",
+   "ar": "قال موسى لفتاه: لا أزال أسير حتى أبلغ ملتقى البحرين ولو سرت زمنًا طويلًا."
+  },
+  {
+   "en": "When they reached the place where the two seas meet, they forgot their fish, and it made its way into the sea.",
+   "ar": "فلما بلغا ملتقى البحرين نسيا حوتهما، فاتخذ طريقه في البحر."
+  },
+  {
+   "en": "When they had gone on, he said to his servant: bring us our meal; this journey has worn us out.",
+   "ar": "فلما جاوزا المكان قال موسى لفتاه: أحضر غداءنا، لقد تعبنا من سفرنا هذا."
+  },
+  {
+   "en": "He said: remember when we rested at the rock? I forgot the fish, and only Satan made me forget to mention it. It took its way into the sea, a wonder.",
+   "ar": "قال فتاه: نسيت الحوت عند الصخرة، وما أنسانيه إلا الشيطان، وقد اتخذ طريقه في البحر عجبًا."
+  },
+  {
+   "en": "Musa said: that is what we were looking for. So they went back, retracing their steps.",
+   "ar": "قال موسى: ذلك ما كنا نطلبه، فرجعا يتتبعان آثارهما."
+  },
+  {
+   "en": "There they found one of Our servants, to whom We had given mercy from Us and taught knowledge from Our own.",
+   "ar": "فوجدا عبدًا من عبادنا آتيناه رحمة وعلّمناه من عندنا علمًا."
+  },
+  {
+   "en": "Musa said to him: may I follow you, so that you teach me some of the right guidance you were taught?",
+   "ar": "قال له موسى: هل أتبعك لتعلّمني مما عُلّمت رشدًا؟"
+  },
+  {
+   "en": "He said: you will not be able to be patient with me.",
+   "ar": "قال: إنك لن تستطيع الصبر على صحبتي."
+  },
+  {
+   "en": "How could you be patient with something you have no full knowledge of?",
+   "ar": "وكيف تصبر على أمر لا تعلم حقيقته؟"
+  },
+  {
+   "en": "Musa said: you will find me patient, if Allah wills, and I will not disobey you in anything.",
+   "ar": "قال موسى: ستجدني إن شاء الله صابرًا، ولا أخالف لك أمرًا."
+  },
+  {
+   "en": "He said: if you follow me, then ask me about nothing until I mention it to you myself.",
+   "ar": "قال: إن صحبتني فلا تسألني عن شيء حتى أبيّنه لك."
+  },
+  {
+   "en": "They set off, and when they boarded a ship he made a hole in it. Musa said: did you hole it to drown its people? You have done a dreadful thing.",
+   "ar": "ركبا السفينة فخرقها الخضر، فقال موسى: أخرقتها لتغرق أهلها؟ لقد فعلت أمرًا منكرًا."
+  },
+  {
+   "en": "He said: did I not say that you would not be able to be patient with me?",
+   "ar": "قال الخضر: ألم أقل إنك لن تستطيع معي صبرًا؟",
+   "skip": true
+  },
+  {
+   "en": "Musa said: do not hold me to account for forgetting, and do not make my task with you hard.",
+   "ar": "قال موسى: لا تؤاخذني بنسياني، ولا تشقّ عليّ في صحبتك."
+  },
+  {
+   "en": "They went on until they met a boy, and he killed him. Musa said: have you killed an innocent soul who had killed no one? You have done a terrible thing.",
+   "ar": "لقيا غلامًا فقتله الخضر، فقال موسى: أقتلت نفسًا بريئة بغير نفس؟ لقد فعلت أمرًا فظيعًا."
+  },
+  {
+   "en": "He said: did I not tell you that you would not be able to be patient with me?",
+   "ar": "قال الخضر: ألم أقل لك إنك لن تستطيع معي صبرًا؟",
+   "skip": true
+  },
+  {
+   "en": "Musa said: if I ask you about anything after this, keep me with you no longer; you have had excuse enough from me.",
+   "ar": "قال موسى: إن سألتك عن شيء بعدها فلا تصاحبني، فقد بلغتَ العذر مني."
+  },
+  {
+   "en": "They came to the people of a town and asked them for food, but they refused to host them. There they found a wall about to fall, and he set it straight. Musa said: you could have taken payment for that.",
+   "ar": "استطعما أهل قرية فأبوا ضيافتهما، فوجدا جدارًا يكاد يسقط فأقامه الخضر، فقال موسى: لو شئت لأخذت عليه أجرًا."
+  },
+  {
+   "en": "He said: this is the parting between you and me. I will tell you the meaning of what you could not bear patiently.",
+   "ar": "قال: هذا فراق بيني وبينك، سأخبرك بتأويل ما لم تصبر عليه."
+  },
+  {
+   "en": "The ship belonged to poor people who worked at sea. I wanted to damage it, because a king was coming who seized every sound ship by force.",
+   "ar": "أما السفينة فكانت لمساكين يعملون في البحر، فعِبتُها لأن وراءهم ملكًا يأخذ كل سفينة صالحة غصبًا."
+  },
+  {
+   "en": "The boy: his parents were believers, and we feared he would burden them with rebellion and disbelief.",
+   "ar": "وأما الغلام فكان أبواه مؤمنين، فخشينا أن يحملهما على الطغيان والكفر."
+  },
+  {
+   "en": "So we wished their Lord to give them in his place one better in purity and closer in mercy.",
+   "ar": "فأردنا أن يبدلهما ربهما ولدًا خيرًا منه صلاحًا وأقرب رحمة."
+  },
+  {
+   "en": "The wall belonged to two orphan boys in the town. Under it was a treasure of theirs, and their father had been righteous, so your Lord willed them to grow up and bring out their treasure. I did none of it of my own accord.",
+   "ar": "وأما الجدار فكان ليتيمين تحته كنز لهما وكان أبوهما صالحًا، فأراد ربك أن يكبرا ويستخرجاه، وما فعلته عن أمري."
+  },
+  {
+   "en": "They ask you about Dhul-Qarnayn. Say: I will recite to you something of his story.",
+   "ar": "يسألونك عن ذي القرنين؛ قل: سأتلو عليكم من خبره ذكرًا."
+  },
+  {
+   "en": "We established him in the land and gave him a way to everything.",
+   "ar": "مكّنّا له في الأرض وآتيناه من كل شيء سببًا يبلغ به مراده."
+  },
+  {
+   "en": "So he followed a way.",
+   "ar": "فسلك طريقًا مما آتيناه.",
+   "skip": true
+  },
+  {
+   "en": "When he reached the setting of the sun, he found it setting in a dark, muddy spring, and found a people near it. We said: Dhul-Qarnayn, you may punish them or treat them well.",
+   "ar": "بلغ مغرب الشمس فرآها كأنها تغرب في عين حمئة، ووجد عندها قومًا، فخُيّر بين تعذيبهم والإحسان إليهم."
+  },
+  {
+   "en": "He said: whoever does wrong, we will punish him; then he will be returned to his Lord, who will punish him terribly.",
+   "ar": "قال: من ظلم فسنعذّبه، ثم يُردّ إلى ربه فيعذّبه عذابًا شديدًا."
+  },
+  {
+   "en": "But whoever believes and does good will have the best reward, and we will speak to him gently of our command.",
+   "ar": "وأما من آمن وعمل صالحًا فله الجزاء الحسن، وسنقول له قولًا ميسّرًا."
+  },
+  {
+   "en": "Then he followed another way.",
+   "ar": "ثم سلك طريقًا آخر.",
+   "skip": true
+  },
+  {
+   "en": "When he reached the rising of the sun, he found it rising on a people for whom We had made no shelter from it.",
+   "ar": "بلغ مطلع الشمس فوجدها تطلع على قوم لا ساتر لهم منها."
+  },
+  {
+   "en": "So it was. And We knew fully all that he had with him.",
+   "ar": "كذلك، وقد أحاط علمنا بكل ما عنده."
+  },
+  {
+   "en": "Then he followed another way.",
+   "ar": "ثم سلك طريقًا آخر.",
+   "skip": true
+  },
+  {
+   "en": "When he reached a place between two mountains, he found beside them a people who could hardly understand a word.",
+   "ar": "بلغ ما بين الجبلين فوجد عندهما قومًا لا يكادون يفهمون كلامًا."
+  },
+  {
+   "en": "They said: Dhul-Qarnayn, Yajuj and Majuj spread corruption in the land. Shall we pay you to build a barrier between us and them?",
+   "ar": "قالوا: إن يأجوج ومأجوج مفسدون في الأرض، فهل نجعل لك أجرًا لتبني بيننا وبينهم سدًّا؟"
+  },
+  {
+   "en": "He said: what my Lord has given me is better. Help me with your strength, and I will build a strong barrier between you and them.",
+   "ar": "قال: ما مكّنني فيه ربي خير من مالكم، فأعينوني بقوتكم أجعل بينكم وبينهم حاجزًا."
+  },
+  {
+   "en": "Bring me blocks of iron. When he had filled the gap between the two mountainsides, he said: blow. When he had made it like fire, he said: bring me molten copper to pour over it.",
+   "ar": "آتوني قطع الحديد، فلما ملأ ما بين الجبلين قال: انفخوا، حتى صار نارًا فصبّ عليه النحاس المذاب."
+  },
+  {
+   "en": "So they could not climb over it, and they could not break through it.",
+   "ar": "فما استطاعوا أن يصعدوا فوقه، وما استطاعوا أن ينقبوه."
+  },
+  {
+   "en": "He said: this is a mercy from my Lord. But when my Lord's promise comes, He will level it to the ground, and my Lord's promise is true.",
+   "ar": "قال: هذا رحمة من ربي، فإذا جاء وعد ربي جعله مستويًا بالأرض، ووعد ربي حق."
+  },
+  {
+   "en": "On that day We will leave them surging against one another like waves. The Horn will be blown, and We will gather them all together.",
+   "ar": "يومئذ يموج بعضهم في بعض، ويُنفخ في الصور فنجمع الخلق جميعًا."
+  },
+  {
+   "en": "On that Day We will show Hell plainly to the disbelievers,",
+   "ar": "ونُبرز جهنم يومئذ للكافرين عيانًا."
+  },
+  {
+   "en": "those whose eyes were veiled from My reminder, and who could not bear to hear.",
+   "ar": "الذين كانت أعينهم في غطاء عن ذكري، وكانوا لا يطيقون سماع الحق."
+  },
+  {
+   "en": "Do the disbelievers think they can take My servants as protectors instead of Me? We have prepared Hell as a lodging for the disbelievers.",
+   "ar": "أيظن الكافرون أن يتخذوا عبادي أولياء من دوني؟ إنا أعددنا جهنم للكافرين منزلًا."
+  },
+  {
+   "en": "Say: shall we tell you who are the greatest losers in their deeds?",
+   "ar": "قل: هل نخبركم بأخسر الناس أعمالًا؟"
+  },
+  {
+   "en": "Those whose effort is lost in this life, while they think they are doing good.",
+   "ar": "الذين ضاع سعيهم في الدنيا وهم يظنون أنهم يحسنون العمل."
+  },
+  {
+   "en": "They are the ones who denied their Lord's signs and the meeting with Him. Their deeds have come to nothing, and We will give them no weight on the Day of Rising.",
+   "ar": "أولئك الذين كفروا بآيات ربهم ولقائه فبطلت أعمالهم، فلا نقيم لهم يوم القيامة وزنًا."
+  },
+  {
+   "en": "That is their repayment: Hell, because they disbelieved and mocked My signs and My messengers.",
+   "ar": "ذلك جزاؤهم جهنم بما كفروا واستهزؤوا بآياتي ورسلي."
+  },
+  {
+   "en": "Those who believe and do good will have the Gardens of Firdaws as their lodging,",
+   "ar": "الذين آمنوا وعملوا الصالحات لهم جنات الفردوس منزلًا."
+  },
+  {
+   "en": "staying there forever, with no wish to leave.",
+   "ar": "خالدين فيها، لا يريدون عنها تحوّلًا."
+  },
+  {
+   "en": "Say: if the sea were ink for the words of my Lord, the sea would run dry before the words of my Lord ran out, even if We brought another sea like it to help.",
+   "ar": "قل: لو كان البحر حبرًا لكلمات ربي لنفد البحر قبل أن تنفد، ولو جئنا بمثله مددًا."
+  },
+  {
+   "en": "Say: I am only a human being like you; it is revealed to me that your God is One God. So whoever hopes to meet his Lord, let him do good deeds and associate no one in the worship of his Lord.",
+   "ar": "قل: إنما أنا بشر مثلكم يوحى إليّ أن إلهكم إله واحد؛ فمن رجا لقاء ربه فليعمل صالحًا ولا يشرك بعبادته أحدًا."
+  }
+ ],
+ "words": {
+  "1": [
+   {
+    "word": 10,
+    "span": 1,
+    "meaning": "ميلًا عن الحق"
+   }
+  ],
+  "2": [
+   {
+    "word": 0,
+    "span": 1,
+    "meaning": "مستقيمًا لا اختلاف فيه"
+   },
+   {
+    "word": 2,
+    "span": 2,
+    "meaning": "عذابًا شديدًا"
+   },
+   {
+    "word": 4,
+    "span": 2,
+    "meaning": "من عنده"
+   }
+  ],
+  "5": [
+   {
+    "word": 7,
+    "span": 2,
+    "meaning": "عظُمت في القبح مقالتُهم"
+   }
+  ],
+  "6": [
+   {
+    "word": 1,
+    "span": 2,
+    "meaning": "مُهلكٌ نفسَك حزنًا"
+   },
+   {
+    "word": 10,
+    "span": 1,
+    "meaning": "حزنًا شديدًا"
+   }
+  ],
+  "7": [
+   {
+    "word": 7,
+    "span": 1,
+    "meaning": "لنختبرهم"
+   }
+  ],
+  "8": [
+   {
+    "word": 4,
+    "span": 2,
+    "meaning": "ترابًا لا نبات فيه"
+   }
+  ],
+  "9": [
+   {
+    "word": 4,
+    "span": 1,
+    "meaning": "الغار الواسع في الجبل"
+   },
+   {
+    "word": 5,
+    "span": 1,
+    "meaning": "اللوح المكتوب فيه أسماؤهم"
+   }
+  ],
+  "10": [
+   {
+    "word": 1,
+    "span": 1,
+    "meaning": "لجأ والتجأ"
+   },
+   {
+    "word": 15,
+    "span": 1,
+    "meaning": "هدايةً وصوابًا"
+   }
+  ],
+  "11": [
+   {
+    "word": 0,
+    "span": 3,
+    "meaning": "أنمناهم نومًا عميقًا"
+   }
+  ],
+  "12": [
+   {
+    "word": 1,
+    "span": 1,
+    "meaning": "أيقظناهم من نومهم"
+   },
+   {
+    "word": 8,
+    "span": 1,
+    "meaning": "مدّةً من الزمن"
+   }
+  ],
+  "14": [
+   {
+    "word": 0,
+    "span": 3,
+    "meaning": "قوّينا قلوبهم وثبّتناها"
+   },
+   {
+    "word": 18,
+    "span": 1,
+    "meaning": "قولًا جائرًا بعيدًا عن الحق"
+   }
+  ],
+  "15": [
+   {
+    "word": 9,
+    "span": 2,
+    "meaning": "بحجةٍ واضحة"
+   }
+  ],
+  "16": [
+   {
+    "word": 18,
+    "span": 1,
+    "meaning": "ما ترتفقون وتنتفعون به"
+   }
+  ],
+  "17": [
+   {
+    "word": 4,
+    "span": 1,
+    "meaning": "تميل وتعدل"
+   },
+   {
+    "word": 11,
+    "span": 1,
+    "meaning": "تتركهم وتعدل عنهم"
+   },
+   {
+    "word": 16,
+    "span": 1,
+    "meaning": "مُتّسعٍ من الكهف"
+   },
+   {
+    "word": 32,
+    "span": 2,
+    "meaning": "ناصرًا يهديه إلى الحق"
+   }
+  ],
+  "18": [
+   {
+    "word": 1,
+    "span": 1,
+    "meaning": "منتبهين مستيقظين"
+   },
+   {
+    "word": 3,
+    "span": 1,
+    "meaning": "نيام"
+   },
+   {
+    "word": 12,
+    "span": 1,
+    "meaning": "بفِناء الكهف ومدخله"
+   },
+   {
+    "word": 21,
+    "span": 1,
+    "meaning": "فزعًا وخوفًا"
+   }
+  ],
+  "19": [
+   {
+    "word": 22,
+    "span": 1,
+    "meaning": "بدراهمكم من الفضة"
+   },
+   {
+    "word": 28,
+    "span": 2,
+    "meaning": "أحلّ وأطيب طعامًا"
+   },
+   {
+    "word": 33,
+    "span": 1,
+    "meaning": "وليترفّق ويتخفَّ حتى لا يُكشف أمرهم"
+   }
+  ],
+  "20": [
+   {
+    "word": 2,
+    "span": 2,
+    "meaning": "يطّلعوا عليكم ويعرفوا مكانكم"
+   }
+  ],
+  "21": [
+   {
+    "word": 1,
+    "span": 2,
+    "meaning": "أطلعنا الناس عليهم"
+   }
+  ],
+  "22": [
+   {
+    "word": 8,
+    "span": 2,
+    "meaning": "قولًا بالظن من غير دليل"
+   },
+   {
+    "word": 22,
+    "span": 2,
+    "meaning": "فلا تجادل"
+   },
+   {
+    "word": 29,
+    "span": 1,
+    "meaning": "تسأل"
+   }
+  ],
+  "25": [
+   {
+    "word": 0,
+    "span": 1,
+    "meaning": "ومكثوا وأقاموا"
+   }
+  ],
+  "26": [
+   {
+    "word": 9,
+    "span": 3,
+    "meaning": "تعجّبٌ: ما أبصرَه وما أسمعَه!"
+   }
+  ],
+  "27": [
+   {
+    "word": 14,
+    "span": 1,
+    "meaning": "ملجأً تلجأ إليه"
+   }
+  ],
+  "28": [
+   {
+    "word": 0,
+    "span": 2,
+    "meaning": "احبِس نفسك وثبّتها معهم"
+   },
+   {
+    "word": 6,
+    "span": 2,
+    "meaning": "أولَ النهار وآخرَه"
+   },
+   {
+    "word": 10,
+    "span": 4,
+    "meaning": "لا تصرف نظرك عنهم إلى غيرهم"
+   },
+   {
+    "word": 29,
+    "span": 1,
+    "meaning": "ضياعًا وهلاكًا"
+   }
+  ],
+  "29": [
+   {
+    "word": 16,
+    "span": 1,
+    "meaning": "سورها المحيط بها"
+   },
+   {
+    "word": 21,
+    "span": 1,
+    "meaning": "كالزيت العكِر شديد الحرارة"
+   },
+   {
+    "word": 26,
+    "span": 2,
+    "meaning": "قبُحت منزلًا ومقامًا"
+   }
+  ],
+  "31": [
+   {
+    "word": 2,
+    "span": 2,
+    "meaning": "جناتُ إقامةٍ دائمة"
+   },
+   {
+    "word": 18,
+    "span": 1,
+    "meaning": "رقيق الحرير"
+   },
+   {
+    "word": 19,
+    "span": 1,
+    "meaning": "غليظ الحرير"
+   },
+   {
+    "word": 23,
+    "span": 1,
+    "meaning": "الأسِرّة المزيّنة بالستائر"
+   }
+  ],
+  "32": [
+   {
+    "word": 9,
+    "span": 2,
+    "meaning": "وأحطناهما بالنخل"
+   }
+  ],
+  "33": [
+   {
+    "word": 2,
+    "span": 2,
+    "meaning": "أعطت ثمرها"
+   },
+   {
+    "word": 4,
+    "span": 4,
+    "meaning": "ولم تُنقص من ثمرها شيئًا"
+   },
+   {
+    "word": 9,
+    "span": 1,
+    "meaning": "وسطَهما وبينَهما"
+   }
+  ],
+  "34": [
+   {
+    "word": 6,
+    "span": 1,
+    "meaning": "يراجعه في الكلام"
+   },
+   {
+    "word": 11,
+    "span": 2,
+    "meaning": "وأقوى أنصارًا وأعوانًا"
+   }
+  ],
+  "35": [
+   {
+    "word": 9,
+    "span": 1,
+    "meaning": "تهلك وتفنى"
+   }
+  ],
+  "36": [
+   {
+    "word": 11,
+    "span": 1,
+    "meaning": "مرجِعًا وعاقبة"
+   }
+  ],
+  "37": [
+   {
+    "word": 14,
+    "span": 2,
+    "meaning": "جعلك إنسانًا معتدل الخَلق"
+   }
+  ],
+  "40": [
+   {
+    "word": 9,
+    "span": 1,
+    "meaning": "عذابًا من السماء"
+   },
+   {
+    "word": 13,
+    "span": 2,
+    "meaning": "أرضًا ملساء لا يثبت عليها قدم"
+   }
+  ],
+  "41": [
+   {
+    "word": 3,
+    "span": 1,
+    "meaning": "غائرًا ذاهبًا في الأرض"
+   }
+  ],
+  "42": [
+   {
+    "word": 0,
+    "span": 2,
+    "meaning": "أُهلكت ثماره وأمواله كلها"
+   },
+   {
+    "word": 3,
+    "span": 2,
+    "meaning": "يقلّبهما ندمًا وتحسّرًا"
+   },
+   {
+    "word": 10,
+    "span": 3,
+    "meaning": "ساقطةٌ قد تهدّم بعضها على بعض"
+   }
+  ],
+  "43": [
+   {
+    "word": 3,
+    "span": 1,
+    "meaning": "جماعة"
+   },
+   {
+    "word": 10,
+    "span": 1,
+    "meaning": "ممتنعًا بقوته من عذاب الله"
+   }
+  ],
+  "44": [
+   {
+    "word": 8,
+    "span": 1,
+    "meaning": "عاقبة"
+   }
+  ],
+  "45": [
+   {
+    "word": 14,
+    "span": 1,
+    "meaning": "يابسًا متكسّرًا"
+   },
+   {
+    "word": 15,
+    "span": 2,
+    "meaning": "تُفرّقه الرياح وتنسفه"
+   }
+  ],
+  "46": [
+   {
+    "word": 5,
+    "span": 2,
+    "meaning": "الأعمال الصالحة يبقى ثوابها"
+   }
+  ],
+  "47": [
+   {
+    "word": 5,
+    "span": 1,
+    "meaning": "ظاهرةً لا يسترها شيء"
+   },
+   {
+    "word": 8,
+    "span": 1,
+    "meaning": "نترك"
+   }
+  ],
+  "49": [
+   {
+    "word": 4,
+    "span": 1,
+    "meaning": "خائفين"
+   },
+   {
+    "word": 8,
+    "span": 1,
+    "meaning": "يا هلاكَنا!"
+   },
+   {
+    "word": 18,
+    "span": 1,
+    "meaning": "أثبتها وعدّها"
+   }
+  ],
+  "50": [
+   {
+    "word": 11,
+    "span": 4,
+    "meaning": "خرج عن طاعة ربه"
+   }
+  ],
+  "51": [
+   {
+    "word": 12,
+    "span": 1,
+    "meaning": "أعوانًا وأنصارًا"
+   }
+  ],
+  "52": [
+   {
+    "word": 12,
+    "span": 1,
+    "meaning": "مَهلِكًا يهلكون فيه"
+   }
+  ],
+  "53": [
+   {
+    "word": 5,
+    "span": 1,
+    "meaning": "داخلوها واقعون فيها"
+   },
+   {
+    "word": 9,
+    "span": 1,
+    "meaning": "مَعدِلًا ينصرفون إليه"
+   }
+  ],
+  "54": [
+   {
+    "word": 1,
+    "span": 1,
+    "meaning": "بيّنّا ونوّعنا"
+   },
+   {
+    "word": 13,
+    "span": 1,
+    "meaning": "خصومةً ومنازعة"
+   }
+  ],
+  "55": [
+   {
+    "word": 18,
+    "span": 1,
+    "meaning": "عِيانًا ومقابلة"
+   }
+  ],
+  "56": [
+   {
+    "word": 10,
+    "span": 1,
+    "meaning": "ليُبطلوا ويُزيلوا"
+   },
+   {
+    "word": 17,
+    "span": 1,
+    "meaning": "سخريةً واستهزاءً"
+   }
+  ],
+  "57": [
+   {
+    "word": 16,
+    "span": 1,
+    "meaning": "أغطية"
+   },
+   {
+    "word": 21,
+    "span": 1,
+    "meaning": "صممًا وثِقلًا"
+   }
+  ],
+  "58": [
+   {
+    "word": 18,
+    "span": 1,
+    "meaning": "ملجأً ومنجى"
+   }
+  ],
+  "59": [
+   {
+    "word": 6,
+    "span": 2,
+    "meaning": "وقتًا معلومًا لهلاكهم"
+   }
+  ],
+  "60": [
+   {
+    "word": 3,
+    "span": 1,
+    "meaning": "لخادمه الذي يصحبه"
+   },
+   {
+    "word": 4,
+    "span": 2,
+    "meaning": "لا أزال أسير"
+   },
+   {
+    "word": 8,
+    "span": 2,
+    "meaning": "ملتقى البحرين"
+   },
+   {
+    "word": 12,
+    "span": 1,
+    "meaning": "زمنًا طويلًا"
+   }
+  ],
+  "61": [
+   {
+    "word": 10,
+    "span": 1,
+    "meaning": "مسلكًا وطريقًا"
+   }
+  ],
+  "62": [
+   {
+    "word": 11,
+    "span": 1,
+    "meaning": "تعبًا ومشقة"
+   }
+  ],
+  "64": [
+   {
+    "word": 4,
+    "span": 1,
+    "meaning": "نطلب"
+   },
+   {
+    "word": 8,
+    "span": 1,
+    "meaning": "يتتبّعان آثار أقدامهما"
+   }
+  ],
+  "68": [
+   {
+    "word": 7,
+    "span": 1,
+    "meaning": "علمًا ومعرفة"
+   }
+  ],
+  "70": [
+   {
+    "word": 8,
+    "span": 4,
+    "meaning": "أبدأ أنا ببيانه لك"
+   }
+  ],
+  "71": [
+   {
+    "word": 14,
+    "span": 1,
+    "meaning": "أمرًا منكرًا عظيمًا"
+   }
+  ],
+  "73": [
+   {
+    "word": 5,
+    "span": 5,
+    "meaning": "ولا تكلّفني مشقة"
+   }
+  ],
+  "74": [
+   {
+    "word": 9,
+    "span": 1,
+    "meaning": "طاهرةً لم تُذنب"
+   },
+   {
+    "word": 15,
+    "span": 1,
+    "meaning": "منكرًا فظيعًا"
+   }
+  ],
+  "76": [
+   {
+    "word": 12,
+    "span": 1,
+    "meaning": "حدَّ الإعذار فلا لوم عليك"
+   }
+  ],
+  "77": [
+   {
+    "word": 6,
+    "span": 2,
+    "meaning": "طلبا منهم طعامًا"
+   },
+   {
+    "word": 10,
+    "span": 1,
+    "meaning": "يُنزلوهما ضيفين ويطعموهما"
+   },
+   {
+    "word": 16,
+    "span": 1,
+    "meaning": "يسقط وينهدم"
+   },
+   {
+    "word": 17,
+    "span": 1,
+    "meaning": "فعدّله وأصلح ميله"
+   }
+  ],
+  "78": [
+   {
+    "word": 6,
+    "span": 1,
+    "meaning": "بتفسيرِ وبيانِ حقيقة"
+   }
+  ],
+  "79": [
+   {
+    "word": 9,
+    "span": 1,
+    "meaning": "أجعلها معيبة"
+   },
+   {
+    "word": 16,
+    "span": 1,
+    "meaning": "قهرًا بغير حق"
+   }
+  ],
+  "80": [
+   {
+    "word": 7,
+    "span": 3,
+    "meaning": "يحملهما على الطغيان والكفر"
+   }
+  ],
+  "81": [
+   {
+    "word": 6,
+    "span": 1,
+    "meaning": "صلاحًا وطهارة"
+   },
+   {
+    "word": 8,
+    "span": 1,
+    "meaning": "برًّا بوالديه ورحمة"
+   }
+  ],
+  "82": [
+   {
+    "word": 18,
+    "span": 1,
+    "meaning": "قوّتهما وكمال عقلهما"
+   }
+  ],
+  "84": [
+   {
+    "word": 1,
+    "span": 2,
+    "meaning": "أعطيناه مُلكًا وسلطانًا"
+   },
+   {
+    "word": 9,
+    "span": 1,
+    "meaning": "طريقًا يوصله إلى ما يريد"
+   }
+  ],
+  "85": [
+   {
+    "word": 0,
+    "span": 2,
+    "meaning": "فسلك طريقًا"
+   }
+  ],
+  "86": [
+   {
+    "word": 8,
+    "span": 2,
+    "meaning": "عينِ ماءٍ ذاتِ طينٍ أسود"
+   }
+  ],
+  "90": [
+   {
+    "word": 14,
+    "span": 1,
+    "meaning": "ما يسترهم من الشمس"
+   }
+  ],
+  "93": [
+   {
+    "word": 4,
+    "span": 1,
+    "meaning": "الجبلين"
+   },
+   {
+    "word": 9,
+    "span": 4,
+    "meaning": "لا يقاربون فهم كلام غيرهم"
+   }
+  ],
+  "94": [
+   {
+    "word": 12,
+    "span": 1,
+    "meaning": "أجرًا ومالًا"
+   }
+  ],
+  "95": [
+   {
+    "word": 11,
+    "span": 1,
+    "meaning": "حاجزًا حصينًا"
+   }
+  ],
+  "96": [
+   {
+    "word": 1,
+    "span": 2,
+    "meaning": "قِطَعَ الحديد"
+   },
+   {
+    "word": 7,
+    "span": 1,
+    "meaning": "جانبَي الجبلين"
+   },
+   {
+    "word": 18,
+    "span": 1,
+    "meaning": "نحاسًا مُذابًا"
+   }
+  ],
+  "97": [
+   {
+    "word": 3,
+    "span": 1,
+    "meaning": "يعلوه ويصعدوا فوقه"
+   },
+   {
+    "word": 7,
+    "span": 1,
+    "meaning": "خرقًا وثقبًا"
+   }
+  ],
+  "98": [
+   {
+    "word": 10,
+    "span": 1,
+    "meaning": "مستويًا بالأرض"
+   }
+  ],
+  "99": [
+   {
+    "word": 3,
+    "span": 3,
+    "meaning": "يختلط بعضهم ببعض"
+   },
+   {
+    "word": 8,
+    "span": 1,
+    "meaning": "القَرن الذي يُنفخ فيه"
+   }
+  ],
+  "100": [
+   {
+    "word": 4,
+    "span": 1,
+    "meaning": "إظهارًا وإبرازًا"
+   }
+  ],
+  "101": [
+   {
+    "word": 4,
+    "span": 1,
+    "meaning": "غِشاوةٍ وستر"
+   }
+  ],
+  "102": [
+   {
+    "word": 10,
+    "span": 1,
+    "meaning": "أعددنا وهيّأنا"
+   },
+   {
+    "word": 13,
+    "span": 1,
+    "meaning": "منزلًا مُعدًّا لهم"
+   }
+  ],
+  "104": [
+   {
+    "word": 1,
+    "span": 2,
+    "meaning": "بطل عملهم وضاع"
+   }
+  ],
+  "105": [
+   {
+    "word": 6,
+    "span": 1,
+    "meaning": "فبطلت"
+   },
+   {
+    "word": 13,
+    "span": 1,
+    "meaning": "قدرًا وقيمة"
+   }
+  ],
+  "107": [
+   {
+    "word": 8,
+    "span": 1,
+    "meaning": "أعلى الجنة وأوسطها"
+   }
+  ],
+  "108": [
+   {
+    "word": 5,
+    "span": 1,
+    "meaning": "تحوّلًا وانتقالًا"
+   }
+  ],
+  "109": [
+   {
+    "word": 4,
+    "span": 1,
+    "meaning": "حبرًا يُكتب به"
+   },
+   {
+    "word": 7,
+    "span": 1,
+    "meaning": "لفَنِيَ وانتهى"
+   },
+   {
+    "word": 17,
+    "span": 1,
+    "meaning": "زيادةً وعونًا"
+   }
+  ],
+  "110": [
+   {
+    "word": 13,
+    "span": 3,
+    "meaning": "يطمع في ثواب ربه يوم يلقاه"
+   }
+  ]
+ }
+}

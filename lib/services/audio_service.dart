@@ -41,6 +41,9 @@ class Reciter {
   bool matches(MushafEdition edition) =>
       edition.textId == 'warsh' ? this == dosariWarsh : edition.textId == 'hafs';
 
+  /// The recording of one ayah, by its Hafs number.
+  String url(int surah, int ayah) => _url(surah, ayah);
+
   /// The recordings that cover a verse: one per Hafs verse holding its words.
   List<String> urlsFor(MushafAyah ayah) => [
     for (var n = ayah.hafsFrom; n <= ayah.hafsTo; n++) _url(ayah.surah, n),

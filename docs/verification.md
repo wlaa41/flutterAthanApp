@@ -1,5 +1,57 @@
 # Verification
 
+## 2.2.0-rc.15 / build 25, 25 November 2026: the Al-Kahf Journey
+
+- Local Flutter 3.50.0: all **259 unit/widget tests passed** (one more, which
+  needs the speech model's files, is skipped unless they are given); static
+  analysis has no warnings or errors. The 117 native Android tests pass.
+- `tools/make_kahf_journey.py` checked the content against the bundled Hafs
+  text before writing it: 110 ayahs in 28 stops with none left out or repeated,
+  110 English questions, a meaning for every ayah in both languages, 146 word
+  meanings and the four keepsakes, each pointing at words that are in the text.
+- The widget tests draw the screens in the game's own fonts on a 390 × 844
+  screen and walk through them: choosing a level and changing it; the map, with
+  what is lit, what is locked and stops opening in order; a stop at each of the
+  three levels; a wrong answer coming back at the end; leaving in the middle;
+  the lantern; a keepsake at the end of a story; and reciting, with a stand-in
+  for the microphone (hidden and shown ayah, heard and missed words, the best
+  try kept, cancel, skip, a refused microphone, a recording too short, and the
+  model fetched or failing to arrive). The map, a stop at each level and the
+  recite screen are also laid out at 320 × 640 with text twice as large, with
+  nothing cut off.
+- `tools/capture_journey.dart` draws 28 pictures of the screens. They were
+  compared by eye with the eight approved design screens.
+- The speech model was run here, on Linux, through the app's own code (the same
+  `sherpa_onnx` package, with its Linux library):
+  - twelve recordings, three reciters (Alafasy, Al-Husary, Al-Minshawi) on ayahs
+    9, 10, 19 and 109: every word was heard in all twelve;
+  - copies of them made rougher (noise added, volume cut to 8%, cut down to a
+    telephone's range, echo, 25% faster): every word heard in all twenty;
+  - one word cut out of the sound, at the times the model itself gives for each
+    word, 246 times: the missing word was marked 237 times, and 9 times nothing
+    was marked. With two neighbouring words cut out, 234 times: both marked 219
+    times, at least one 225 times. Some of those misses belong to the cutting,
+    because the model's times say where it writes a word, not where its sound
+    begins;
+  - the recording of one ayah checked against the ayah before or after it: one
+    or two of its 7 to 16 words marked heard, short words the two share;
+  - a reciter who stops and repeats a phrase before going on (Alafasy, ayah 10)
+    is heard as reciting the ayah once;
+  - checking 85 seconds of sound (ayah 19, 38 words) took 1.1 seconds on this
+    machine with two threads. A phone will be slower.
+- The app's own code fetched the model from Hugging Face: both files arrived
+  with the recorded sizes and checksums, and a second call fetched nothing.
+- A release APK for 64-bit ARM was built here: 89,276,841 bytes, under the
+  99,000,000 limit. It holds the speech runtime's three libraries, compressed,
+  none for other processors, the game's content and fonts, and the microphone
+  permission.
+- **Not checked, with no phone or emulator here:** the microphone and its
+  permission question on Android and on iPhone; a voice through a phone's
+  microphone; an everyday reciter instead of a studio recording; loading the
+  speech runtime on a real phone; and how long the check takes there. The
+  recite screen is the one part of this build that has not run on the hardware
+  it is for.
+
 ## 2.2.0-rc.14 / build 24, 25 November 2026: the iPhone alarm
 
 - Local Flutter 3.50.0 and CI: all **243 unit/widget tests passed**; static
@@ -165,6 +217,7 @@ These are a release acceptance matrix, not a claim that physical phones were tes
 | Force stop, reopen; refill near scheduled-through date | Pending | Pending | Pending | Pending |
 | TalkBack/VoiceOver, large fonts, landscape | Pending | Pending | Pending | Pending |
 | Athan as an alarm (iOS 26 or later): locked, in use, Silent mode, a Focus, Snooze, Stop, on time overnight | N/A | N/A | N/A | Pending |
+| Al-Kahf Journey, Recite: the microphone question, fetching the listener, reciting an ayah right, with a word left out, and offline | Pending | Pending | Pending | Pending |
 
 Android setAlarmClock is used only for user-enabled prayer/Iqama alerts with
 permission. It can show the system's upcoming-alarm indicator. Revoking exact
