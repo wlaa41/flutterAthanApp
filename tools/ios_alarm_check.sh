@@ -10,14 +10,18 @@
 # It builds the app with ATHAN_ALARM_CHECK, so the app sets the test alarms
 # the UI test asks for, and adds ios/AlarmCheck to the project as a UI test
 # for this run only: the project file and the scheme are put back at the end.
-# It takes about ten minutes once the app is built and the simulator is up.
+# It takes about eleven minutes once the app is built and the simulator is up.
+# Run it away from a prayer time of the app's city (London on a fresh
+# install): a prayer that falls inside the run rings into it.
 #
 # A simulator is not a phone. It shows that iOS accepts the alarms, that they
 # ring, and what the Live Activity and its Stop and Snooze do. The sound and
-# how long the full-screen alarm stays need a real iPhone. Some simulators
-# restart SpringBoard when an alert tone starts, which takes the full-screen
-# alarm away after a moment; the run says how many SpringBoard processes it
-# saw and keeps crash reports, to tell that apart from a fault of the app.
+# the full-screen alarm of a locked phone need a real iPhone: simulators since
+# iOS 26.1 present nothing for an alarm on a locked screen, so the second
+# alarm's half of the run only reports. Some simulators also restart
+# SpringBoard when an alert tone starts, which takes the system's alert away
+# after a moment; the run says how many SpringBoard processes it saw and keeps
+# crash reports, to tell that apart from a fault of the app.
 set -euo pipefail
 
 if [[ "$(uname -s)" != Darwin ]]; then

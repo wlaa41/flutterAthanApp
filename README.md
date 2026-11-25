@@ -160,9 +160,9 @@ can suppress notification audio.
 at the screen, one with the phone in use and one with it locked, and keeps a video,
 pictures and logs: the two permission questions, the armed alarms, the alert, the
 Live Activity and its Stop and Snooze. Starting the CI workflow by hand runs it. A
-simulator plays no alarm sound and may restart its home screen when the tone
-starts, so the sound and how long the full-screen alarm stays are checked on a real
-iPhone.
+simulator plays no alarm sound and presents nothing for an alarm on a locked
+screen, so the sound and the full-screen alarm of a locked phone are checked on a
+real iPhone. `docs/verification.md` has what the check showed.
 
 The alarm's Live Activity is the `AthanAlarm` extension in `ios/AthanAlarm`, built
 for iOS 26; the app itself still runs on iOS 15. It was added to the Xcode project

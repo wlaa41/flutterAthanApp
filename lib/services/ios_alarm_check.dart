@@ -14,9 +14,8 @@ import 'notification_service.dart';
 /// "Try the alarm" does, and logs what the iPhone reports every two seconds:
 /// waiting, ringing, snoozed, gone. The UI test that drives the run names the
 /// times in `ATHAN_ALARM_CHECK_AT` (milliseconds, comma separated), so it
-/// knows when to look. The prayers the app has just armed are then taken off
-/// again, so that a prayer falling inside the run cannot ring into it.
-/// Without the times, one alarm rings at the usual test time.
+/// knows when to look. Without the times, one alarm rings at the usual test
+/// time. The prayers stay armed, so one that falls inside a run rings too.
 class IosAlarmCheck {
   static const enabled = bool.fromEnvironment('ATHAN_ALARM_CHECK');
   static const _phone = MethodChannel('athan/alarms');
@@ -33,9 +32,6 @@ class IosAlarmCheck {
       if (times.isEmpty) {
         final at = await service.testIosAlarm();
         _log('test alarm 1 set for ${at.toIso8601String()}');
-      } else {
-        await _phone.invokeMethod<Object?>('alarmKitCancelAll');
-        _log('prayers off: ${_describe(await service.iosAlarmStatus())}');
       }
       for (var i = 0; i < times.length; i++) {
         final left = times[i].difference(DateTime.now()).inSeconds;

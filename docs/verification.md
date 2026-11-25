@@ -26,29 +26,35 @@
     alarm);
   - the Live Activity drawn by the extension showed the title, "Ringing", Snooze
     and Stop when the Dynamic Island was held;
-  - Stop there ran `AthanStopIntent` in the app, the alarm service stopped and
-    removed the alarm, and the app saw nothing ringing;
+  - Snooze there ran `AthanSnoozeIntent` in the app, the alarm service started
+    counting down and the app saw one snoozed athan. The Live Activity changed
+    to "Snoozed" with the time left (9:58 of the 10 minutes) and Stop alone, in
+    the Dynamic Island and on the lock screen;
+  - Stop on the lock screen ran `AthanStopIntent`, the service stopped the
+    snoozed alarm and the app saw none. In an earlier run the same button
+    stopped an athan that was still ringing;
   - a real prayer rang too: in one run "Time for Isha" for London fired as an
-    alarm at 17:32:00, its exact time, beside the test alarm. The check now takes
-    the prayers off before its own alarms, so that cannot ring into a run.
-- What the simulator does that a phone should not: about 20 seconds after an
-  alarm fires, when its tone starts, the simulator's home screen (SpringBoard)
-  restarts. Its tone player calls a method the simulator does not have
-  (`TLAlertQueuePlayerController`, crash report kept with the run); Apple's forum
-  has the same fault with no app involved. The alarm keeps ringing across the
-  restart, but the system's first alert is gone after a moment. On a slow CI
-  machine the process that draws Live Activities once needed more than the 30
-  seconds iOS allows it to start after such a restart, and that run showed no
-  Live Activity.
+    alarm at 17:32:00, its exact time, beside the test alarm.
+- What the simulator does that a phone should not: when an alarm's tone starts,
+  the simulator's home screen (SpringBoard) restarts. Its tone player calls a
+  method the simulator does not have (`TLAlertQueuePlayerController`, crash
+  report kept with the run); Apple's forum has the same fault with no app
+  involved. The alarm keeps ringing across the restart, but the system's first
+  alert is gone after a moment. On a slow CI machine the process that draws Live
+  Activities once needed more than the 30 seconds iOS allows it to start after
+  such a restart, and that run showed no Live Activity.
+- The second alarm of the check rings with the simulator locked and dark. It
+  fired in its second, but the simulator presented nothing for it: no alert, and
+  after the restart a Live Activity that opened empty. Apple's forum, thread
+  806998, has alarm alerts no longer presenting on a locked simulator since
+  iOS 26.1. That half of the check therefore only reports.
 - Not shown by a simulator, so not checked: the sound, and the full-screen alarm
-  of a locked phone (Apple's forum, thread 806998: alarm alerts stopped
-  presenting on a locked simulator with iOS 26.1). No real iPhone was available.
-  They are on the hardware list below, with Silent mode, a Focus and installing
-  with Sideloadly.
+  of a locked phone. No real iPhone was available. They are on the hardware list
+  below, with Silent mode, a Focus and installing with Sideloadly.
 - Reports from other developers to keep in mind for that check (Apple Developer
   Forums): alarms that ring late on a locked iPhone (threads 825427 and 846063),
-  and a second alarm silencing the first when two overlap (thread 845563), which
-  is what an Iqama alarm does to an athan nobody answered.
+  and a second alarm silencing the first when two overlap (thread 845563), the
+  case of an Iqama alarm arriving while the athan alarm was left unanswered.
 
 ## 2.1.0-rc.8 / build 10 — 19 November 2026
 
