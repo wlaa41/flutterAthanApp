@@ -202,6 +202,10 @@ jobs:
           done
           [ "$(read_key "$extension" NSExtension:NSExtensionPointIdentifier)" = com.apple.widgetkit-extension ]
           read_key "$app" NSAlarmKitUsageDescription
+          # The Al-Kahf Journey listens to a recitation: the microphone text,
+          # and the speech runtime among the app's frameworks.
+          read_key "$app" NSMicrophoneUsageDescription
+          ls "$app/Frameworks"
           [ "$(read_key "$app" NSSupportsLiveActivities)" = true ]
           sounds=0
           for sound in asset/*_short.wav; do
