@@ -24,6 +24,8 @@
 	<true/>
 	<key>NSAlarmKitUsageDescription</key>
 	<string>Athan rings at prayer time as an alarm, with Stop and Snooze on the lock screen.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>The Al-Kahf Journey listens when you recite an ayah and marks the words it heard. The recording stays on your iPhone.</string>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

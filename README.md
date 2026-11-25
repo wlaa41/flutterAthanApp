@@ -83,19 +83,40 @@ Developer Program (99 USD a year).
   stops), the snooze length and **Try the alarm screen**. The athan's
   notification has Snooze, Stop and Beep today.
 
-## Meaning challenge
+## Al-Kahf Journey
 
-The Challenge tab tests what the words of a surah mean, starting with Surah
-Al-Kahf: 146 words and phrases in 17 stages along the surah, and a final
-challenge on all of it. Each question shows the word in the mushaf's own text
-and font, with its verse, and four meanings in Arabic. A round asks 6 of a
-stage's words, so a replay brings others, and missed words come back first. It
-is timed, with three hearts, points for speed and for a streak, two helps,
-stars and best scores. **تعلّم كلمات المرحلة أولًا** (learn the stage's words
-first) lists them with their meanings and verses, and al-Tafsir al-Muyassar is
-one tap away. The meanings
-follow al-Tafsir al-Muyassar and the books of gharib al-Quran; the questions
-live in `tools/make_kahf_quiz.py`.
+The **Journey** tab walks through Surah Al-Kahf, first ayah to last, as a story
+in 28 stops. A stop tells its part of the story, asks three or four questions
+about its ayahs and lights a lantern when they are all answered right. Nothing
+is timed or scored: a wrong answer comes back at the end of the stop. Each of
+the four stories ends with a keepsake named in its own ayahs: the silver coin
+(the Cave), the vine (the Two Gardens), the ship (Musa and Al-Khidr) and the
+iron (Dhul-Qarnayn).
+
+Choose how to play on the first screen; the pill at the top of the map changes
+it later. Every level asks about whole ayahs.
+
+- **English**: for someone who does not read Arabic. The story and the
+  questions are in English, and each ayah is shown and can be played.
+- **Arabic**: the ayah is shown and you choose its meaning. **معاني الكلمات**
+  lists the harder words of that ayah for whoever wants them.
+- **Arabic, strong**: the meaning is given and you choose the ayah, with no
+  help.
+
+**Recite the ayahs** comes after a lantern is lit. You are given an ayah and
+recite the one after it; the phone listens and marks each word as heard, or as
+missed or unclear. The ayah stays hidden until it is recited, unless you tap
+**Show the ayah**. It checks the words, not tajweed.
+
+The listening happens on the phone. The first time, the app fetches a 19 MB
+Quran speech model once; after that reciting works offline, and the recording
+is checked on the phone and deleted. It needs the microphone, which the app
+asks for the first time **Recite** is tapped.
+
+The meanings follow al-Tafsir al-Muyassar; the English is the app's own
+wording, not a published translation. The content lives in
+`tools/make_kahf_journey.py`, which checks it against the bundled Hafs text.
+Sources and licences are in `docs/QURAN_SOURCES.md`.
 
 ## Quran
 

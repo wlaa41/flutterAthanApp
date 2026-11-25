@@ -149,3 +149,38 @@ a time. It is saved when a surah is first opened online.
 
 Both sets are filed by Hafs verse numbers. There is no verse-by-verse recording
 of the other riwayat, so they play the Hafs recitation and the app says so.
+
+## The Al-Kahf Journey
+
+- **Content.** The stories, the 110 English questions, a short meaning for each
+  ayah in English and in Arabic, and 146 word meanings are written in
+  `tools/make_kahf_journey.py`. The meanings follow al-Tafsir al-Muyassar (King
+  Fahd Complex) and, for single words, the books of gharib al-Quran. The English
+  is the app's own wording, not a published translation. No Quran text is typed
+  there: an ayah is named by its number and shown from the bundled Hafs text,
+  and the tool refuses to write the file if a word it points at is not in that
+  text.
+- **Font.** Baloo Bhaijaan 2 by Ek Type, SIL Open Font License 1.1
+  (`asset/fonts/baloo_bhaijaan2_OFL.txt`), from
+  <https://github.com/google/fonts/tree/main/ofl/baloobhaijaan2>. Upstream is one
+  variable file (`tools/fonts/BalooBhaijaan2-wght.ttf`, version 1.701).
+  `tools/make_journey_fonts.py` pins four weights (400, 600, 700, 800) and
+  merges overlapping outlines, because Flutter's text engine on Android draws
+  small notches where the strokes of the variable file cross. Nothing else is
+  changed. The licence declares no reserved font name.
+- **Recitation played in the game.** Mishary Rashid Alafasy, streamed from the
+  same source as the Hafs reader above.
+- **Listening model.** `quran-asr-tiny` by Abdou
+  (<https://huggingface.co/Abdou/quran-asr-tiny>), MIT licence for code and
+  weights; its card lists the recitation datasets it was trained on, which keep
+  their own terms. It is not bundled. The app fetches revision
+  `a291b33fd5a31cc4f212363ee1ba2d56d9710b49` the first time someone recites:
+  `model.int8.onnx` (18,850,806 bytes, SHA-256
+  `58de6db034bb4f6516b3bc1c68e7a0ac4e77abffe603a550ee87b39dcd0c7ac6`) and
+  `tokens.txt` (180 bytes, SHA-256
+  `75b53814499cee84a07c7b7a318524d30bcaf84273c0f8b28a04176023e8c74f`). A file
+  that does not match is thrown away.
+- **Running it.** `sherpa_onnx` 2.0.3 (Apache 2.0), which carries ONNX Runtime
+  (MIT), runs the model on the phone. `record` 7.2.0 (BSD 3-Clause) records the
+  recitation as a 16 kHz WAV file in the app's temporary folder; the file is
+  deleted once it has been checked. Nothing recorded is sent anywhere.

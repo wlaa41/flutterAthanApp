@@ -56,11 +56,41 @@ android {
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
+
+        // Flutter builds its own libraries for the processors named by
+        // --target-platform, but a plugin's ready-made libraries (the speech
+        // runtime of the Al-Kahf Journey) come along for every processor
+        // unless they are filtered the same way. Left unfiltered they add
+        // 21 MB to the 64-bit ARM APK that CI keeps in the repository.
+        def flutterAbis = [
+            'android-arm'  : 'armeabi-v7a',
+            'android-arm64': 'arm64-v8a',
+            'android-x64'  : 'x86_64',
+        ]
+        def targetAbis = (project.findProperty('target-platform') ?: '')
+            .toString().tokenize(',').collect { flutterAbis[it] }.findAll { it != null }
+        def splitPerAbi = (project.findProperty('split-per-abi') ?: 'false').toString().toBoolean()
+        if (!targetAbis.isEmpty() && !splitPerAbi) {
+            ndk {
+                abiFilters.clear()
+                abiFilters.addAll(targetAbis)
+            }
+        }
     }
 
     buildTypes {
         release {
             signingConfig signingConfigs.debug
+        }
+    }
+
+    // The APK is kept at the root of the repository, and GitHub takes no file
+    // of 100 MB or more. Native libraries are stored compressed so it fits:
+    // the Flutter engine, the app, and the speech runtime that hears a
+    // recitation in the Al-Kahf Journey (27 MB before compression).
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
         }
     }
 }

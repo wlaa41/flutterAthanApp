@@ -24,6 +24,11 @@
     <!-- The black alarm screen over the lock screen, as alarm clocks do. Granted
          at install; Android 14+ lists it under "Full screen notifications". -->
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
+    <!-- The Al-Kahf Journey listens to a recitation of the next ayah. Asked for
+         the first time "Recite" is tapped. The recording is checked on the
+         phone and deleted; it is never sent anywhere. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-feature android:name="android.hardware.microphone" android:required="false"/>
 
     <application
         android:label="Athan &amp; Quran"

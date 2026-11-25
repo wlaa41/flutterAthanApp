@@ -15,7 +15,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion. android:
 # Read more about iOS versioning a
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 2.2.0-rc.14+24
+version: 2.2.0-rc.15+25
 
 environment:
   sdk: ">=3.10.0 <4.0.0"
@@ -39,6 +39,10 @@ dependencies:
   timezone: ^0.9.4
   adhan_dart: ^2.0.1
   file_picker: ^13.4.0
+  # The Journey's "recite the next ayah": runs a small Quran speech model on
+  # the phone, and records the recitation it hears.
+  sherpa_onnx: 2.0.3
+  record: 7.2.0
 
 
 dev_dependencies:
@@ -55,6 +59,9 @@ flutter:
     - asset/
     # The Quran text of each mushaf, built by tools/build_quran_assets.py.
     - asset/quran/
+    # The Al-Kahf Journey: stories, questions and meanings, built and checked
+    # against the Hafs text by tools/make_kahf_journey.py.
+    - asset/journey/
 
   # One font per mushaf: the King Fahd Complex draws each riwayah with its own
   # font, and a text only reads correctly in the font it was written for.
@@ -83,3 +90,16 @@ flutter:
     - family: kfgqpc_qumbul
       fonts:
         - asset: asset/fonts/kfgqpc_qumbul.ttf
+    # The Al-Kahf Journey's own face, Latin and Arabic: four weights of Baloo
+    # Bhaijaan 2 (SIL Open Font License, asset/fonts/baloo_bhaijaan2_OFL.txt),
+    # built by tools/make_journey_fonts.py.
+    - family: baloo
+      fonts:
+        - asset: asset/fonts/baloo_400.ttf
+          weight: 400
+        - asset: asset/fonts/baloo_600.ttf
+          weight: 600
+        - asset: asset/fonts/baloo_700.ttf
+          weight: 700
+        - asset: asset/fonts/baloo_800.ttf
+          weight: 800
