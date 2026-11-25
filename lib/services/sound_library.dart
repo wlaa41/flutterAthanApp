@@ -81,7 +81,7 @@ class SoundCatalog {
       kind: SoundKind.athan,
       assetPath: 'asset/smooth.mp3',
       androidResource: 'smooth',
-      iosSound: 'chime.wav',
+      iosSound: 'smooth_short.wav',
     ),
     SoundOption(
       id: 'beautiful_adhan',

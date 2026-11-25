@@ -1,5 +1,45 @@
 # Changelog
 
+## 2.2.0-rc.14 (build 24)
+
+- **Alarm screen on iPhone** (iOS 26 and later). The athan now rings as an
+  iPhone alarm, through Apple's AlarmKit. On a locked phone it takes over the
+  screen with **Stop** and **Snooze**, and it rings in Silent mode and through
+  a Focus. With the phone in use, it shows at the top of the screen with the
+  same two buttons. Opening the app while it rings shows Stop and Snooze there
+  too. iOS draws the alarm, so it looks like the iPhone's own, not like the
+  black slider screen on Android.
+- The iPhone asks once to allow alarms. Until it is allowed, and on an iPhone
+  before iOS 26, the athan arrives as a notification, as before.
+- **Settings → Basics → Alarm screen** on iPhone: **Ring as an alarm** (on by
+  default), **Snooze for** 5, 10, 15, 20 or 30 minutes, **Cancel snooze** while
+  an athan is snoozed, and **Try the alarm**, which rings at the next full
+  minute so the phone can be locked first. Reminder readiness shows whether
+  alarms are allowed.
+- A recitation rings as an alarm, Iqama included. A beep, vibration only and
+  silent reminders stay notifications, the same line Android draws.
+- The next 24 athans are kept ready as alarms, about three days, and are only
+  touched when something changes. The reminders after them wait as
+  notifications, so nothing is lost if the app stays closed; opening it moves
+  the next ones up to alarms. If the iPhone refuses an alarm, that reminder is
+  delivered as a notification.
+- Settings shows how many athans are ready as alarms. If the iPhone refuses
+  one, or refuses the test alarm, its own reason is shown, to report it. If the
+  app closes twice in a row while setting alarms, it stops trying, athans
+  arrive as notifications, and Settings offers **try again**.
+- An alarm plays the 28-second opening of the athan, the longest sound iOS
+  accepts. The excerpts are now also in the app bundle, where alarms read
+  them. An added athan or an imported file with no excerpt rings with the
+  iPhone's alarm sound.
+- **Classic Athan on iPhone** now plays its own opening. It used a chime.
+- New extension `AthanAlarm` (iOS 26): the alarm's Live Activity for the
+  Dynamic Island and the Lock Screen. `tools/add_ios_alarm_target.rb` is how
+  the Xcode project got it, without Xcode.
+- `tools/ios_alarm_check.sh` rings two test alarms on an iOS 26 simulator with
+  nobody at the screen, one with the phone in use and one with it locked, and
+  keeps a video, pictures and logs. Starting the CI workflow by hand runs it.
+  `docs/verification.md` has what it showed and what still needs a real iPhone.
+
 ## 2.2.0-rc.13 (build 23)
 
 - **Alarm screen** (Android). When the athan plays with the phone locked or

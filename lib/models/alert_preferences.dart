@@ -20,6 +20,10 @@ class AlertPreferences {
   /// How long Snooze waits before the athan plays again.
   final int snoozeMinutes;
 
+  /// iPhone, iOS 26 and later: the athan rings as an alarm that takes over
+  /// the lock screen. Off, it arrives as a notification.
+  final bool ringAsAlarm;
+
   static const snoozeChoices = [5, 10, 15, 20, 30];
 
   const AlertPreferences({
@@ -39,6 +43,7 @@ class AlertPreferences {
     this.beepAlarmVolume = false,
     this.easierScreen = false,
     this.snoozeMinutes = 10,
+    this.ringAsAlarm = true,
   });
 
   /// Overnight shifts belong to their starting weekday; the end is exclusive.
@@ -75,6 +80,7 @@ class AlertPreferences {
     bool? beepAlarmVolume,
     bool? easierScreen,
     int? snoozeMinutes,
+    bool? ringAsAlarm,
   }) => AlertPreferences(
     athanSoundId: athanSoundId ?? this.athanSoundId,
     iqamaSoundId: iqamaSoundId ?? this.iqamaSoundId,
@@ -104,6 +110,7 @@ class AlertPreferences {
     beepAlarmVolume: beepAlarmVolume ?? this.beepAlarmVolume,
     easierScreen: easierScreen ?? this.easierScreen,
     snoozeMinutes: (snoozeMinutes ?? this.snoozeMinutes).clamp(1, 60),
+    ringAsAlarm: ringAsAlarm ?? this.ringAsAlarm,
   );
 
   Map<String, dynamic> toJson() => {
@@ -123,6 +130,7 @@ class AlertPreferences {
     'beepAlarmVolume': beepAlarmVolume,
     'easierScreen': easierScreen,
     'snoozeMinutes': snoozeMinutes,
+    'ringAsAlarm': ringAsAlarm,
   };
 
   factory AlertPreferences.fromJson(Map<String, dynamic> json) {
@@ -144,6 +152,7 @@ class AlertPreferences {
       beepAlarmVolume: json['beepAlarmVolume'] as bool?,
       easierScreen: json['easierScreen'] as bool?,
       snoozeMinutes: number('snoozeMinutes'),
+      ringAsAlarm: json['ringAsAlarm'] as bool?,
     );
   }
 

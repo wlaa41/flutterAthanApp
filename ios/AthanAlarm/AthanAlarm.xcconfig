@@ -1,0 +1,6 @@
+// The athan alarm extension takes its version from the app, so the two always
+// match. Flutter writes Generated.xcconfig before every build; the two lines
+// above the include only apply when it is missing.
+FLUTTER_BUILD_NAME = 1.0.0
+FLUTTER_BUILD_NUMBER = 1
+#include? "../Flutter/Generated.xcconfig"

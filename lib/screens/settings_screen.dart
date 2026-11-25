@@ -278,6 +278,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                               _locationSection(prefs),
                               _athanSection(prefs),
                               if (_android) _alarmScreenSection(prefs),
+                              if (_ios) _iosAlarmSection(prefs),
                               if (_needsSetup) _setupBanner(_health!),
                             ],
                             if (_selectedSection ==
@@ -385,7 +386,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         const Padding(
           padding: EdgeInsets.only(top: 8),
           child: Text(
-            'On iPhone, recitations use short opening excerpts; Classic Athan uses a chime. Imported audio needs a PCM WAV under 30 seconds for alerts; other files and added athans use a beep. Previews play the full recording.',
+            'On iPhone, a recitation plays its 28-second opening. Imported audio needs a PCM WAV under 30 seconds for alerts; other files and added athans use a beep, or the iPhone alarm sound when the athan rings as an alarm. Previews play the full recording.',
           ),
         ),
     ],
@@ -486,6 +487,148 @@ class _SettingsScreenState extends State<SettingsScreen>
       ],
     );
   }
+
+  /// iPhone, iOS 26 and later: the athan as an alarm. iOS draws the screen,
+  /// so there is no "Easier screen" here.
+  Widget _iosAlarmSection(AlertPreferences prefs) {
+    final alarm = _health?.alarm ?? IosAlarmStatus.none;
+    if (!alarm.supported) {
+      return _section(
+        title: 'Alarm screen',
+        icon: Icons.alarm_on_outlined,
+        children: const [
+          Text(
+            'From iOS 26 the athan can ring as an alarm that takes over the lock screen, with Stop and Snooze. This iPhone runs an older iOS, so the athan arrives as a notification.',
+          ),
+        ],
+      );
+    }
+    return _section(
+      title: 'Alarm screen',
+      icon: Icons.alarm_on_outlined,
+      children: [
+        const Text(
+          'The athan rings as an iPhone alarm. It takes over the lock screen with Stop and Snooze, and rings in Silent mode and through a Focus. With the phone in use, it shows at the top of the screen.',
+        ),
+        const SizedBox(height: 4),
+        SwitchListTile.adaptive(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Ring as an alarm'),
+          subtitle: const Text(
+            'Off: the athan arrives as a notification, as before.',
+          ),
+          value: prefs.ringAsAlarm,
+          onChanged: _busy
+              ? null
+              : (value) async {
+                  await _save(prefs.copyWith(ringAsAlarm: value));
+                  // Turning it on is the moment to ask the iPhone.
+                  if (value && alarm.undecided && mounted)
+                    await _allowIosAlarms();
+                },
+        ),
+        if (prefs.ringAsAlarm && alarm.paused)
+          _statusTile(
+            'The alarm screen is paused',
+            'The app closed twice while setting alarms, so the athan arrives as a notification. Tap to try again.',
+            false,
+            () => _run(() async {
+              await NotificationService.instance.resumeIosAlarms();
+              await _loadHealth();
+            }, failure: 'Alarms could not be set. Try again.'),
+          ),
+        if (prefs.ringAsAlarm && alarm.allowed && !alarm.paused)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Text(
+              alarm.error.isEmpty
+                  ? '${alarm.scheduled} athans are ready as alarms.'
+                  : '${alarm.scheduled} athans are ready as alarms. The iPhone refused the next one, which arrives as a notification: ${alarm.error}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+        if (prefs.ringAsAlarm && !alarm.allowed)
+          _statusTile(
+            'Alarms are not allowed yet',
+            alarm.denied
+                ? 'Tap, then turn on Alarms for Athan in iPhone Settings. Until then the athan arrives as a notification.'
+                : 'Tap and choose Allow. Until then the athan arrives as a notification.',
+            false,
+            alarm.denied
+                ? () => _run(NotificationService.instance.openAppSettings)
+                : _allowIosAlarms,
+          ),
+        const SizedBox(height: 4),
+        Text('Snooze for', style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 8,
+          runSpacing: 4,
+          children: [
+            for (final minutes in AlertPreferences.snoozeChoices)
+              ChoiceChip(
+                label: Text('$minutes min'),
+                selected: prefs.snoozeMinutes == minutes,
+                onSelected: _busy || prefs.snoozeMinutes == minutes
+                    ? null
+                    : (_) => _save(prefs.copyWith(snoozeMinutes: minutes)),
+              ),
+          ],
+        ),
+        if (alarm.snoozed > 0)
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.snooze),
+            title: const Text('An athan is snoozed'),
+            trailing: TextButton(
+              onPressed: _busy
+                  ? null
+                  : () => _run(() async {
+                      await NotificationService.instance.cancelSnooze();
+                      await _loadHealth();
+                    }, success: 'Snooze cancelled.'),
+              child: const Text('Cancel snooze'),
+            ),
+          ),
+        const SizedBox(height: 8),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: OutlinedButton.icon(
+            icon: const Icon(Icons.play_arrow_outlined),
+            label: const Text('Try the alarm'),
+            onPressed: _busy || !prefs.ringAsAlarm || !alarm.allowed
+                ? null
+                : () => _run(() async {
+                    try {
+                      final at = await NotificationService.instance
+                          .testIosAlarm();
+                      if (mounted)
+                        _message(
+                          'Test alarm at ${_when(at)}. Lock the iPhone now and wait.',
+                        );
+                    } on IosAlarmRefused catch (refused) {
+                      // The iPhone's own reason, to read out when reporting it.
+                      throw _SettingsFailure('$refused');
+                    }
+                  }, failure: 'The test alarm could not be set. Try again.'),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: Text(
+            'Rings at the next full minute with your athan, so there is time to lock the phone. A beep, vibration or silent reminder stays a notification. The next ${NotificationService.iosAlarmLimit} athans are kept ready as alarms, so open the app every few days.',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Shows the iPhone's own question about alarms, then arms the athans.
+  Future<void> _allowIosAlarms() => _run(() async {
+    await NotificationService.instance.requestIosAlarms();
+    await _loadHealth();
+  }, failure: 'Alarms could not be turned on. Try again.');
 
   void _editWeekly(AlertPreferences saved, AlertPreferences next) =>
       setState(() => _weeklyDraft = next.sameWeekly(saved) ? null : next);
@@ -826,6 +969,21 @@ class _SettingsScreenState extends State<SettingsScreen>
               await _loadHealth();
             }),
           ),
+          if (_ios && health.alarm.supported)
+            _statusTile(
+              'Alarm screen',
+              !(_preferences?.ringAsAlarm ?? true)
+                  ? 'Turned off, so the athan arrives as a notification. Turn on "Ring as an alarm" under Basics.'
+                  : health.alarm.allowed
+                  ? 'Allowed. The athan rings as an alarm over the lock screen.'
+                  : health.alarm.denied
+                  ? 'Off. Tap, then turn on Alarms for Athan in iPhone Settings.'
+                  : 'Not allowed yet. Tap and choose Allow.',
+              health.alarm.allowed && (_preferences?.ringAsAlarm ?? true),
+              health.alarm.undecided
+                  ? _allowIosAlarms
+                  : () => _run(NotificationService.instance.openAppSettings),
+            ),
           if (_android) ...[
             _statusTile(
               'On-time alarms',

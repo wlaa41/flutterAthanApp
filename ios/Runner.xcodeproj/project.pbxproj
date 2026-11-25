@@ -7,13 +7,37 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0AEC406BB8BECB9E8194421F /* AthanAlarmKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A2253A0EF763BA3727FE8A2 /* AthanAlarmKit.swift */; };
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
+		1E2F6336B8E4E9E6DD33FB69 /* makkah_ali_mulla_short.wav in Resources */ = {isa = PBXBuildFile; fileRef = 2554BC8799D9EBC16AC3787E /* makkah_ali_mulla_short.wav */; };
+		24A6FE2198060CE6943C5A6E /* qassas_clear_short.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1EA144E1CA5A3808813780FA /* qassas_clear_short.wav */; };
+		27B88CE5F356556E23016717 /* beautiful_adhan_short.wav in Resources */ = {isa = PBXBuildFile; fileRef = 273F37128C6D501F7293CCFA /* beautiful_adhan_short.wav */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
+		5152F73F6CA2CD0C2115BE48 /* minshawi_short.wav in Resources */ = {isa = PBXBuildFile; fileRef = C815788A6D278D89A8492550 /* minshawi_short.wav */; };
+		5C65BA1889C31CD12965376D /* abdul_basit_short.wav in Resources */ = {isa = PBXBuildFile; fileRef = B7BE8C9D3C0F1BB1F926B86B /* abdul_basit_short.wav */; };
+		62174A4ADA61EC60B0BF006F /* nasser_al_qatami_short.wav in Resources */ = {isa = PBXBuildFile; fileRef = F95CDBAD0864B7BA770884E7 /* nasser_al_qatami_short.wav */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
+		80A83F55231A2A0F1B0017F4 /* AthanAlarm.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = B92F052002A0D144FEF148A1 /* AthanAlarm.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		885AE0E437AD7163A3A8E6C2 /* AthanAlarmKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A2253A0EF763BA3727FE8A2 /* AthanAlarmKit.swift */; };
+		8F2C9BDEC506EAF299EE69E1 /* smooth_short.wav in Resources */ = {isa = PBXBuildFile; fileRef = F1B84561CFEB76AE33338DFF /* smooth_short.wav */; };
+		9557764B669BD3AA1D1C7D70 /* madinah_short.wav in Resources */ = {isa = PBXBuildFile; fileRef = D636DCA8C6C758681F760A64 /* madinah_short.wav */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
+		9E0FFDDCEEFDF5EEE9B14F1A /* AthanAlarmWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97A96C21C300F79E37B5620E /* AthanAlarmWidget.swift */; };
+		D18CF7B91C42B7A9A022434F /* iqama_short.wav in Resources */ = {isa = PBXBuildFile; fileRef = 8473A36CDE7C94FC7142C497 /* iqama_short.wav */; };
+		F0EABE25E19D78175B6C3CE7 /* mishary_alafasy_short.wav in Resources */ = {isa = PBXBuildFile; fileRef = EA8B01333A32A7FED02D5822 /* mishary_alafasy_short.wav */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		E27219ABA8AC6191EA127300 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8F44DD90AD2E32DBCAF2E2C6;
+			remoteInfo = AthanAlarm;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		9705A1C41CF9048500538489 /* Embed Frameworks */ = {
@@ -26,22 +50,48 @@
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		DA5F784CBAE74FDF91AFC244 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				80A83F55231A2A0F1B0017F4 /* AthanAlarm.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
+		1EA144E1CA5A3808813780FA /* qassas_clear_short.wav */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = audio.wav; path = qassas_clear_short.wav; sourceTree = "<group>"; };
+		2554BC8799D9EBC16AC3787E /* makkah_ali_mulla_short.wav */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = audio.wav; path = makkah_ali_mulla_short.wav; sourceTree = "<group>"; };
+		273F37128C6D501F7293CCFA /* beautiful_adhan_short.wav */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = audio.wav; path = beautiful_adhan_short.wav; sourceTree = "<group>"; };
+		3A7C9E49CED572186C382249 /* AthanAlarm.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = AthanAlarm.xcconfig; sourceTree = "<group>"; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
+		5A2253A0EF763BA3727FE8A2 /* AthanAlarmKit.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AthanAlarmKit.swift; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
+		8473A36CDE7C94FC7142C497 /* iqama_short.wav */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = audio.wav; path = iqama_short.wav; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
 		9740EEB31CF90195004384FC /* Generated.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Generated.xcconfig; path = Flutter/Generated.xcconfig; sourceTree = "<group>"; };
+		97A96C21C300F79E37B5620E /* AthanAlarmWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AthanAlarmWidget.swift; sourceTree = "<group>"; };
 		97C146EE1CF9000F007C117D /* Runner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Runner.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		97C146FB1CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		97C146FD1CF9000F007C117D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		989487059B109D3AE19488A2 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B7BE8C9D3C0F1BB1F926B86B /* abdul_basit_short.wav */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = audio.wav; path = abdul_basit_short.wav; sourceTree = "<group>"; };
+		B92F052002A0D144FEF148A1 /* AthanAlarm.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = AthanAlarm.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		C815788A6D278D89A8492550 /* minshawi_short.wav */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = audio.wav; path = minshawi_short.wav; sourceTree = "<group>"; };
+		D636DCA8C6C758681F760A64 /* madinah_short.wav */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = audio.wav; path = madinah_short.wav; sourceTree = "<group>"; };
+		EA8B01333A32A7FED02D5822 /* mishary_alafasy_short.wav */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = audio.wav; path = mishary_alafasy_short.wav; sourceTree = "<group>"; };
+		F1B84561CFEB76AE33338DFF /* smooth_short.wav */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = audio.wav; path = smooth_short.wav; sourceTree = "<group>"; };
+		F95CDBAD0864B7BA770884E7 /* nasser_al_qatami_short.wav */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = audio.wav; path = nasser_al_qatami_short.wav; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -52,9 +102,34 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F96A9FB7181DE67B13E03BC3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		7BCEB0DB3F318BE321D46921 /* AlarmSounds */ = {
+			isa = PBXGroup;
+			children = (
+				B7BE8C9D3C0F1BB1F926B86B /* abdul_basit_short.wav */,
+				273F37128C6D501F7293CCFA /* beautiful_adhan_short.wav */,
+				8473A36CDE7C94FC7142C497 /* iqama_short.wav */,
+				D636DCA8C6C758681F760A64 /* madinah_short.wav */,
+				2554BC8799D9EBC16AC3787E /* makkah_ali_mulla_short.wav */,
+				C815788A6D278D89A8492550 /* minshawi_short.wav */,
+				EA8B01333A32A7FED02D5822 /* mishary_alafasy_short.wav */,
+				F95CDBAD0864B7BA770884E7 /* nasser_al_qatami_short.wav */,
+				1EA144E1CA5A3808813780FA /* qassas_clear_short.wav */,
+				F1B84561CFEB76AE33338DFF /* smooth_short.wav */,
+			);
+			name = AlarmSounds;
+			path = ../asset;
+			sourceTree = "<group>";
+		};
 		9740EEB11CF90186004384FC /* Flutter */ = {
 			isa = PBXGroup;
 			children = (
@@ -72,6 +147,8 @@
 				9740EEB11CF90186004384FC /* Flutter */,
 				97C146F01CF9000F007C117D /* Runner */,
 				97C146EF1CF9000F007C117D /* Products */,
+				E741B2B22DBA33D1F90D66C8 /* AthanAlarm */,
+				7BCEB0DB3F318BE321D46921 /* AlarmSounds */,
 			);
 			sourceTree = "<group>";
 		};
@@ -79,6 +156,7 @@
 			isa = PBXGroup;
 			children = (
 				97C146EE1CF9000F007C117D /* Runner.app */,
+				B92F052002A0D144FEF148A1 /* AthanAlarm.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -98,9 +176,38 @@
 			path = Runner;
 			sourceTree = "<group>";
 		};
+		E741B2B22DBA33D1F90D66C8 /* AthanAlarm */ = {
+			isa = PBXGroup;
+			children = (
+				5A2253A0EF763BA3727FE8A2 /* AthanAlarmKit.swift */,
+				97A96C21C300F79E37B5620E /* AthanAlarmWidget.swift */,
+				989487059B109D3AE19488A2 /* Info.plist */,
+				3A7C9E49CED572186C382249 /* AthanAlarm.xcconfig */,
+			);
+			name = AthanAlarm;
+			path = AthanAlarm;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		8F44DD90AD2E32DBCAF2E2C6 /* AthanAlarm */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5F580A0E612A6E942F7FC7E3 /* Build configuration list for PBXNativeTarget "AthanAlarm" */;
+			buildPhases = (
+				4E8E0F7C075F5FD6495E134B /* Sources */,
+				F96A9FB7181DE67B13E03BC3 /* Frameworks */,
+				8886F7286A5C4A9418C4C712 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = AthanAlarm;
+			productName = AthanAlarm;
+			productReference = B92F052002A0D144FEF148A1 /* AthanAlarm.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		97C146ED1CF9000F007C117D /* Runner */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 97C147051CF9000F007C117D /* Build configuration list for PBXNativeTarget "Runner" */;
@@ -110,11 +217,13 @@
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
+				DA5F784CBAE74FDF91AFC244 /* Embed Foundation Extensions */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				17740E593351E777A0E77296 /* PBXTargetDependency */,
 			);
 			name = Runner;
 			productName = Runner;
@@ -150,11 +259,19 @@
 			projectRoot = "";
 			targets = (
 				97C146ED1CF9000F007C117D /* Runner */,
+				8F44DD90AD2E32DBCAF2E2C6 /* AthanAlarm */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		8886F7286A5C4A9418C4C712 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		97C146EC1CF9000F007C117D /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -163,6 +280,16 @@
 				3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */,
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
+				5C65BA1889C31CD12965376D /* abdul_basit_short.wav in Resources */,
+				27B88CE5F356556E23016717 /* beautiful_adhan_short.wav in Resources */,
+				D18CF7B91C42B7A9A022434F /* iqama_short.wav in Resources */,
+				9557764B669BD3AA1D1C7D70 /* madinah_short.wav in Resources */,
+				1E2F6336B8E4E9E6DD33FB69 /* makkah_ali_mulla_short.wav in Resources */,
+				5152F73F6CA2CD0C2115BE48 /* minshawi_short.wav in Resources */,
+				F0EABE25E19D78175B6C3CE7 /* mishary_alafasy_short.wav in Resources */,
+				62174A4ADA61EC60B0BF006F /* nasser_al_qatami_short.wav in Resources */,
+				24A6FE2198060CE6943C5A6E /* qassas_clear_short.wav in Resources */,
+				8F2C9BDEC506EAF299EE69E1 /* smooth_short.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -200,16 +327,35 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		4E8E0F7C075F5FD6495E134B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				885AE0E437AD7163A3A8E6C2 /* AthanAlarmKit.swift in Sources */,
+				9E0FFDDCEEFDF5EEE9B14F1A /* AthanAlarmWidget.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		97C146EA1CF9000F007C117D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
+				0AEC406BB8BECB9E8194421F /* AthanAlarmKit.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		17740E593351E777A0E77296 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = AthanAlarm;
+			target = 8F44DD90AD2E32DBCAF2E2C6 /* AthanAlarm */;
+			targetProxy = E27219ABA8AC6191EA127300 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		97C146FA1CF9000F007C117D /* Main.storyboard */ = {
@@ -231,6 +377,29 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		0AAD225230C9B00D7D002DEA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3A7C9E49CED572186C382249 /* AthanAlarm.xcconfig */;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				ENABLE_BITCODE = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = AthanAlarm/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = wlaa41.github.io.flutterPro.AthanAlarm;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 		249021D3217E4FDB00AE95B9 /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -442,9 +611,65 @@
 			};
 			name = Release;
 		};
+		BD498EFAC1F93C5133EB1648 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3A7C9E49CED572186C382249 /* AthanAlarm.xcconfig */;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				ENABLE_BITCODE = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = AthanAlarm/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = wlaa41.github.io.flutterPro.AthanAlarm;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Profile;
+		};
+		E6F92A58810F75288DB6B488 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3A7C9E49CED572186C382249 /* AthanAlarm.xcconfig */;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				ENABLE_BITCODE = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = AthanAlarm/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = wlaa41.github.io.flutterPro.AthanAlarm;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		5F580A0E612A6E942F7FC7E3 /* Build configuration list for PBXNativeTarget "AthanAlarm" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E6F92A58810F75288DB6B488 /* Release */,
+				0AAD225230C9B00D7D002DEA /* Debug */,
+				BD498EFAC1F93C5133EB1648 /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		97C146E91CF9000F007C117D /* Build configuration list for PBXProject "Runner" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

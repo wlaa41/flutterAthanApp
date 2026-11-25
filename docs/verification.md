@@ -1,5 +1,55 @@
 # Verification
 
+## 2.2.0-rc.14 / build 24, 25 November 2026: the iPhone alarm
+
+- Local Flutter 3.50.0 and CI: all **243 unit/widget tests passed**; static
+  analysis has no warnings or errors. In the tests a fake iPhone answers both
+  channels (Apple's alarms and the notification plugin): an athan armed as an
+  alarm is not notified a second time, what the iPhone refuses arrives as a
+  notification, an iPhone before iOS 26 schedules as before, the alarm question
+  is asked once, and the Settings rows follow what the phone reports.
+- CI built the app and its `AthanAlarm` extension with Xcode 26.6 (iOS 26.5 SDK),
+  for the simulator and as an unsigned release for a phone. The release is checked
+  for the extension (the app's version, an identifier under the app's), the two
+  usage texts, every excerpt at the top of the bundle and the two buttons'
+  intents. The built app links AlarmKit, AppIntents and ActivityKit weakly, so it
+  still opens on iOS 15 to 25.
+- `tools/ios_alarm_check.sh`, run by CI on an iOS 26.5 simulator (iPhone Air)
+  with nobody at the screen, over several runs:
+  - the app asked for notifications, then "Allow Athan & Quran to schedule alarms
+    and timers?", and both were allowed;
+  - iOS accepted the next 24 athans as alarms, with no error;
+  - a test alarm fired in the second it was set for, and the system's alert came
+    down from the Dynamic Island with the app's name, the athan's title, Snooze
+    and Stop;
+  - iOS took the app's excerpt as the alarm's tone (`smooth_short.wav`, type
+    alarm);
+  - the Live Activity drawn by the extension showed the title, "Ringing", Snooze
+    and Stop when the Dynamic Island was held;
+  - Stop there ran `AthanStopIntent` in the app, the alarm service stopped and
+    removed the alarm, and the app saw nothing ringing;
+  - a real prayer rang too: in one run "Time for Isha" for London fired as an
+    alarm at 17:32:00, its exact time, beside the test alarm. The check now takes
+    the prayers off before its own alarms, so that cannot ring into a run.
+- What the simulator does that a phone should not: about 20 seconds after an
+  alarm fires, when its tone starts, the simulator's home screen (SpringBoard)
+  restarts. Its tone player calls a method the simulator does not have
+  (`TLAlertQueuePlayerController`, crash report kept with the run); Apple's forum
+  has the same fault with no app involved. The alarm keeps ringing across the
+  restart, but the system's first alert is gone after a moment. On a slow CI
+  machine the process that draws Live Activities once needed more than the 30
+  seconds iOS allows it to start after such a restart, and that run showed no
+  Live Activity.
+- Not shown by a simulator, so not checked: the sound, and the full-screen alarm
+  of a locked phone (Apple's forum, thread 806998: alarm alerts stopped
+  presenting on a locked simulator with iOS 26.1). No real iPhone was available.
+  They are on the hardware list below, with Silent mode, a Focus and installing
+  with Sideloadly.
+- Reports from other developers to keep in mind for that check (Apple Developer
+  Forums): alarms that ring late on a locked iPhone (threads 825427 and 846063),
+  and a second alarm silencing the first when two overlap (thread 845563), which
+  is what an Iqama alarm does to an athan nobody answered.
+
 ## 2.1.0-rc.8 / build 10 — 19 November 2026
 
 - Local Flutter 3.50.0 / Dart 3.14.0: all **83 unit/widget tests passed**.
@@ -108,6 +158,7 @@ These are a release acceptance matrix, not a claim that physical phones were tes
 | DST change and selected city different from device | Pending | Pending | Pending | Pending |
 | Force stop, reopen; refill near scheduled-through date | Pending | Pending | Pending | Pending |
 | TalkBack/VoiceOver, large fonts, landscape | Pending | Pending | Pending | Pending |
+| Athan as an alarm (iOS 26 or later): locked, in use, Silent mode, a Focus, Snooze, Stop, on time overnight | N/A | N/A | N/A | Pending |
 
 Android setAlarmClock is used only for user-enabled prayer/Iqama alerts with
 permission. It can show the system's upcoming-alarm indicator. Revoking exact

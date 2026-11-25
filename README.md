@@ -137,13 +137,39 @@ Android's low-power geofence (5 minute reporting) plus, at each prayer, a
 recent location if one exists. No background tracking. Needs location "Allow
 all the time". Weekly beep days and this rule save only on **Confirm**.
 
-On iPhone, the app queues the next 60 notifications (under the system limit), so
-frequent Iqama reminders shorten the covered period. Settings shows the scheduled
-through date: reopen before then to refill. Local notification sounds must be
-under 30 seconds: new recitations use 28 second excerpts, Classic uses a chime,
-and unsupported imported formats/long recordings use a beep. Full recordings
-remain available for preview. Vibration follows iOS settings and is not guaranteed
-by the vibration-only selection. Silent mode/Focus can suppress notification audio.
+On iPhone with iOS 26 or later, the athan rings as an alarm (Apple's AlarmKit).
+On a locked phone it takes over the screen with Stop and Snooze, and it rings in
+Silent mode and through a Focus; with the phone in use it shows at the top of the
+screen. iOS draws it, and asks once to allow alarms. The next 24 athans are kept
+ready as alarms (about three days); the ones after them wait as notifications
+until the app is opened. A beep, vibration only and silent reminders are always
+notifications. **Settings → Basics → Alarm screen** has **Ring as an alarm**, the
+snooze length and **Try the alarm**. Before iOS 26, and until alarms are allowed,
+every reminder is a notification.
+
+The app queues the next 60 reminders (under the system limit), so frequent Iqama
+reminders shorten the covered period. Settings shows the scheduled through date:
+reopen before then to refill. Alarm and notification sounds must be under 30
+seconds: recitations use 28 second excerpts, and unsupported imported
+formats/long recordings use a beep (or the iPhone alarm sound when they ring as an
+alarm). Full recordings remain available for preview. Vibration follows iOS
+settings and is not guaranteed by the vibration-only selection. Silent mode/Focus
+can suppress notification audio.
+
+`tools/ios_alarm_check.sh` rings two test alarms on an iOS 26 simulator with nobody
+at the screen, one with the phone in use and one with it locked, and keeps a video,
+pictures and logs: the two permission questions, the armed alarms, the alert, the
+Live Activity and its Stop and Snooze. Starting the CI workflow by hand runs it. A
+simulator plays no alarm sound and may restart its home screen when the tone
+starts, so the sound and how long the full-screen alarm stays are checked on a real
+iPhone.
+
+The alarm's Live Activity is the `AthanAlarm` extension in `ios/AthanAlarm`, built
+for iOS 26; the app itself still runs on iOS 15. It was added to the Xcode project
+with `tools/add_ios_alarm_target.rb` (Ruby and the `xcodeproj` gem, no Xcode). Run
+that script again after adding a recitation with an iPhone excerpt
+(`asset/<name>_short.wav`), so the excerpt is also copied into the app bundle.
+Building for iPhone needs Xcode 26 or later.
 
 ## Prayer data
 
@@ -179,6 +205,7 @@ flutter build apk --debug
 # macOS only
 flutter build ios --simulator --debug --no-codesign
 bash tools/ios_smoke.sh
+bash tools/ios_alarm_check.sh   # rings two athan alarms on a simulator: build/review/alarm
 ```
 
 CI runs analysis/tests and creates a preview APK for each pull request. On `main` it

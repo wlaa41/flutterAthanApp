@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../models/prayer_time_model.dart';
 import 'settings_screen.dart';
+import '../services/ios_alarm_check.dart';
 import '../services/notification_service.dart';
 import '../services/prayer_service.dart';
 import '../widgets/beep_mode_card.dart';
@@ -81,6 +84,8 @@ class _AthanScreenState extends State<AthanScreen> with WidgetsBindingObserver {
         await NotificationService.instance.refreshSchedule();
         final health = await NotificationService.instance.getHealth();
         if (mounted) setState(() => _health = health);
+        // Only in a build made by tools/ios_alarm_check.sh.
+        unawaited(IosAlarmCheck.run());
       } catch (_) {
         if (mounted)
           ScaffoldMessenger.of(context).showSnackBar(

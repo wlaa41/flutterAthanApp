@@ -93,7 +93,7 @@ jobs:
 
   ios-simulator:
     runs-on: macos-latest
-    timeout-minutes: 30
+    timeout-minutes: 70
     steps:
       - name: Check out source
         uses: actions/checkout@v4
@@ -106,8 +106,10 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
       - name: Build iOS simulator app (no signing)
+        if: github.event_name != 'workflow_dispatch'
         run: flutter build ios --simulator --debug --no-codesign
       - name: Launch iPhone app and verify startup
+        if: github.event_name != 'workflow_dispatch'
         timeout-minutes: 10
         run: bash tools/ios_smoke.sh
       - name: Save iPhone startup screenshot
@@ -116,6 +118,24 @@ jobs:
         with:
           name: athan-iphone-startup-${{ github.sha }}
           path: build/review/ios-launch.png
+          if-no-files-found: ignore
+          retention-days: 14
+      # When this workflow is started by hand, the two steps above give way to
+      # a longer check: it builds the app, starts it, and rings two athan
+      # alarms on the simulator (iOS 26), one with the phone in use and one
+      # with it locked, keeping a video, pictures and the logs. A simulator
+      # shows less than a phone, so this reports and never fails the run.
+      - name: Ring two test alarms on the simulator
+        if: github.event_name == 'workflow_dispatch'
+        timeout-minutes: 45
+        continue-on-error: true
+        run: bash tools/ios_alarm_check.sh
+      - name: Save the alarm check
+        uses: actions/upload-artifact@v4
+        if: always() && github.event_name == 'workflow_dispatch'
+        with:
+          name: athan-iphone-alarm-check-${{ github.sha }}
+          path: build/review/alarm
           if-no-files-found: ignore
           retention-days: 14
 
