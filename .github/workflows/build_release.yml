@@ -139,6 +139,90 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+  # An unsigned iPhone build, AthanApp.ipa, for sideloading: Sideloadly or
+  # AltStore signs it on the owner's computer with a free Apple ID, and it runs
+  # for 7 days per signing. TestFlight and the App Store need the paid Apple
+  # Developer Program; that is a separate deliberate step.
+  ios-device:
+    name: Build the iPhone app (unsigned IPA)
+    runs-on: macos-latest
+    timeout-minutes: 40
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.50.0'
+          channel: stable
+          cache: true
+      - name: Install dependencies
+        run: flutter pub get
+      # iOS takes a plain x.y.z version; the -rc part stays in the Android build.
+      - name: Build the iPhone app without signing
+        run: |
+          set -euo pipefail
+          version="$(sed -n 's/^version: //p' pubspec.yaml)"
+          name="${version%%+*}"
+          flutter build ios --release --no-codesign \
+            --build-name="${name%%-*}" --build-number="${version##*+}"
+      - name: Package AthanApp.ipa
+        run: |
+          set -euo pipefail
+          rm -rf build/ipa
+          mkdir -p build/ipa/Payload
+          cp -R build/ios/iphoneos/Runner.app build/ipa/Payload/
+          (cd build/ipa && zip -qry AthanApp.ipa Payload)
+          plist=build/ipa/Payload/Runner.app/Info.plist
+          for key in CFBundleIdentifier CFBundleShortVersionString CFBundleVersion MinimumOSVersion; do
+            echo "$key: $(/usr/libexec/PlistBuddy -c "Print :$key" "$plist")"
+          done
+          echo "IPA: $(stat -f %z build/ipa/AthanApp.ipa) bytes"
+      # The athan alarm (iOS 26) needs three things inside the app: the
+      # extension that draws it, with the app's own version and an identifier
+      # under the app's; the permission text; and each excerpt at the top of
+      # the bundle, where AlarmKit looks for a named sound.
+      - name: Check the athan alarm is in the app
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          app=build/ipa/Payload/Runner.app
+          extension="$app/PlugIns/AthanAlarm.appex"
+          read_key() { /usr/libexec/PlistBuddy -c "Print :$2" "$1/Info.plist"; }
+          test -x "$extension/AthanAlarm"
+          app_id="$(read_key "$app" CFBundleIdentifier)"
+          extension_id="$(read_key "$extension" CFBundleIdentifier)"
+          echo "Extension: $extension_id $(read_key "$extension" CFBundleShortVersionString) ($(read_key "$extension" CFBundleVersion)), iOS $(read_key "$extension" MinimumOSVersion)"
+          case "$extension_id" in "$app_id".*) ;; *) echo "::error::The extension identifier must start with $app_id."; exit 1 ;; esac
+          for key in CFBundleShortVersionString CFBundleVersion; do
+            if [ "$(read_key "$app" "$key")" != "$(read_key "$extension" "$key")" ]; then
+              echo "::error::$key differs between the app and its extension."
+              exit 1
+            fi
+          done
+          [ "$(read_key "$extension" NSExtension:NSExtensionPointIdentifier)" = com.apple.widgetkit-extension ]
+          read_key "$app" NSAlarmKitUsageDescription
+          # The Al-Kahf Journey listens to a recitation: the microphone text,
+          # and the speech runtime among the app's frameworks.
+          read_key "$app" NSMicrophoneUsageDescription
+          ls "$app/Frameworks"
+          [ "$(read_key "$app" NSSupportsLiveActivities)" = true ]
+          sounds=0
+          for sound in asset/*_short.wav; do
+            cmp -s "$sound" "$app/$(basename "$sound")" || { echo "::error::$(basename "$sound") is not in the app bundle. Run tools/add_ios_alarm_target.rb."; exit 1; }
+            sounds=$((sounds + 1))
+          done
+          echo "Alarm sounds in the bundle: $sounds"
+          # The Live Activity buttons are App Intents; iOS finds them through this.
+          ls "$app/Metadata.appintents" "$extension/Metadata.appintents"
+      - name: Save the iPhone app
+        uses: actions/upload-artifact@v4
+        with:
+          name: athan-iphone-unsigned-${{ github.sha }}
+          path: build/ipa/AthanApp.ipa
+          if-no-files-found: error
+          retention-days: 14
+
   # Keeps one installable file at the repository root: AthanApp.apk on main is
   # always the build of the commit before it, signed with the trusted preview key.
   # Only this small job can write to the repository; it runs no build tooling.
@@ -183,6 +267,44 @@ jobs:
             fi
             exit 1
           fi
+
+  # Keeps the newest iPhone build as a download: AthanApp.ipa on the
+  # "iPhone app" pre-release, tag ios-latest. Like publish-apk, this small job
+  # is the only one that writes, and it runs no build tooling.
+  publish-ipa:
+    name: Keep the iPhone app as a download
+    needs: ios-device
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' && github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Fetch the iPhone app
+        uses: actions/download-artifact@v4
+        with:
+          name: athan-iphone-unsigned-${{ github.sha }}
+          path: ${{ runner.temp }}/ipa
+      - name: Attach AthanApp.ipa to the iPhone app release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          # main may already carry publish-apk's commit on top of this one.
+          read -r head parent < <(gh api "repos/$GH_REPO/commits/main" --jq '.sha + " " + .parents[0].sha')
+          if [ "$head" != "$GITHUB_SHA" ] && [ "$parent" != "$GITHUB_SHA" ]; then
+            echo "::notice::main has moved on; the newer run publishes its own iPhone app."
+            exit 0
+          fi
+          notes="Unsigned iPhone build of ${GITHUB_SHA::7}. Sign and install it with a free Apple ID using Sideloadly (Windows or Mac); it runs for 7 days per signing. Steps are in the README."
+          if ! gh release view ios-latest >/dev/null 2>&1; then
+            gh release create ios-latest --prerelease --target "$GITHUB_SHA" \
+              --title "iPhone app (unsigned, for sideloading)" --notes "$notes"
+          fi
+          gh api -X PATCH "repos/$GH_REPO/git/refs/tags/ios-latest" -f sha="$GITHUB_SHA" -F force=true >/dev/null
+          gh release upload ios-latest "$RUNNER_TEMP/ipa/AthanApp.ipa" --clobber
+          gh release edit ios-latest --notes "$notes"
 
 # Trusted Android previews use a stable private debug key. Production signing and
 # store publishing are separate deliberate steps; this workflow never overwrites v2.0.0.
