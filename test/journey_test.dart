@@ -52,7 +52,7 @@ void main() {
   final english = [for (final row in translation) _words(row['translation'])];
 
   /// The ayahs whose translation holds [choice] word for word. A choice may
-  /// open with a small word of ours ("their fish" for "our fish").
+  /// open with a small word of ours ("His servants" for "My servants").
   Set<int> whereSaid(String choice) {
     final want = _words(choice);
     Set<int> search(List<String> phrase) => {

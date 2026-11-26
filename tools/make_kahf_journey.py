@@ -629,8 +629,8 @@ def build():
 
     def where(option, quoted):
         """The ayahs whose translation holds [option] word for word. A choice
-        that is not a quoted saying may open with a word of ours ("their
-        fish" for the translation's "our fish")."""
+        that is not a quoted saying may open with a small word of ours ("His
+        servants" for the translation's "My servants")."""
         want = tokens(option)
         found = {i + 1 for i, text in enumerate(english_words) if holds(text, want)}
         if not found and not quoted and len(want) > 1 and want[0] in DETERMINERS:
