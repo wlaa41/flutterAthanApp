@@ -270,8 +270,8 @@ class _JourneyReciteScreenState extends State<JourneyReciteScreen> {
                     ),
                     Text(
                       t.pick(
-                        '${section.en}, stop $index',
-                        '${section.ar}، المحطة ${t.number(index)}',
+                        '${section.full(false)}, stop $index',
+                        '${section.full(true)}، المحطة ${t.number(index)}',
                       ),
                       style: J.text(15, weight: 700, height: 1.2),
                     ),
@@ -322,7 +322,8 @@ class _JourneyReciteScreenState extends State<JourneyReciteScreen> {
 
   /// The ayah the player is given: the one before the ayah to recite.
   Widget _given(int given) {
-    final text = given == 0 ? journey.basmalah : journey.verseEnding(given);
+    // Whole, however long it is: an ayah is never shown cut.
+    final text = given == 0 ? journey.basmalah : journey.verseWithMark(given);
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 8, 14, 10),
       decoration: BoxDecoration(
@@ -342,7 +343,7 @@ class _JourneyReciteScreenState extends State<JourneyReciteScreen> {
                   ),
             style: J.text(13.5, weight: 700, color: const Color(0xFF2B3F66)),
           ),
-          JQuran(text, size: 19, height: 1.9),
+          JQuran(text, size: JQuran.sizeFor(text, largest: 20), height: 1.9),
         ],
       ),
     );

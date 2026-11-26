@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_pro/models/journey.dart';
 import 'package:flutter_pro/screens/journey_keepsake_screen.dart';
 import 'package:flutter_pro/screens/journey_screen.dart';
+import 'package:flutter_pro/screens/journey_sources_screen.dart';
 import 'package:flutter_pro/screens/journey_stop_screen.dart';
 import 'package:flutter_pro/services/journey_audio.dart';
 import 'package:flutter_pro/services/journey_progress.dart';
@@ -82,9 +83,12 @@ void main() {
     await tester.tap(find.text('Begin'));
     await tester.pumpAndSettle();
     for (var i = 0; i < round.length; i++) {
-      await tester.tap(find.text(round[i].choices[round[i].correct]));
+      final choice = find.text(round[i].choices[round[i].correct]);
+      await tester.ensureVisible(choice);
+      await tester.tap(choice);
       await tester.pumpAndSettle();
       expect(find.text("That's it."), findsOneWidget);
+      // The answer card, with its button, has been brought into view.
       await tester.tap(
         find.text(i == round.length - 1 ? 'Light the lantern' : 'Next'),
       );
@@ -110,6 +114,21 @@ void main() {
     }
     expect(
       find.text('Reciting the next ayah is open in every level.'),
+      findsOneWidget,
+    );
+    // Each level says where its meanings come from.
+    expect(
+      find.text(
+        'Each ayah with its translation (Saheeh International), then questions in English.',
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.text('تُعرض الآية، وتختار تفسيرها من التفسير الميسر.'),
+      findsOneWidget,
+    );
+    expect(
+      find.text('يُعطى التفسير الميسر، وتختار الآية. بلا تلميح.'),
       findsOneWidget,
     );
     expect(find.text('Al-Kahf Journey'), findsNothing);
@@ -189,8 +208,67 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('the map leads to the page that names every source', (
+    tester,
+  ) async {
+    phone(tester);
+    SharedPreferences.setMockInitialValues({
+      JourneyProgress.key: JourneyProgress(
+        level: JourneyLevel.english,
+      ).encode(),
+    });
+    await tester.pumpWidget(const MaterialApp(home: JourneyScreen()));
+    await tester.pumpAndSettle();
+    final link = find.textContaining('Sources', findRichText: true);
+    await tester.ensureVisible(link);
+    await tester.pumpAndSettle();
+    await tester.tap(link);
+    await tester.pumpAndSettle();
+    expect(find.byType(JourneySourcesScreen), findsOneWidget);
+    expect(
+      find.text(
+        'What explains the Quran in this game is copied from the works below, letter for letter.',
+      ),
+      findsOneWidget,
+    );
+    for (final text in [
+      'Saheeh International',
+      'التفسير الميسر',
+      'السراج في بيان غريب القرآن',
+      journey.translation.en,
+      journey.translation.byEn,
+      journey.tafsir.en,
+      journey.tafsir.byEn,
+      journey.wordSource.en,
+      journey.wordSource.byEn,
+      'From QuranEnc.com, version ${journey.translation.version}, ${journey.translation.date}.',
+      'From QuranEnc.com, version ${journey.tafsir.version}, ${journey.tafsir.date}.',
+      'From QuranEnc.com, version ${journey.wordSource.version}, ${journey.wordSource.date}.',
+      'quranenc.com/en/browse/english_saheeh',
+      'Every ayah is shown whole. Nothing of the Quran is retyped or reworded.',
+      'Places and things only. No prophet, no person and no animal is drawn.',
+    ]) {
+      expect(find.text(text), findsOneWidget, reason: text);
+    }
+    await tester.tap(find.bySemanticsLabel('Back'));
+    await tester.pumpAndSettle();
+    expect(find.text('Al-Kahf Journey'), findsOneWidget);
+
+    // The same page in Arabic.
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpWidget(
+      MaterialApp(home: JourneySourcesScreen(journey: journey, arabic: true)),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('المصادر'), findsOneWidget);
+    expect(find.text(journey.tafsir.ar), findsOneWidget);
+    expect(find.text(journey.tafsir.byAr), findsOneWidget);
+    expect(find.text(journey.wordSource.byAr), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
-    'a stop: its story, its questions, a wrong answer comes back, the lantern',
+    'a stop: its ayahs with their translation, its questions, a wrong answer comes back, the lantern',
     (tester) async {
       phone(tester);
       SharedPreferences.setMockInitialValues({});
@@ -218,17 +296,58 @@ void main() {
       expect(find.text('THE CAVE'), findsOneWidget);
       expect(find.text('Stop 1 of 6'), findsOneWidget);
       expect(find.text('Into the cave'), findsOneWidget);
-      for (final paragraph in played.storyEn) {
-        expect(find.text(paragraph), findsOneWidget);
-      }
       for (final chip in ['Ayahs 9 to 12', '4 questions', 'Then recite']) {
         expect(find.text(chip), findsOneWidget);
       }
+      // Before any question the stop is read: every ayah whole, and under it
+      // the translation with its footnotes, exactly as the source has them.
+      expect(
+        find.text('Read the ayahs and what they mean. Then answer.'),
+        findsOneWidget,
+      );
+      final reading = find.byType(Scrollable).first;
+      for (final ayah in played.ayahs) {
+        final meaning = journey.meaning(ayah);
+        await tester.scrollUntilVisible(
+          find.text(meaning.en),
+          200,
+          scrollable: reading,
+        );
+        expect(find.text('Al-Kahf, ayah $ayah'), findsOneWidget);
+        expect(find.text(journey.verseWithMark(ayah)), findsOneWidget);
+        expect(find.text(meaning.en), findsOneWidget);
+        for (final note in meaning.notes) {
+          expect(find.text(note), findsOneWidget);
+        }
+      }
+      expect(journey.meaning(9).notes, hasLength(1));
+      await tester.scrollUntilVisible(
+        find.textContaining('Translation: Saheeh International'),
+        200,
+        scrollable: reading,
+      );
+      expect(
+        find.textContaining(
+          'Translation: Saheeh International',
+          findRichText: true,
+        ),
+        findsOneWidget,
+      );
 
-      // Listening can be started and stopped from the story.
+      // Listening can be started and stopped, for the stop or for one ayah.
       await tester.tap(find.text('Listen to the ayahs'));
       await tester.pumpAndSettle();
       expect(JourneyAudio.playing.value, isNull);
+      final heard = <List<int>>[];
+      JourneyAudio.player = (ayahs) async {
+        heard.add(ayahs);
+        return true;
+      };
+      await tester.tap(find.bySemanticsLabel('Listen to the ayah').last);
+      await tester.pumpAndSettle();
+      expect(heard, [
+        [12],
+      ]);
 
       final round = JourneyRounds.build(
         journey,
@@ -244,11 +363,20 @@ void main() {
       expect(find.text(journey.verseWithMark(round[0].ayah)), findsOneWidget);
 
       // Wrong: it is said plainly, the right one is marked, and it returns.
+      // What follows is the translation of the ayah, named, not our words.
       await tester.tap(find.text(round[0].choices[(round[0].correct + 1) % 3]));
       await tester.pumpAndSettle();
       expect(find.text('Not quite.'), findsOneWidget);
-      expect(find.text(round[0].explain), findsOneWidget);
-      // A screen reader hears the verdict with each choice.
+      expect(find.text(journey.meaning(round[0].ayah).en), findsOneWidget);
+      for (final note in journey.meaning(round[0].ayah).notes) {
+        expect(find.text(note), findsOneWidget);
+      }
+      expect(
+        find.text('Saheeh International, Al-Kahf ${round[0].ayah}'),
+        findsOneWidget,
+      );
+      // A screen reader hears the verdict with each choice. The choice that
+      // was picked is words of the translation: it is set apart, not crossed.
       expect(
         tester
             .getSemantics(find.text(round[0].choices[round[0].correct]))
@@ -261,8 +389,11 @@ void main() {
               find.text(round[0].choices[(round[0].correct + 1) % 3]),
             )
             .label,
-        contains('Not this one'),
+        contains('Your pick'),
       );
+      // The only cross on the screen is the button that leaves the stop.
+      expect(find.byIcon(Icons.close_rounded), findsOneWidget);
+      expect(find.bySemanticsLabel('Leave this stop'), findsOneWidget);
       expect(progress.missed[round[0].ayah], 1);
       // A second tap changes nothing.
       await tester.tap(find.text(round[0].choices[round[0].correct]));
@@ -345,7 +476,7 @@ void main() {
   });
 
   testWidgets(
-    'Arabic: the ayah is shown, its meaning is chosen, word meanings are optional',
+    'Arabic: the ayah is shown, its tafsir is chosen, word meanings are optional',
     (tester) async {
       phone(tester);
       SharedPreferences.setMockInitialValues({});
@@ -363,10 +494,19 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('إلى الكهف'), findsOneWidget);
-      for (final paragraph in played.storyAr) {
-        expect(find.text(paragraph), findsOneWidget);
-      }
       expect(find.text('الآيات ٩ إلى ١٢'), findsOneWidget);
+      expect(find.text('اقرأ الآيات وتفسيرها، ثم أجب.'), findsOneWidget);
+      // The stop is read first: each ayah whole, with al-Tafsir al-Muyassar.
+      final reading = find.byType(Scrollable).first;
+      for (final ayah in played.ayahs) {
+        await tester.scrollUntilVisible(
+          find.text(journey.meaning(ayah).ar),
+          200,
+          scrollable: reading,
+        );
+        expect(find.text(journey.verseWithMark(ayah)), findsOneWidget);
+        expect(find.text(journey.meaning(ayah).ar), findsOneWidget);
+      }
       final round = JourneyRounds.build(
         journey,
         played,
@@ -377,50 +517,128 @@ void main() {
       await tester.tap(find.text('ابدأ'));
       await tester.pumpAndSettle();
       final item = round.first;
-      expect(find.text('ما معنى هذه الآية؟'), findsOneWidget);
+      expect(find.text('اختر تفسير هذه الآية'), findsOneWidget);
       expect(find.text('١ من ٤'), findsOneWidget);
       expect(find.text(journey.verseWithMark(item.ayah)), findsOneWidget);
+      // The three choices are the tafsir's own texts, and the screen says so.
       for (final choice in item.choices) {
         expect(find.text(choice), findsOneWidget);
       }
       expect(item.choices[item.correct], journey.meaning(item.ayah).ar);
       expect(
-        find.text('اختياري: معاني الكلمات الصعبة في الآية إن احتجت إليها.'),
+        find.text('النصوص الثلاثة من التفسير الميسر، مجمع الملك فهد.'),
         findsOneWidget,
       );
+      final hint = find.text(
+        'اختياري: معاني الكلمات الغريبة في الآية إن احتجت إليها.',
+      );
+      await tester.ensureVisible(hint);
+      expect(hint, findsOneWidget);
 
-      // The help is there for who wants it: the harder words of this ayah.
+      // The help is there for who wants it: the words As-Siraj explains,
+      // each as the mushaf writes it, with the book's meaning and its name.
       final words = journey.words[item.ayah]!;
       await tester.tap(find.text('معاني الكلمات'));
       await tester.pumpAndSettle();
+      expect(find.text('من كتاب السراج في بيان غريب القرآن'), findsOneWidget);
       for (final word in words) {
         expect(find.text(word.meaning), findsOneWidget);
-        expect(
-          find.text(
-            journey.verseWords(item.ayah, word.word, word.word + word.span - 1),
-          ),
-          findsOneWidget,
-        );
+        expect(find.text(journey.wordText(item.ayah, word)), findsOneWidget);
       }
       await tester.tap(find.text('تم'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text(item.choices[item.correct]));
+      // A wrong pick is a scholar's text about another ayah: it is set
+      // apart, never crossed out.
+      final wrong = find.text(item.choices[(item.correct + 1) % 3]);
+      await tester.ensureVisible(wrong);
+      await tester.tap(wrong);
       await tester.pumpAndSettle();
-      expect(find.text('أحسنت.'), findsOneWidget);
+      expect(find.text('ليس هذا المطلوب.'), findsOneWidget);
+      expect(tester.getSemantics(wrong).label, contains('اختيارك'));
+      expect(find.byIcon(Icons.close_rounded), findsOneWidget);
+      expect(
+        tester.getSemantics(find.text(item.choices[item.correct])).label,
+        contains('صحيح'),
+      );
       // Once answered, the help makes way for the answer.
       expect(find.text('معاني الكلمات'), findsNothing);
+      expect(progress.missed[item.ayah], 1);
       expect(tester.takeException(), isNull);
     },
   );
 
   testWidgets(
-    'Arabic, strong: the meaning is given, the ayah is chosen, with no help',
+    'Arabic: ayahs that share one tafsir text are read and asked as one',
+    (tester) async {
+      phone(tester);
+      SharedPreferences.setMockInitialValues({});
+      final progress = JourneyProgress(level: JourneyLevel.arabic);
+      final played = stop('opening-1');
+      await tester.pumpWidget(
+        MaterialApp(
+          home: JourneyStopScreen(
+            journey: journey,
+            progress: progress,
+            stop: played,
+            random: Random(8),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final reading = find.byType(Scrollable).first;
+      final together = [2, 3].map(journey.verseWithMark).join(' ');
+      await tester.scrollUntilVisible(
+        find.text(together),
+        200,
+        scrollable: reading,
+      );
+      expect(find.text('الكهف، الآيات ٢ إلى ٣'), findsOneWidget);
+      expect(find.text(together), findsOneWidget);
+      // Their one tafsir text is shown once, under both.
+      expect(journey.meaning(2).ar, journey.meaning(3).ar);
+      expect(find.text(journey.meaning(2).ar), findsOneWidget);
+      expect(find.text('الكهف، الآية ٢'), findsNothing);
+
+      final round = JourneyRounds.build(
+        journey,
+        played,
+        JourneyLevel.arabic,
+        random: Random(8),
+      );
+      expect(
+        [for (final item in round) '${item.passage}'],
+        ['1', '2-3', '4', '5'],
+      );
+      await tester.tap(find.text('ابدأ'));
+      await tester.pumpAndSettle();
+      final first = find.text(round[0].choices[round[0].correct]);
+      await tester.ensureVisible(first);
+      await tester.tap(first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('التالي'));
+      await tester.pumpAndSettle();
+      expect(find.text('اختر تفسير هذه الآيات'), findsOneWidget);
+      expect(find.text(together), findsOneWidget);
+      final right = find.text(round[1].choices[round[1].correct]);
+      await tester.ensureVisible(right);
+      await tester.tap(right);
+      await tester.pumpAndSettle();
+      expect(
+        find.text('هذا تفسير الآيات ٢ إلى ٣ من سورة الكهف.'),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'Arabic, strong: the tafsir is given, the whole ayah is chosen, with no help',
     (tester) async {
       phone(tester);
       SharedPreferences.setMockInitialValues({});
       final progress = JourneyProgress(level: JourneyLevel.strong);
-      final played = stop('cave-2');
+      final played = stop('cave-4');
       await tester.pumpWidget(
         MaterialApp(
           home: JourneyStopScreen(
@@ -441,37 +659,49 @@ void main() {
       await tester.tap(find.text('ابدأ'));
       await tester.pumpAndSettle();
       final item = round.first;
-      expect(find.text('أيّ آية تدلّ على هذا المعنى؟'), findsOneWidget);
-      expect(find.text('المعنى'), findsOneWidget);
+      expect(item.ayah, 19);
+      expect(find.text('ما الذي يفسّره هذا النص؟'), findsOneWidget);
+      expect(find.text('التفسير الميسر'), findsOneWidget);
       expect(find.text(journey.meaning(item.ayah).ar), findsOneWidget);
-      for (final choice in item.choices) {
-        expect(find.text(choice, findRichText: true), findsOneWidget);
+      // Every choice is a whole ayah with its end mark, however long: the
+      // longest ayah of the surah stands here with all its 38 words.
+      for (var i = 0; i < 3; i++) {
+        final passage = item.choicePassages[i];
+        expect(item.choices[i], journey.passageText(passage));
+        expect(find.text(item.choices[i]), findsOneWidget);
       }
+      expect(item.choices[item.correct].split(' '), hasLength(38));
+      expect(find.textContaining('…'), findsNothing);
       // The ayah being asked for is not named: it is one of the choices.
       expect(
         find.text('الكهف، الآية ${JText(true).number(item.ayah)}'),
         findsNothing,
       );
       expect(find.text('معاني الكلمات'), findsNothing);
-      expect(
-        find.text('هذا المستوى بلا تلميح: المعنى أمامك، والآية من فهمك.'),
-        findsOneWidget,
+      final hint = find.text(
+        'هذا المستوى بلا تلميح: التفسير أمامك، والآية من حفظك وفهمك.',
       );
+      await tester.ensureVisible(hint);
+      expect(hint, findsOneWidget);
 
-      await tester.tap(
-        find.text(item.choices[(item.correct + 2) % 3], findRichText: true),
-      );
+      // A wrong pick is an ayah: nothing is stamped across it.
+      final wrong = find.text(item.choices[(item.correct + 2) % 3]);
+      await tester.ensureVisible(wrong);
+      await tester.tap(wrong);
       await tester.pumpAndSettle();
-      expect(find.text('ليس هذا.'), findsOneWidget);
+      expect(find.text('ليس هذا المطلوب.'), findsOneWidget);
+      expect(tester.getSemantics(wrong).label, contains('اختيارك'));
+      // The only cross on the screen is the button that leaves the stop.
+      expect(find.byIcon(Icons.close_rounded), findsOneWidget);
       expect(
-        tester
-            .getSemantics(
-              find.text(item.choices[item.correct], findRichText: true),
-            )
-            .label,
+        tester.getSemantics(find.text(item.choices[item.correct])).label,
         contains('صحيح'),
       );
       expect(progress.missed[item.ayah], 1);
+      // The button under the answer was brought into view.
+      await tester.tap(find.text('التالي'));
+      await tester.pumpAndSettle();
+      expect(find.text('ما الذي يفسّره هذا النص؟'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );
@@ -507,22 +737,35 @@ void main() {
     await tester.tap(find.text('See what you found'));
     await tester.pumpAndSettle();
 
-    expect(find.text('THE CAVE IS COMPLETE'), findsOneWidget);
+    expect(find.text('STORY COMPLETE: THE CAVE'), findsOneWidget);
     expect(find.text('You found the silver coin'), findsOneWidget);
-    expect(find.text(journey.verseWords(19, 20, 25)), findsOneWidget);
+    // No part of an ayah is lifted onto this screen, and no words of ours
+    // stand in for it: the screen says where the thing is mentioned.
     expect(
-      find.text(
-        'So send one of you to the city with this silver coin of yours.',
-      ),
+      find.text('Ayah 19 of Al-Kahf mentions the silver coin.'),
       findsOneWidget,
     );
-    expect(find.text('Al-Kahf, from ayah 19'), findsOneWidget);
+    expect(find.text(journey.verseWithMark(19)), findsNothing);
     expect(find.text('1 of 4'), findsOneWidget);
     expect(find.bySemanticsLabel('the silver coin, found'), findsOneWidget);
-    expect(find.bySemanticsLabel('the vine, not found yet'), findsOneWidget);
+    expect(
+      find.bySemanticsLabel('the grapevines, not found yet'),
+      findsOneWidget,
+    );
+    // The ayah opens whole, with its translation and footnote, named.
+    await tester.tap(find.text('Read ayah 19'));
+    await tester.pumpAndSettle();
+    expect(find.text('Al-Kahf, ayah 19'), findsOneWidget);
+    expect(find.text(journey.verseWithMark(19)), findsOneWidget);
+    expect(find.text(journey.meaning(19).en), findsOneWidget);
+    expect(find.text(journey.meaning(19).notes.single), findsOneWidget);
+    expect(find.text('Translation: Saheeh International'), findsOneWidget);
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+    expect(find.text(journey.verseWithMark(19)), findsNothing);
     // Between two stories there are ayahs to walk first.
     expect(find.text('Keep going: Patience with the faithful'), findsOneWidget);
-    expect(find.text('Next keepsake: the vine'), findsOneWidget);
+    expect(find.text('Next keepsake: the grapevines'), findsOneWidget);
     await tester.tap(find.text('Keep going: Patience with the faithful'));
     await tester.pumpAndSettle();
     expect(closed, [JourneyAfter.next]);
@@ -554,7 +797,12 @@ void main() {
     );
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
+    expect(
+      find.text('STORY COMPLETE: MUSA AND AL-KHIDR (PEACE BE UPON THEM)'),
+      findsOneWidget,
+    );
     expect(find.text('You found the ship'), findsOneWidget);
+    expect(find.text('Ayah 79 of Al-Kahf mentions the ship.'), findsOneWidget);
     expect(find.text('3 of 4'), findsOneWidget);
     expect(find.text('Next story: Dhul-Qarnayn'), findsOneWidget);
     expect(find.text('Keepsake: the iron'), findsOneWidget);

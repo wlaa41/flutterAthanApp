@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import '../models/journey.dart';
 import '../services/journey_progress.dart';
 import '../widgets/journey_art.dart';
+import '../widgets/journey_reading.dart';
 import '../widgets/journey_ui.dart';
+import 'journey_sources_screen.dart';
 import 'journey_stop_screen.dart';
 
 /// The Journey tab: choose how to play, then the map of the surah.
@@ -81,6 +83,16 @@ class _JourneyScreenState extends State<JourneyScreen> {
           ? _journey!.next(_progress!.done)
           : null;
     }
+  }
+
+  Future<void> _sources() async {
+    final level = _progress!.level!;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (context) =>
+            JourneySourcesScreen(journey: _journey!, arabic: level.isArabic),
+      ),
+    );
   }
 
   /// Brings the part being walked into view when the next stop changes.
@@ -233,6 +245,14 @@ class _JourneyScreenState extends State<JourneyScreen> {
                         style: J.text(15.5, weight: 600, height: 1.4),
                       ),
                     ),
+                  // Where the meanings come from, one tap from the map.
+                  Center(
+                    child: JourneySourceLine(
+                      t.meaningSource,
+                      onTap: _sources,
+                      more: t.sources,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -331,6 +351,16 @@ class _JourneyScreenState extends State<JourneyScreen> {
                             height: 1.15,
                           ),
                         ),
+                        if (section.blessing(t.arabic) != null)
+                          Text(
+                            section.blessing(t.arabic)!,
+                            style: J.text(
+                              15.5,
+                              weight: 600,
+                              color: J.white,
+                              height: 1.3,
+                            ),
+                          ),
                         const SizedBox(height: 2),
                         Text(
                           '$range. $goal',
@@ -377,8 +407,8 @@ class _JourneyScreenState extends State<JourneyScreen> {
     final line = done
         ? '$range. ${t.lanternsLit(count)}'
         : t.pick(
-            '$range. Opens after ${before?.en}.',
-            '$range. تُفتح بعد «${before?.ar}».',
+            '$range. Opens after ${before?.full(false)}.',
+            '$range. تُفتح بعد «${before?.full(true)}».',
           );
     return JButton(
       onTap: done ? () => setState(() => _open = section.id) : null,
@@ -412,6 +442,11 @@ class _JourneyScreenState extends State<JourneyScreen> {
                   section.title(t.arabic),
                   style: J.text(19, weight: 800, height: 1.25),
                 ),
+                if (section.blessing(t.arabic) != null)
+                  Text(
+                    section.blessing(t.arabic)!,
+                    style: J.text(14, weight: 600, height: 1.3),
+                  ),
                 Text(line, style: J.text(14, height: 1.3)),
               ],
             ),
@@ -549,7 +584,7 @@ class _JourneyLevelsState extends State<JourneyLevels> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Every level asks about whole ayahs. You can change it any time.',
+                      'Every level shows whole ayahs, with their meaning quoted from its source. You can change it any time.',
                       style: J.text(15, color: J.muted, height: 1.35),
                     ),
                     const SizedBox(height: 14),
@@ -559,7 +594,7 @@ class _JourneyLevelsState extends State<JourneyLevels> {
                       J.white,
                       'English',
                       "I don't read Arabic",
-                      'The story and the questions in English. See and hear every ayah.',
+                      'Each ayah with its translation (Saheeh International), then questions in English.',
                     ),
                     const SizedBox(height: 9),
                     _choice(
@@ -568,7 +603,7 @@ class _JourneyLevelsState extends State<JourneyLevels> {
                       J.tealPale,
                       'Arabic',
                       'I read Arabic',
-                      'تُعرض الآية، وتختار معناها.',
+                      'تُعرض الآية، وتختار تفسيرها من التفسير الميسر.',
                       arabic: true,
                     ),
                     const SizedBox(height: 9),
@@ -578,7 +613,7 @@ class _JourneyLevelsState extends State<JourneyLevels> {
                       J.lilacPale,
                       'Arabic, strong',
                       'I understand the ayahs',
-                      'يُعطى المعنى، وتختار الآية. بلا تلميح.',
+                      'يُعطى التفسير الميسر، وتختار الآية. بلا تلميح.',
                       arabic: true,
                     ),
                     const SizedBox(height: 10),

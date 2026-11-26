@@ -1,5 +1,58 @@
 # Changelog
 
+## 2.2.0-rc.16 (build 26)
+
+- **Al-Kahf Journey: only quoted sources explain the Quran.** The stories the
+  app retold in its own words, and its own one-line meaning for each ayah, are
+  removed. What the game says an ayah means is now copied, letter for letter,
+  from a named Sunni work:
+  - English: the **Saheeh International** translation, with its footnotes.
+  - Arabic: **al-Tafsir al-Muyassar** (King Fahd Complex for the Printing of
+    the Holy Quran, Madinah).
+  - Words: **As-Siraj fi Bayan Gharib al-Quran**.
+
+  All three are taken from QuranEnc.com. The game names each work, its issuer,
+  its version and QuranEnc.com on a new **Sources** page, opened from the map
+  and from every stop.
+- **A stop opens with its ayahs to read.** Each ayah is shown whole, with a
+  button to hear it, and under it its meaning from the source. The questions
+  come after. In the English level the answer to a question is followed by the
+  translation of that ayah, named, in place of the app's own explanation.
+- **An ayah is never cut.** The Arabic, strong level offered a long ayah by its
+  first 16 words, and reciting cued a long ayah by its last 14. Both now show
+  the whole ayah, however long, and the screen scrolls. The keepsake screen no
+  longer lifts a few words out of an ayah: it says which ayah mentions the
+  keepsake and opens that ayah whole, with its meaning.
+- **Arabic levels.** The ayah is shown and its tafsir is chosen, or the tafsir
+  is shown and the ayah is chosen. The choices are the tafsir's own texts and
+  whole ayahs, never the app's wording. Where al-Tafsir al-Muyassar explains
+  several ayahs in one text (2 and 3, 23 and 24, 35 and 36, 39 to 41), the game
+  reads and asks those ayahs together.
+- **English questions.** All 108 were rewritten so that nothing is made up
+  about the surah. Every choice is a phrase of the translation: the right one
+  from the ayah asked about, the others from other ayahs of the surah. Where a
+  question asks what someone said, all three choices are sayings quoted from
+  the translation. Where an ayah speaks of Allah, His promise, His punishment
+  or the unseen, the question asks which of three things the ayah speaks of, so
+  that no wrong choice says something untrue of them.
+- A choice that was picked wrongly is set apart and labelled **Your pick**. It
+  is no longer crossed out in red: a choice is an ayah, a scholar's text or
+  words of the translation.
+- The Prophet is named with "peace and blessings be upon him", and Musa,
+  al-Khidr and Adam with "peace be upon him".
+- Stop names that had lifted words of an ayah in plain spelling are renamed.
+  The keepsakes are named as the sources name them: the silver coin, the
+  grapevines, the ship and the iron.
+- **Word meanings** (optional, Arabic level) show each word as the mushaf
+  writes it, with the meaning As-Siraj gives and the book's name: 147 lines.
+- The meanings use the sign ﷺ, which the game's font does not draw. That one
+  sign is added from Noto Naskh Arabic (SIL Open Font License).
+- `tools/make_kahf_journey.py` now copies the meanings from the three files in
+  `tools/sources/quranenc/`, kept exactly as downloaded, and refuses to write
+  the game's file unless every ayah there is the ayah of the bundled mushaf
+  and every choice of every question is in the translation. The same checks
+  run with the tests.
+
 ## 2.2.0-rc.15 (build 25)
 
 - **Al-Kahf Journey**, a new game in place of the Meaning challenge, which is

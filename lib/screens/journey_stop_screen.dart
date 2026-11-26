@@ -7,16 +7,18 @@ import '../services/journey_audio.dart';
 import '../services/journey_progress.dart';
 import '../services/journey_round.dart';
 import '../widgets/journey_art.dart';
+import '../widgets/journey_reading.dart';
 import '../widgets/journey_ui.dart';
 import 'journey_keepsake_screen.dart';
 import 'journey_recite_screen.dart';
+import 'journey_sources_screen.dart';
 
 /// Where the player goes when a stop closes.
 enum JourneyAfter { map, next }
 
-enum _Phase { story, round, done }
+enum _Phase { read, round, done }
 
-/// One stop of the journey: its story, its questions, its lantern.
+/// One stop of the journey: its ayahs to read, its questions, its lantern.
 class JourneyStopScreen extends StatefulWidget {
   const JourneyStopScreen({
     super.key,
@@ -51,12 +53,16 @@ class _JourneyStopScreenState extends State<JourneyStopScreen> {
   );
   late final int _total = _queue.length;
 
-  var _phase = _Phase.story;
+  var _phase = _Phase.read;
   int _right = 0;
   int? _picked;
 
   /// The keepsake this stop has just won, if it closed a story.
   JourneyKeepsake? _won;
+
+  /// The card shown under an answer, and the page it is scrolled into.
+  final _answer = GlobalKey();
+  final _scroll = ScrollController();
 
   Journey get journey => widget.journey;
   JourneyStop get stop => widget.stop;
@@ -64,6 +70,7 @@ class _JourneyStopScreenState extends State<JourneyStopScreen> {
   @override
   void dispose() {
     JourneyAudio.stop();
+    _scroll.dispose();
     super.dispose();
   }
 
@@ -88,6 +95,18 @@ class _JourneyStopScreenState extends State<JourneyStopScreen> {
     final item = _queue.first;
     widget.progress.answered(item.ayah, right: choice == item.correct);
     setState(() => _picked = choice);
+    // Whole ayahs and whole tafsir texts can run past the screen: bring what
+    // follows the answer, and its button, into view.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final card = _answer.currentContext;
+      if (card == null || !mounted) return;
+      Scrollable.ensureVisible(
+        card,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+      );
+    });
   }
 
   Future<void> _next() async {
@@ -100,6 +119,8 @@ class _JourneyStopScreenState extends State<JourneyStopScreen> {
       _queue.add(item);
     }
     await JourneyAudio.stop();
+    // What comes next is read from its top.
+    if (_scroll.hasClients) _scroll.jumpTo(0);
     if (_queue.isNotEmpty) {
       setState(() => _picked = null);
       return;
@@ -214,7 +235,7 @@ class _JourneyStopScreenState extends State<JourneyStopScreen> {
       child: JScreen(
         arabic: t.arabic,
         child: switch (_phase) {
-          _Phase.story => _story(),
+          _Phase.read => _read(),
           _Phase.round => _round(),
           _Phase.done => _done(),
         },
@@ -222,12 +243,30 @@ class _JourneyStopScreenState extends State<JourneyStopScreen> {
     );
   }
 
-  Widget _page(List<Widget> children) => JPage(children: children);
+  Widget _page(List<Widget> children) =>
+      JPage(controller: _scroll, children: children);
 
-  Widget _story() {
+  Future<void> _sources() async {
+    await JourneyAudio.stop();
+    if (!mounted) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (context) =>
+            JourneySourcesScreen(journey: journey, arabic: t.arabic),
+      ),
+    );
+  }
+
+  /// What the stop reads before it asks: at the English level every ayah
+  /// with its translation, at the Arabic levels every passage with its tafsir.
+  List<JourneyPassage> get _reading => t.arabic
+      ? journey.passagesOf(stop)
+      : [for (final ayah in stop.ayahs) JourneyPassage(ayah, ayah)];
+
+  Widget _read() {
     final index = _section.stops.indexOf(stop) + 1;
     final count = _section.stops.length;
-    return _page([
+    final top = [
       Row(
         children: [
           JRound(
@@ -243,7 +282,9 @@ class _JourneyStopScreenState extends State<JourneyStopScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  t.arabic ? _section.ar : _section.en.toUpperCase(),
+                  t.arabic
+                      ? _section.full(true)
+                      : _section.full(false).toUpperCase(),
                   style: J.text(
                     13,
                     weight: 700,
@@ -263,19 +304,22 @@ class _JourneyStopScreenState extends State<JourneyStopScreen> {
           ),
         ],
       ),
-      const SizedBox(height: 14),
-      JourneyScene(art: _section.art, height: 200),
+      const SizedBox(height: 12),
+      JourneyScene(art: _section.art, height: 132),
       const SizedBox(height: 10),
       Text(
         stop.title(t.arabic),
         style: J.text(30, weight: 800, height: t.arabic ? 1.35 : 1.15),
       ),
-      const SizedBox(height: 6),
-      for (final paragraph in stop.story(t.arabic)) ...[
-        Text(paragraph, style: J.text(17, height: t.arabic ? 1.65 : 1.45)),
-        const SizedBox(height: 8),
-      ],
       const SizedBox(height: 4),
+      Text(
+        t.pick(
+          'Read the ayahs and what they mean. Then answer.',
+          'اقرأ الآيات وتفسيرها، ثم أجب.',
+        ),
+        style: J.text(16, color: J.muted, height: t.arabic ? 1.6 : 1.4),
+      ),
+      const SizedBox(height: 8),
       Wrap(
         spacing: 8,
         runSpacing: 8,
@@ -285,8 +329,29 @@ class _JourneyStopScreenState extends State<JourneyStopScreen> {
           JChip(t.pick('Then recite', 'ثم التلاوة')),
         ],
       ),
-      const Spacer(),
-      const SizedBox(height: 14),
+      const SizedBox(height: 12),
+      ValueListenableBuilder(
+        valueListenable: JourneyAudio.playing,
+        builder: (context, playing, _) => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (final passage in _reading) ...[
+              JourneyRead(
+                journey: journey,
+                passage: passage,
+                arabic: t.arabic,
+                playing: playing == 'ayah-${passage.first}',
+                onListen: () =>
+                    _listen('ayah-${passage.first}', passage.ayahs.toList()),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ],
+        ),
+      ),
+      JourneySourceLine(t.meaningSource, onTap: _sources, more: t.sources),
+    ];
+    final bottom = [
       ValueListenableBuilder(
         valueListenable: JourneyAudio.playing,
         builder: (context, playing, _) {
@@ -296,8 +361,8 @@ class _JourneyStopScreenState extends State<JourneyStopScreen> {
                 ? t.pick('Stop listening', 'إيقاف الاستماع')
                 : t.pick('Listen to the ayahs', 'استمع إلى الآيات'),
             color: J.white,
-            minHeight: 54,
-            size: 18,
+            minHeight: 50,
+            size: 17,
             weight: 700,
             icon: Icon(
               on ? Icons.stop_rounded : Icons.play_arrow_rounded,
@@ -308,15 +373,48 @@ class _JourneyStopScreenState extends State<JourneyStopScreen> {
           );
         },
       ),
-      const SizedBox(height: 8),
+      const SizedBox(height: 6),
       JButton.text(
         t.pick('Begin', 'ابدأ'),
         onTap: () {
           JourneyAudio.stop();
+          if (_scroll.hasClients) _scroll.jumpTo(0);
           setState(() => _phase = _Phase.round);
         },
       ),
-    ]);
+    ];
+    // The two buttons stay in reach while the ayahs scroll. On a short
+    // screen, or with large text, they scroll too and leave the room to read.
+    final media = MediaQuery.of(context);
+    final pinned = media.size.height >= 600 && media.textScaler.scale(10) <= 13;
+    if (!pinned) {
+      return _page([...top, const SizedBox(height: 8), ...bottom]);
+    }
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            controller: _scroll,
+            padding: const EdgeInsets.fromLTRB(20, 14, 20, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: top,
+            ),
+          ),
+        ),
+        Container(
+          decoration: const BoxDecoration(
+            color: J.bg,
+            border: Border(top: BorderSide(color: J.ink, width: 2)),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: bottom,
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _round() {
@@ -325,6 +423,9 @@ class _JourneyStopScreenState extends State<JourneyStopScreen> {
     final answered = picked != null;
     final wasRight = picked == item.correct;
     final last = _queue.length == 1 && (answered ? wasRight : true);
+    final hasWords = item.passage.ayahs.any(
+      (ayah) => (journey.words[ayah] ?? const []).isNotEmpty,
+    );
     return _page([
       Row(
         children: [
@@ -361,25 +462,28 @@ class _JourneyStopScreenState extends State<JourneyStopScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'المعنى',
+                'التفسير الميسر',
                 style: J.text(
                   14.5,
                   weight: 700,
                   color: const Color(0xFF2B3F66),
                 ),
               ),
-              Text(item.prompt, style: J.text(19, weight: 700, height: 1.6)),
+              Text(item.prompt, style: J.text(17.5, weight: 600, height: 1.7)),
             ],
           ),
         )
       else
-        _ayahCard(item.ayah),
+        _ayahCard(item.passage),
       const SizedBox(height: 8),
       Text(
         switch (_level) {
           JourneyLevel.english => item.prompt,
-          JourneyLevel.arabic => 'ما معنى هذه الآية؟',
-          JourneyLevel.strong => 'أيّ آية تدلّ على هذا المعنى؟',
+          JourneyLevel.arabic =>
+            item.passage.isOne
+                ? 'اختر تفسير هذه الآية'
+                : 'اختر تفسير هذه الآيات',
+          JourneyLevel.strong => 'ما الذي يفسّره هذا النص؟',
         },
         style: J.text(
           t.arabic ? 24 : 22,
@@ -392,10 +496,16 @@ class _JourneyStopScreenState extends State<JourneyStopScreen> {
         _choice(item, i),
         const SizedBox(height: 6),
       ],
+      if (_level == JourneyLevel.arabic)
+        Text(
+          'النصوص الثلاثة من ${t.meaningSource}.',
+          style: J.text(13.5, weight: 600, color: J.label, height: 1.5),
+        ),
       const Spacer(),
       const SizedBox(height: 8),
       if (answered)
         JCard(
+          key: _answer,
           depth: 0,
           padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
           child: Column(
@@ -404,17 +514,25 @@ class _JourneyStopScreenState extends State<JourneyStopScreen> {
               Text(
                 wasRight
                     ? t.pick("That's it.", 'أحسنت.')
-                    : t.pick('Not quite.', 'ليس هذا.'),
+                    : t.pick('Not quite.', 'ليس هذا المطلوب.'),
                 style: J.text(
                   17,
                   weight: 800,
                   color: wasRight ? J.right : J.wrong,
                 ),
               ),
-              Text(
-                _explain(item, wasRight),
-                style: J.text(15, height: t.arabic ? 1.6 : 1.4),
-              ),
+              if (_level == JourneyLevel.english) ...[
+                // What the ayah means, in the translation's own words.
+                JourneyMeaning(
+                  journey: journey,
+                  ayah: item.ayah,
+                  arabic: false,
+                  size: 15,
+                ),
+                const SizedBox(height: 4),
+                JourneySourceLine('Saheeh International, Al-Kahf ${item.ayah}'),
+              ] else
+                Text(_explain(item, wasRight), style: J.text(15, height: 1.6)),
               const SizedBox(height: 10),
               JButton.text(
                 last
@@ -427,8 +545,7 @@ class _JourneyStopScreenState extends State<JourneyStopScreen> {
             ],
           ),
         )
-      else if (_level == JourneyLevel.arabic &&
-          (journey.words[item.ayah] ?? const []).isNotEmpty) ...[
+      else if (_level == JourneyLevel.arabic && hasWords) ...[
         JButton.text(
           'معاني الكلمات',
           color: J.tealPale,
@@ -437,17 +554,17 @@ class _JourneyStopScreenState extends State<JourneyStopScreen> {
           size: 18,
           weight: 700,
           icon: const Icon(Icons.menu_book_rounded, color: J.ink, size: 22),
-          onTap: () => _words(item.ayah),
+          onTap: () => _words(item.passage),
         ),
         const SizedBox(height: 6),
         Text(
-          'اختياري: معاني الكلمات الصعبة في الآية إن احتجت إليها.',
+          'اختياري: معاني الكلمات الغريبة في الآية إن احتجت إليها.',
           textAlign: TextAlign.center,
           style: J.text(14.5, color: J.muted, height: 1.5),
         ),
       ] else if (_level == JourneyLevel.strong)
         Text(
-          'هذا المستوى بلا تلميح: المعنى أمامك، والآية من فهمك.',
+          'هذا المستوى بلا تلميح: التفسير أمامك، والآية من حفظك وفهمك.',
           textAlign: TextAlign.center,
           style: J.text(14.5, color: J.muted, height: 1.5),
         ),
@@ -455,30 +572,24 @@ class _JourneyStopScreenState extends State<JourneyStopScreen> {
   }
 
   String _explain(RoundItem item, bool wasRight) {
-    if (_level == JourneyLevel.english) return item.explain;
-    final ayah = t.number(item.ayah);
+    final passage = item.passage;
+    final where = passage.isOne
+        ? 'الآية ${t.number(passage.first)}'
+        : 'الآيات ${t.number(passage.first)} إلى ${t.number(passage.last)}';
     if (wasRight) {
       return _level == JourneyLevel.arabic
-          ? 'هذا معنى الآية $ayah من سورة الكهف.'
-          : 'هي الآية $ayah من سورة الكهف.';
+          ? 'هذا تفسير $where من سورة الكهف.'
+          : 'هذا النص تفسير $where من سورة الكهف.';
     }
     return _level == JourneyLevel.arabic
-        ? 'المعنى الصحيح مظلّل بالأخضر. ستعود هذه الآية في آخر المحطة.'
-        : 'الآية الصحيحة مظلّلة بالأخضر. ستعود في آخر المحطة.';
+        ? 'التفسير المطلوب مظلّل بالأخضر. ستعود هذه الآية في آخر المحطة.'
+        : 'المطلوب مظلّل بالأخضر. سيعود هذا التفسير في آخر المحطة.';
   }
 
-  /// The ayah being asked about, with a button to hear it.
-  Widget _ayahCard(int ayah) {
-    final words = journey.verse(ayah).split(' ').length;
-    final size =
-        (words <= 12
-            ? 24.0
-            : words <= 20
-            ? 21.5
-            : words <= 30
-            ? 19.0
-            : 17.5) +
-        (_level == JourneyLevel.arabic ? 3 : 0);
+  /// What is asked about, whole, with a button to hear it.
+  Widget _ayahCard(JourneyPassage passage) {
+    final text = journey.passageText(passage);
+    final size = JQuran.sizeFor(text) + (_level == JourneyLevel.arabic ? 2 : 0);
     return JCard(
       padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
       child: Column(
@@ -488,29 +599,27 @@ class _JourneyStopScreenState extends State<JourneyStopScreen> {
             children: [
               Expanded(
                 child: Text(
-                  t.ayah(ayah),
+                  t.passage(passage.first, passage.last),
                   style: J.text(14.5, weight: 700, color: J.label),
                 ),
               ),
               ValueListenableBuilder(
                 valueListenable: JourneyAudio.playing,
                 builder: (context, playing, _) => JRound(
-                  icon: playing == 'ayah-$ayah'
+                  icon: playing == 'ayah-${passage.first}'
                       ? Icons.stop_rounded
                       : Icons.play_arrow_rounded,
-                  label: t.pick('Listen to the ayah', 'استمع إلى الآية'),
+                  label: passage.isOne
+                      ? t.pick('Listen to the ayah', 'استمع إلى الآية')
+                      : t.pick('Listen to the ayahs', 'استمع إلى الآيات'),
                   color: J.lilacPale,
-                  onTap: () => _listen('ayah-$ayah', [ayah]),
+                  onTap: () =>
+                      _listen('ayah-${passage.first}', passage.ayahs.toList()),
                 ),
               ),
             ],
           ),
-          Text(
-            journey.verseWithMark(ayah),
-            textAlign: TextAlign.center,
-            textDirection: TextDirection.rtl,
-            style: J.quran(size),
-          ),
+          JQuran(text, size: size),
         ],
       ),
     );
@@ -534,13 +643,17 @@ class _JourneyStopScreenState extends State<JourneyStopScreen> {
       border = J.ink;
       mark = _mark(Icons.check_rounded, J.right, t.pick('Correct', 'صحيح'));
     } else if (isPicked) {
-      color = J.wrongPale;
-      border = J.wrong;
+      // A choice is an ayah, a scholar's text, or words of the translation.
+      // None of them is ever crossed out: the one picked is only set apart,
+      // and the right one is marked.
+      color = J.panel;
+      border = J.ink;
       depth = 0;
-      mark = _mark(
-        Icons.close_rounded,
-        J.wrong,
-        t.pick('Not this one', 'ليس هذا'),
+      final label = t.pick('Your pick', 'اختيارك');
+      mark = Semantics(
+        label: label,
+        excludeSemantics: true,
+        child: Text(label, style: J.text(13, weight: 700, color: J.muted)),
       );
     } else {
       color = J.white;
@@ -548,22 +661,35 @@ class _JourneyStopScreenState extends State<JourneyStopScreen> {
       depth = 0;
     }
     final dim = answered && !isRight && !isPicked;
-    final text = strong
-        ? JQuran(
-            item.choices[index],
-            size: 20.5,
-            height: 1.9,
-            color: dim ? J.muted : J.ink,
-          )
-        : Text(
-            item.choices[index],
-            style: J.text(
-              t.arabic ? 18 : 16.5,
-              weight: 700,
-              color: dim ? J.muted : J.ink,
-              height: t.arabic ? 1.5 : 1.25,
-            ),
-          );
+    final Widget text;
+    if (strong) {
+      text = JQuran(
+        item.choices[index],
+        size: JQuran.sizeFor(item.choices[index], largest: 21),
+        height: 1.9,
+        color: dim ? J.muted : J.ink,
+      );
+    } else if (t.arabic) {
+      text = Text(
+        item.choices[index],
+        style: J.text(
+          16.5,
+          weight: 600,
+          color: dim ? J.muted : J.ink,
+          height: 1.65,
+        ),
+      );
+    } else {
+      text = Text(
+        item.choices[index],
+        style: J.text(
+          16.5,
+          weight: 700,
+          color: dim ? J.muted : J.ink,
+          height: 1.25,
+        ),
+      );
+    }
     return JButton(
       onTap: answered ? null : () => _pick(index),
       fadeWhenOff: false,
@@ -572,7 +698,7 @@ class _JourneyStopScreenState extends State<JourneyStopScreen> {
       radius: strong ? 18 : 16,
       depth: depth,
       minHeight: t.arabic ? 58 : 52,
-      padding: EdgeInsets.fromLTRB(14, 6, 14, strong ? 8 : 6),
+      padding: EdgeInsets.fromLTRB(14, 6, 14, t.arabic ? 8 : 6),
       alignment: strong ? Alignment.center : AlignmentDirectional.centerStart,
       child: _Solid(
         child: Row(
@@ -595,9 +721,13 @@ class _JourneyStopScreenState extends State<JourneyStopScreen> {
     ),
   );
 
-  /// The harder words of the ayah with their meanings, for who wants them.
-  void _words(int ayah) {
-    final words = journey.words[ayah] ?? const <JourneyWord>[];
+  /// The harder words of what is shown, each as the mushaf writes it, with
+  /// the meaning As-Siraj gives.
+  void _words(JourneyPassage passage) {
+    final ayahs = [
+      for (final ayah in passage.ayahs)
+        if ((journey.words[ayah] ?? const []).isNotEmpty) ayah,
+    ];
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
@@ -605,60 +735,58 @@ class _JourneyStopScreenState extends State<JourneyStopScreen> {
       builder: (context) => Directionality(
         textDirection: TextDirection.rtl,
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-            child: JCard(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text('معاني الكلمات', style: J.text(20, weight: 800)),
-                  Text(
-                    t.ayah(ayah),
-                    style: J.text(14, weight: 700, color: J.label),
-                  ),
-                  const SizedBox(height: 8),
-                  for (final word in words)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 5),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.fromLTRB(10, 0, 10, 4),
-                            decoration: BoxDecoration(
-                              color: J.sunCream,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: J.ink, width: 2),
-                            ),
-                            child: Text(
-                              journey.verseWords(
-                                ayah,
-                                word.word,
-                                word.word + word.span - 1,
-                              ),
-                              style: J.quran(21, height: 1.8),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              word.meaning,
-                              style: J.text(17, weight: 600, height: 1.5),
-                            ),
-                          ),
-                        ],
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(context).height * 0.86,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              child: JCard(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text('معاني الكلمات', style: J.text(20, weight: 800)),
+                    Text(
+                      t.wordSource,
+                      style: J.text(13.5, weight: 600, color: J.label),
+                    ),
+                    const SizedBox(height: 6),
+                    Flexible(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            for (final ayah in ayahs) ...[
+                              if (!passage.isOne)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Text(
+                                    t.ayah(ayah),
+                                    style: J.text(
+                                      13.5,
+                                      weight: 700,
+                                      color: J.muted,
+                                    ),
+                                  ),
+                                ),
+                              for (final word in journey.words[ayah]!)
+                                _wordRow(ayah, word),
+                            ],
+                          ],
+                        ),
                       ),
                     ),
-                  const SizedBox(height: 10),
-                  JButton.text(
-                    'تم',
-                    minHeight: 50,
-                    size: 18,
-                    onTap: () => Navigator.of(context).pop(),
-                  ),
-                ],
+                    const SizedBox(height: 10),
+                    JButton.text(
+                      'تم',
+                      minHeight: 50,
+                      size: 18,
+                      onTap: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -666,6 +794,38 @@ class _JourneyStopScreenState extends State<JourneyStopScreen> {
       ),
     );
   }
+
+  Widget _wordRow(int ayah, JourneyWord word) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 5),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 150),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(10, 0, 10, 4),
+            decoration: BoxDecoration(
+              color: J.sunCream,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: J.ink, width: 2),
+            ),
+            child: Text(
+              journey.wordText(ayah, word),
+              textAlign: TextAlign.center,
+              style: J.quran(21, height: 1.8),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            word.meaning,
+            style: J.text(17, weight: 600, height: 1.6),
+          ),
+        ),
+      ],
+    ),
+  );
 
   Widget _done() {
     final next = journey.next(widget.progress.done);

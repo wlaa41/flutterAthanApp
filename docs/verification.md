@@ -1,5 +1,70 @@
 # Verification
 
+## 2.2.0-rc.16 / build 26, 26 November 2026: the Journey quotes its sources
+
+The owner's three rules for the game: only the Sunni view, the Quran respected
+and quoted exactly, and the conventions of the leading Quran apps. What was
+found in rc.15 against them, and what was done:
+
+| Found in rc.15 | Now |
+| --- | --- |
+| A meaning for each ayah in the app's own words, English and Arabic. The Arabic ones reworded ayahs in the first person and were used as choices | Removed. The meaning is the Saheeh International translation, or al-Tafsir al-Muyassar, letter for letter |
+| Two paragraphs of story per stop, retold by the app, with speech put in its own words | Removed. A stop opens with its ayahs, whole, and their meaning from the source |
+| A long ayah cut to its first 16 words as a choice, to its last 14 as a cue for reciting, and to a few words on the keepsake screen | An ayah is always whole. The keepsake screen names the ayah and opens it whole |
+| 146 word meanings in the app's wording | 147 lines of As-Siraj, each on the mushaf's own word |
+| Wrong choices that said untrue things of Allah, His words or the Prophet, or took a claim of disbelief as true (ayahs 2, 5, 6, 27, 58, 63, 91 and 109) | All 108 questions rewritten. Every choice is a phrase of the translation |
+| A red cross on a wrongly picked choice, which could be an ayah | The pick is set apart and labelled, never crossed out |
+| "Peace be upon him" for the Prophet; no blessing after Musa | "Peace and blessings be upon him"; "peace be upon him" for Musa, al-Khidr and Adam |
+| Stop names that lifted words of an ayah in plain spelling | Renamed |
+
+What was checked:
+
+- Local Flutter 3.50.0: all **270 unit/widget tests passed** (one more, which
+  needs the speech model's files, is skipped unless they are given); static
+  analysis has no warnings or errors.
+- The three source files were downloaded from QuranEnc.com and are kept as
+  downloaded. They were fetched a second time twenty minutes later and were
+  the same, byte for byte.
+- `tools/make_kahf_journey.py` refuses to write the game's file unless: each
+  source holds the 110 ayahs of the surah; the Quran text QuranEnc sends with
+  each has the letters of the bundled Hafs text; every English meaning has its
+  footnotes, mark for mark; every word of As-Siraj is found once in its ayah of
+  the mushaf; the right choice of each of the 108 questions is in the
+  translation of its ayah, and every other choice in the translation of
+  another ayah. It reports 30 questions on quoted sayings, 18 on what an ayah
+  speaks of and 60 others.
+- `test/journey_test.dart` checks the same from the source files, without the
+  tool: all 110 English meanings and 26 footnotes, all 110 Arabic meanings and
+  all 147 word meanings equal their source, letter for letter; the game's own
+  file holds no ayah (ayahs come from the bundled mushaf, by number) and no cut
+  mark; an ayah is always the bundled text
+  with its end mark; at the Arabic level every choice is a text of al-Tafsir
+  al-Muyassar as the source has it; at the strong level every choice is a
+  whole ayah, for every stop.
+- Every one of the 108 questions was read against the translation by hand
+  after the tool passed it, for the right answer and for a wrong choice that
+  could also be read as right.
+- The widget tests walk the new screens on a 390 × 844 screen in the game's
+  fonts: the ayahs of a stop with their translation and footnotes, and with
+  al-Tafsir al-Muyassar; ayahs 2 and 3 read and asked as one; the answer
+  followed by the named translation; a wrong pick set apart with no cross; the
+  longest ayah of the surah whole as a choice and as the ayah given before
+  reciting; the keepsake screen with no ayah text until the ayah is opened;
+  and the Sources page in both languages. The screens are also laid out at
+  320 × 640 with text twice as large.
+- `tools/capture_journey.dart` draws 52 pictures of the screens. All 52 were
+  looked at, the new and changed ones at full size.
+- A release APK for 64-bit ARM was built here: 89,298,826 bytes, version
+  2.2.0-rc.16 build 26, under the 99,000,000 limit, holding the game's file
+  and the new one-sign font.
+- **Not checked.** No scholar or teacher has read the questions or the stop
+  names. They are the app's wording, and the tool can only show that the
+  choices are in the translation, not that a question is well put. The game
+  should be read by someone qualified before a public release. Reciting has
+  still not run on a real phone (see rc.15).
+- **Left as it was.** The Quran reader's own translation and tafsir sources
+  (also Sunni works) are outside the game and unchanged.
+
 ## 2.2.0-rc.15 / build 25, 25 November 2026: the Al-Kahf Journey
 
 - Local Flutter 3.50.0: all **259 unit/widget tests passed** (one more, which

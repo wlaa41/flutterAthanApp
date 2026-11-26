@@ -152,14 +152,77 @@ of the other riwayat, so they play the Hafs recitation and the app says so.
 
 ## The Al-Kahf Journey
 
-- **Content.** The stories, the 110 English questions, a short meaning for each
-  ayah in English and in Arabic, and 146 word meanings are written in
-  `tools/make_kahf_journey.py`. The meanings follow al-Tafsir al-Muyassar (King
-  Fahd Complex) and, for single words, the books of gharib al-Quran. The English
-  is the app's own wording, not a published translation. No Quran text is typed
-  there: an ayah is named by its number and shown from the bundled Hafs text,
-  and the tool refuses to write the file if a word it points at is not in that
-  text.
+Nothing in the game explains the Quran in the app's own words. What an ayah
+means is copied from a named Sunni work, letter for letter, and the Quran text
+itself is never typed: an ayah is named by its number and shown whole from the
+bundled Hafs text above.
+
+| Shown in the game | Work | QuranEnc key | Version | SHA-256 of the file |
+| --- | --- | --- | --- | --- |
+| Meaning in English, with footnotes | Saheeh International. QuranEnc lists it as "English Translation - Noor International Center", issued by Noor International Center | `english_saheeh` | 1.1.2, 2025-06-24 | `54e79fc5007622ee75349d541eea52413bc9f63911baeddf33344d4525ad1851` |
+| Meaning in Arabic | al-Tafsir al-Muyassar. "Arabic Language - At-Tafsir Al-Muyassar", issued by the King Fahd Complex for Printing the Holy Quran in Madinah | `arabic_moyassar` | 1.0.1, 2026-11-09 | `57c0cde57735bf63f0ec5633d2e9d4e992b1aa8317173582cce86ccecf9624f1` |
+| Meanings of single words | "Arabic Language - Meanings of Words", from the book As-Siraj fi Bayan Gharib al-Quran | `arabic_seraj` | 1.0.0, 2017-02-15 | `cd8d1195c8c04449d206e2c2cdd476aaf7316ccf9d5da9639d9125c1b1c74389` |
+
+- **Where the files come from.** QuranEnc.com (the Noble Quran Encyclopedia)
+  serves each work one surah at a time at
+  `https://quranenc.com/api/v1/translation/sura/<key>/18`. The three answers
+  for Surah 18 are kept exactly as downloaded in `tools/sources/quranenc/`,
+  with their titles, issuers, versions and checksums in `manifest.json`. They
+  were fetched on 2026-11-26. `python3 tools/make_kahf_journey.py --fetch`
+  downloads them again and says whether anything changed.
+- **QuranEnc's terms for using its texts**, as its pages state them: no change,
+  addition or deletion; credit the publisher and QuranEnc.com; give the version
+  number; keep the information about the work; tell the source of any note on
+  it; keep up with the latest version; no unsuitable advertising. The game
+  shows the texts unchanged and names the work, its issuer, its version and
+  QuranEnc.com on its Sources page. The app carries no advertising. When a
+  work gets a new version, fetch it, read what changed and rebuild.
+- **What `tools/make_kahf_journey.py` does with them.** It copies and checks;
+  it changes no letter.
+  - Each of the three files must hold the 110 ayahs of the surah, and the Quran
+    text QuranEnc sends with each one must have the letters of the bundled Hafs
+    text. Otherwise nothing is written.
+  - The English meaning of an ayah is the translation's text with its footnote
+    marks, and the footnotes under it. 24 ayahs have footnotes, 26 in all.
+  - The Arabic meaning is al-Tafsir al-Muyassar's text. It explains four groups
+    of ayahs in one text each (2 and 3, 23 and 24, 35 and 36, 39 to 41). The
+    game shows and asks the ayahs of a group together, so the text is never
+    split or shown under one ayah of several.
+  - A word meaning is a line of As-Siraj: the word, then its meaning. The
+    meaning is kept letter for letter. The word is not shown in the book's
+    plain spelling: the tool finds it in the Hafs text and the game shows the
+    mushaf's own word. Three words the mushaf spells with an old letter
+    (ayahs 28, 60 and 81) are pointed out to the tool by hand. Of the 148
+    lines, 147 are shown. One is filed by QuranEnc under ayah 108 though its
+    word stands in ayah 109, and the game shows it under 109. One, in ayah
+    109, pairs the last word of the ayah with the meaning of another word of
+    the same ayah, and is left out.
+- **What the app wrote.** The names of the eight parts and 28 stops, and the
+  stems of 108 English questions. They are not a scholar's words. The choices
+  under the questions are not the app's:
+  - the right choice is a phrase of the translation of the ayah asked about;
+  - every other choice is a phrase of the translation of another ayah of the
+    surah (in four questions, of the same ayah, where the ayah itself sets two
+    things against each other, such as awake and asleep);
+  - in the 30 questions that ask what someone said, all three choices are
+    sayings quoted from the translation;
+  - 18 questions on ayahs about Allah, His promise, His punishment or the
+    unseen ask only which of three things the ayah speaks of.
+
+  The tool checks every choice against the translation word by word, and
+  `test/journey_test.dart` checks it again from the source files.
+- **How the Quran is shown.** An ayah always stands whole, with its end mark,
+  in the mushaf's own font, at every level and when reciting. A choice that was
+  picked wrongly is set apart, never crossed out. The optional word meanings
+  show the single word they explain. The pictures show places and things only.
+- **The sign ﷺ.** The meanings write it as one character (U+FDFA), which Baloo
+  Bhaijaan 2 does not draw. `tools/make_journey_fonts.py` takes that one glyph
+  from Noto Naskh Arabic (The Noto Project Authors, SIL Open Font License 1.1,
+  `asset/fonts/noto_naskh_arabic_OFL.txt`; source
+  `tools/fonts/NotoNaskhArabic-wght.ttf`, version 2.021, from
+  <https://github.com/google/fonts/tree/main/ofl/notonaskharabic>) and saves it
+  as `asset/fonts/journey_signs.ttf` under the name "Journey Signs". The game's
+  text falls back to it for that sign only.
 - **Font.** Baloo Bhaijaan 2 by Ek Type, SIL Open Font License 1.1
   (`asset/fonts/baloo_bhaijaan2_OFL.txt`), from
   <https://github.com/google/fonts/tree/main/ofl/baloobhaijaan2>. Upstream is one

@@ -383,53 +383,56 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('a long ayah is cued by its ending, and large text still fits', (
-    tester,
-  ) async {
-    final listener = _Listener();
-    tester.view.devicePixelRatio = 1;
-    tester.view.physicalSize = const Size(320, 640);
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-    SharedPreferences.setMockInitialValues({});
-    await tester.pumpWidget(
-      MaterialApp(
-        builder: (context, child) => MediaQuery(
-          data: MediaQuery.of(
-            context,
-          ).copyWith(textScaler: const TextScaler.linear(2)),
-          child: child!,
+  testWidgets(
+    'the ayah that is given is shown whole, and large text still fits',
+    (tester) async {
+      final listener = _Listener();
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(320, 640);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      SharedPreferences.setMockInitialValues({});
+      await tester.pumpWidget(
+        MaterialApp(
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(
+              context,
+            ).copyWith(textScaler: const TextScaler.linear(2)),
+            child: child!,
+          ),
+          home: JourneyReciteScreen(
+            journey: journey,
+            progress: JourneyProgress(level: JourneyLevel.english),
+            stop: stop('cave-4'),
+            arabic: false,
+            listener: listener,
+            model: _Model(),
+          ),
         ),
-        home: JourneyReciteScreen(
-          journey: journey,
-          progress: JourneyProgress(level: JourneyLevel.english),
-          stop: stop('cave-4'),
-          arabic: false,
-          listener: listener,
-          model: _Model(),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    expect(tester.takeException(), isNull);
-    // Ayah 19 is given ayah 18 whole; ayah 20 is given the end of ayah 19.
-    expect(find.text('You are given ayah 18'), findsOneWidget);
-    await tester.ensureVisible(find.text('Skip'));
-    await tester.tap(find.text('Skip'));
-    await tester.pumpAndSettle();
-    final ending = journey.verseEnding(19);
-    expect(ending, startsWith('… '));
-    expect(find.text(ending, findRichText: true), findsOneWidget);
-    expect(find.text(journey.verseWithMark(19)), findsNothing);
-    await tester.ensureVisible(find.text('Recite'));
-    await tester.tap(find.text('Recite'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-    listener.heard = said(20, without: {3});
-    await tester.ensureVisible(find.text('Done'));
-    await tester.tap(find.text('Done'));
-    await tester.pumpAndSettle();
-    expect(find.text('12 of 13 words'), findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      // The ayah that is given is always whole, even the longest of the surah:
+      // ayah 20 is recited after all 38 words of ayah 19.
+      expect(find.text('You are given ayah 18'), findsOneWidget);
+      expect(find.text(journey.verseWithMark(18)), findsOneWidget);
+      await tester.ensureVisible(find.text('Skip'));
+      await tester.tap(find.text('Skip'));
+      await tester.pumpAndSettle();
+      expect(journey.verse(19).split(' '), hasLength(38));
+      expect(find.text('You are given ayah 19'), findsOneWidget);
+      expect(find.text(journey.verseWithMark(19)), findsOneWidget);
+      expect(find.textContaining('…'), findsNothing);
+      await tester.ensureVisible(find.text('Recite'));
+      await tester.tap(find.text('Recite'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      listener.heard = said(20, without: {3});
+      await tester.ensureVisible(find.text('Done'));
+      await tester.tap(find.text('Done'));
+      await tester.pumpAndSettle();
+      expect(find.text('12 of 13 words'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 }
