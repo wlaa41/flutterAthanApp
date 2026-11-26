@@ -57,6 +57,11 @@ What was checked:
 - A release APK for 64-bit ARM was built here: 89,298,826 bytes, version
   2.2.0-rc.16 build 26, under the 99,000,000 limit, holding the game's file
   and the new one-sign font.
+- CI on GitHub, for commit 96f1fd9 on `main`: 270 tests passed and 1 was
+  skipped, the native Android tests passed, the iPhone app was built for the
+  simulator and started there, and the signed APK it published (commit
+  16b3b97) is 88,598,002 bytes, version 2.2.0-rc.16 build 26, holding the
+  game's file and the one-sign font.
 - **Not checked.** No scholar or teacher has read the questions or the stop
   names. They are the app's wording, and the tool can only show that the
   choices are in the translation, not that a question is well put. The game
