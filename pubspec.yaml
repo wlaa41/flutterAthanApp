@@ -15,7 +15,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion. android:
 # Read more about iOS versioning a
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 2.2.0-rc.15+25
+version: 2.2.0-rc.16+26
 
 environment:
   sdk: ">=3.10.0 <4.0.0"
@@ -59,8 +59,9 @@ flutter:
     - asset/
     # The Quran text of each mushaf, built by tools/build_quran_assets.py.
     - asset/quran/
-    # The Al-Kahf Journey: stories, questions and meanings, built and checked
-    # against the Hafs text by tools/make_kahf_journey.py.
+    # The Al-Kahf Journey: its stops and questions, and the meanings copied
+    # from their sources, built and checked against the Hafs text by
+    # tools/make_kahf_journey.py.
     - asset/journey/
 
   # One font per mushaf: the King Fahd Complex draws each riwayah with its own
@@ -103,3 +104,10 @@ flutter:
           weight: 700
         - asset: asset/fonts/baloo_800.ttf
           weight: 800
+    # The one sign in the Journey's quoted meanings that Baloo cannot draw
+    # (U+FDFA, the blessing after the Prophet's name), taken from Noto Naskh
+    # Arabic (SIL Open Font License, asset/fonts/noto_naskh_arabic_OFL.txt)
+    # by tools/make_journey_fonts.py.
+    - family: journey_signs
+      fonts:
+        - asset: asset/fonts/journey_signs.ttf

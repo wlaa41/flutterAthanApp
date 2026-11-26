@@ -15,6 +15,7 @@ import 'package:flutter_pro/models/journey.dart';
 import 'package:flutter_pro/screens/journey_keepsake_screen.dart';
 import 'package:flutter_pro/screens/journey_recite_screen.dart';
 import 'package:flutter_pro/screens/journey_screen.dart';
+import 'package:flutter_pro/screens/journey_sources_screen.dart';
 import 'package:flutter_pro/screens/journey_stop_screen.dart';
 import 'package:flutter_pro/services/journey_audio.dart';
 import 'package:flutter_pro/services/journey_progress.dart';
@@ -43,6 +44,9 @@ Future<void> _fonts(WidgetTester tester) => tester.runAsync(() async {
     baloo.addFont(rootBundle.load('asset/fonts/baloo_$weight.ttf'));
   }
   await baloo.load();
+  await (FontLoader(
+    'journey_signs',
+  )..addFont(rootBundle.load('asset/fonts/journey_signs.ttf'))).load();
 });
 
 Future<void> _capture(WidgetTester tester, String name) async {
@@ -206,7 +210,7 @@ void main() {
     await show(_tab(const JourneyScreen()));
     await _capture(tester, 'journey-2-map-arabic');
 
-    // 3. The story, 4. the English level.
+    // 3. The ayahs to read, 4. the English level.
     var progress = JourneyProgress(
       level: JourneyLevel.english,
       done: {'opening-1', 'opening-2'},
@@ -219,7 +223,19 @@ void main() {
         random: Random(4),
       ),
     );
-    await _capture(tester, 'journey-3-story');
+    await _capture(tester, 'journey-3-read');
+    await tester.drag(
+      find.byType(SingleChildScrollView),
+      const Offset(0, -520),
+    );
+    await _frames(tester, 4);
+    await _capture(tester, 'journey-3-read-lower');
+    await tester.drag(
+      find.byType(SingleChildScrollView),
+      const Offset(0, -2000),
+    );
+    await _frames(tester, 4);
+    await _capture(tester, 'journey-3-read-end');
     var round = JourneyRounds.build(
       journey,
       stop('cave-1'),
@@ -238,6 +254,51 @@ void main() {
     await _frames(tester, 4);
     await _capture(tester, 'journey-4-english-wrong');
 
+    // The first stop: its first ayah's meaning carries a footnote and the
+    // blessing sign.
+    await show(
+      JourneyStopScreen(
+        journey: journey,
+        progress: JourneyProgress(level: JourneyLevel.english),
+        stop: stop('opening-1'),
+        random: Random(4),
+      ),
+    );
+    await tester.drag(
+      find.byType(SingleChildScrollView),
+      const Offset(0, -330),
+    );
+    await _frames(tester, 4);
+    await _capture(tester, 'journey-3-read-first-stop');
+
+    // The longest ayahs of the surah, at each level.
+    for (final level in JourneyLevel.values) {
+      await show(
+        JourneyStopScreen(
+          journey: journey,
+          progress: JourneyProgress(level: level),
+          stop: stop('cave-4'),
+          random: Random(4),
+        ),
+      );
+      await tester.tap(find.text(level.isArabic ? 'ابدأ' : 'Begin'));
+      await _frames(tester, 4);
+      await _capture(tester, 'journey-long-${level.name}');
+      final long = JourneyRounds.build(
+        journey,
+        stop('cave-4'),
+        level,
+        random: Random(4),
+      );
+      final right = find.text(long[0].choices[long[0].correct]);
+      await tester.ensureVisible(right);
+      await _frames(tester, 2);
+      await tester.tap(right);
+      // The answer card is brought into view by the screen itself.
+      await _frames(tester, 6);
+      await _capture(tester, 'journey-long-${level.name}-answered');
+    }
+
     // 5. The Arabic level, with the optional word meanings.
     progress = JourneyProgress(
       level: JourneyLevel.arabic,
@@ -251,15 +312,70 @@ void main() {
         random: Random(4),
       ),
     );
-    await _capture(tester, 'journey-3-story-arabic');
+    await _capture(tester, 'journey-3-read-arabic');
+    await tester.drag(
+      find.byType(SingleChildScrollView),
+      const Offset(0, -520),
+    );
+    await _frames(tester, 4);
+    await _capture(tester, 'journey-3-read-arabic-lower');
     await tester.tap(find.text('ابدأ'));
     await _frames(tester, 4);
     await _capture(tester, 'journey-5-arabic');
     await tester.tap(find.text('معاني الكلمات').first);
     await _frames(tester, 6);
     await _capture(tester, 'journey-5-arabic-words');
+    await tester.tap(find.text('تم'));
+    await _frames(tester, 6);
+    round = JourneyRounds.build(
+      journey,
+      stop('cave-1'),
+      JourneyLevel.arabic,
+      random: Random(4),
+    );
+    final wrongTafsir = find.text(round[0].choices[(round[0].correct + 1) % 3]);
+    await tester.ensureVisible(wrongTafsir);
+    await _frames(tester, 2);
+    await tester.tap(wrongTafsir);
+    await _frames(tester, 6);
+    await _capture(tester, 'journey-5-arabic-wrong');
 
-    // 6. Arabic, strong: the meaning is given, the ayah is chosen.
+    // Ayahs the tafsir explains in one text are read and asked as one.
+    await show(
+      JourneyStopScreen(
+        journey: journey,
+        progress: JourneyProgress(level: JourneyLevel.arabic),
+        stop: stop('opening-1'),
+        random: Random(4),
+      ),
+    );
+    await tester.drag(
+      find.byType(SingleChildScrollView),
+      const Offset(0, -700),
+    );
+    await _frames(tester, 4);
+    await _capture(tester, 'journey-3-read-arabic-passage');
+    await tester.tap(find.text('ابدأ'));
+    await _frames(tester, 4);
+    round = JourneyRounds.build(
+      journey,
+      stop('opening-1'),
+      JourneyLevel.arabic,
+      random: Random(4),
+    );
+    final firstTafsir = find.text(round[0].choices[round[0].correct]);
+    await tester.ensureVisible(firstTafsir);
+    await _frames(tester, 2);
+    await tester.tap(firstTafsir);
+    await _frames(tester, 6);
+    await tester.tap(find.text('التالي'));
+    await _frames(tester, 4);
+    await _capture(tester, 'journey-5-arabic-passage');
+    await tester.tap(find.text('معاني الكلمات').first);
+    await _frames(tester, 6);
+    await _capture(tester, 'journey-5-arabic-passage-words');
+
+    // 6. Arabic, strong: the tafsir is given, the ayah is chosen.
     progress = JourneyProgress(
       level: JourneyLevel.strong,
       done: {'opening-1', 'opening-2'},
@@ -284,6 +400,62 @@ void main() {
     await tester.tap(find.text(round[0].choices[round[0].correct]));
     await _frames(tester, 4);
     await _capture(tester, 'journey-6-strong-right');
+    await tester.tap(find.text('التالي'));
+    await _frames(tester, 4);
+    await tester.tap(find.text(round[1].choices[(round[1].correct + 1) % 3]));
+    await _frames(tester, 4);
+    await _capture(tester, 'journey-6-strong-wrong');
+
+    // Musa and al-Khidr, peace be upon them: the names carry the blessing,
+    // and the choices are sayings quoted from the translation.
+    _save(
+      JourneyProgress(
+        level: JourneyLevel.english,
+        done: {
+          for (final s in journey.stops.takeWhile((s) => s.id != 'khidr-3'))
+            s.id,
+        },
+      ),
+    );
+    await show(_tab(const JourneyScreen()));
+    await _capture(tester, 'journey-2-map-khidr');
+    await show(
+      JourneyStopScreen(
+        journey: journey,
+        progress: JourneyProgress(level: JourneyLevel.english),
+        stop: stop('khidr-3'),
+        random: Random(4),
+      ),
+    );
+    await _capture(tester, 'journey-3-read-khidr');
+    await tester.tap(find.text('Begin'));
+    await _frames(tester, 4);
+    round = JourneyRounds.build(
+      journey,
+      stop('khidr-3'),
+      JourneyLevel.english,
+      random: Random(4),
+    );
+    await tester.tap(find.text(round[0].choices[round[0].correct]));
+    await _frames(tester, 6);
+    await tester.tap(find.text('Next'));
+    await _frames(tester, 4);
+    await _capture(tester, 'journey-4-english-saying');
+    await tester.tap(find.text(round[1].choices[(round[1].correct + 1) % 3]));
+    await _frames(tester, 6);
+    await _capture(tester, 'journey-4-english-saying-wrong');
+
+    // Where it all comes from.
+    await show(JourneySourcesScreen(journey: journey, arabic: false));
+    await _capture(tester, 'journey-sources');
+    await tester.drag(
+      find.byType(SingleChildScrollView),
+      const Offset(0, -2000),
+    );
+    await _frames(tester, 4);
+    await _capture(tester, 'journey-sources-lower');
+    await show(JourneySourcesScreen(journey: journey, arabic: true));
+    await _capture(tester, 'journey-sources-arabic');
 
     // The lantern is lit: a short stop played to its end.
     progress = JourneyProgress(
@@ -381,6 +553,8 @@ void main() {
     );
     await tester.tap(find.text('تخطَّ'));
     await _frames(tester, 3);
+    // Ayah 19, the longest of the surah, is given whole before ayah 20.
+    await _capture(tester, 'journey-8-recite-long-given');
     await tester.tap(find.text('أظهر الآية'));
     await _frames(tester, 3);
     await _capture(tester, 'journey-8-recite-arabic');
@@ -401,6 +575,9 @@ void main() {
       ),
     );
     await _capture(tester, 'journey-9-keepsake');
+    await tester.tap(find.text('Read ayah 19'));
+    await _frames(tester, 6);
+    await _capture(tester, 'journey-9-keepsake-ayah');
     for (final (index, until) in [
       'world-1',
       'qarnayn-1',

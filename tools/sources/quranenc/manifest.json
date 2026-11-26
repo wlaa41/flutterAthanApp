@@ -1,0 +1,43 @@
+{
+ "about": "Surah 18 as QuranEnc.com serves it, one file per work, kept exactly as downloaded. tools/make_kahf_journey.py copies the meanings of the Al-Kahf Journey from these files. The titles, issuers, versions and dates are typed from the list of works on quranenc.com.",
+ "api": "https://quranenc.com/api/v1/translation/sura/{key}/18",
+ "fetched": "2026-11-26",
+ "sources": [
+  {
+   "use": "translation",
+   "key": "english_saheeh",
+   "en": "English Translation - Noor International Center",
+   "ar": "الترجمة الإنجليزية - مركز نور إنترناشونال",
+   "byEn": "Issued by Noor International Center.",
+   "byAr": "صادرة عن مركز نور إنترناشونال.",
+   "version": "1.1.2",
+   "date": "2025-06-24",
+   "url": "https://quranenc.com/en/browse/english_saheeh",
+   "sha256": "54e79fc5007622ee75349d541eea52413bc9f63911baeddf33344d4525ad1851"
+  },
+  {
+   "use": "tafsir",
+   "key": "arabic_moyassar",
+   "en": "Arabic Language - At-Tafsir Al-Muyassar",
+   "ar": "اللغة العربية - التفسير الميسر",
+   "byEn": "Issued by the King Fahd Complex for Printing the Holy Quran in Madinah",
+   "byAr": "صادر عن مجمع الملك فهد لطباعة المصحف الشريف بالمدينة المنورة.",
+   "version": "1.0.1",
+   "date": "2026-11-09",
+   "url": "https://quranenc.com/ar/browse/arabic_moyassar",
+   "sha256": "57c0cde57735bf63f0ec5633d2e9d4e992b1aa8317173582cce86ccecf9624f1"
+  },
+  {
+   "use": "words",
+   "key": "arabic_seraj",
+   "en": "Arabic Language - Meanings of Words",
+   "ar": "اللغة العربية - معاني الكلمات",
+   "byEn": "From the book \"As-Siraj fi Bayan Gharib Al-Quran\".",
+   "byAr": "من كتاب السراج في بيان غريب القرآن.",
+   "version": "1.0.0",
+   "date": "2017-02-15",
+   "url": "https://quranenc.com/ar/browse/arabic_seraj",
+   "sha256": "cd8d1195c8c04449d206e2c2cdd476aaf7316ccf9d5da9639d9125c1b1c74389"
+  }
+ ]
+}

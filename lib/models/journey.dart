@@ -11,10 +11,10 @@ enum JourneyLevel {
   /// English: a question about the ayah, the ayah shown and heard.
   english,
 
-  /// Arabic: the ayah is shown and the player picks its meaning.
+  /// Arabic: the ayah is shown and the player picks its tafsir.
   arabic,
 
-  /// Arabic, strong: the meaning is shown and the player picks the ayah.
+  /// Arabic, strong: the tafsir is shown and the player picks the ayah.
   strong;
 
   bool get isArabic => this != english;
@@ -35,7 +35,8 @@ class JourneyQuestion {
   final List<String> wrong;
 }
 
-/// A few ayahs of the surah: a part of the story, then questions about it.
+/// A few ayahs of the surah: they are read with their meaning, then asked
+/// about.
 class JourneyStop {
   const JourneyStop({
     required this.id,
@@ -43,8 +44,6 @@ class JourneyStop {
     required this.ar,
     required this.first,
     required this.last,
-    required this.storyEn,
-    required this.storyAr,
     required this.questions,
   });
 
@@ -53,12 +52,9 @@ class JourneyStop {
   final String ar;
   final int first;
   final int last;
-  final List<String> storyEn;
-  final List<String> storyAr;
   final List<JourneyQuestion> questions;
 
   String title(bool arabic) => arabic ? ar : en;
-  List<String> story(bool arabic) => arabic ? storyAr : storyEn;
   Iterable<int> get ayahs =>
       Iterable.generate(last - first + 1, (i) => first + i);
 }
@@ -70,9 +66,6 @@ class JourneyKeepsake {
     required this.en,
     required this.ar,
     required this.ayah,
-    required this.first,
-    required this.last,
-    required this.line,
   });
 
   /// coin, vine, ship or iron.
@@ -80,13 +73,8 @@ class JourneyKeepsake {
   final String en;
   final String ar;
 
-  /// Where the surah names it: the ayah and its words, first to last.
+  /// The ayah that names it.
   final int ayah;
-  final int first;
-  final int last;
-
-  /// Those words in English.
-  final String line;
 
   String name(bool arabic) => arabic ? ar : en;
 }
@@ -102,12 +90,19 @@ class JourneySection {
     required this.stops,
     this.number,
     this.keepsake,
+    this.blessingEn,
+    this.blessingAr,
   });
 
   final String id;
   final bool isStory;
   final String en;
   final String ar;
+
+  /// The blessing said after the names in the title, where it names
+  /// prophets: "peace be upon them".
+  final String? blessingEn;
+  final String? blessingAr;
 
   /// The picture drawn for it: book, cave, gardens, rain, sea or wall.
   final String art;
@@ -118,20 +113,42 @@ class JourneySection {
   final JourneyKeepsake? keepsake;
 
   String title(bool arabic) => arabic ? ar : en;
+  String? blessing(bool arabic) => arabic ? blessingAr : blessingEn;
+
+  /// The title with its blessing, for a line of text.
+  String full(bool arabic) {
+    final said = blessing(arabic);
+    if (said == null) return title(arabic);
+    return arabic ? '$ar $said' : '$en ($said)';
+  }
+
   int get first => stops.first.first;
   int get last => stops.last.last;
 }
 
-/// A short meaning of one ayah, and whether the Arabic levels leave it out.
+/// What one ayah means, copied from its sources letter for letter.
 class JourneyAyah {
-  const JourneyAyah({required this.en, required this.ar, this.skip = false});
+  const JourneyAyah({
+    required this.en,
+    required this.ar,
+    this.notes = const [],
+    this.skip = false,
+  });
 
+  /// The Saheeh International translation, with its footnote marks.
   final String en;
+
+  /// The translation's footnotes for this ayah, each opening with its mark.
+  final List<String> notes;
+
+  /// Al-Tafsir al-Muyassar. Ayahs it explains together carry the same text.
   final String ar;
+
+  /// Whether the Arabic levels leave the ayah out.
   final bool skip;
 }
 
-/// A harder word of an ayah with its meaning, for the optional help.
+/// A word of an ayah, or a few, with the meaning As-Siraj gives.
 class JourneyWord {
   const JourneyWord({
     required this.word,
@@ -139,9 +156,72 @@ class JourneyWord {
     required this.meaning,
   });
 
+  /// Where the words stand in the ayah, and how many they are.
   final int word;
   final int span;
   final String meaning;
+}
+
+/// Ayahs the Arabic levels show and ask about as one: a single ayah, or the
+/// few that al-Tafsir al-Muyassar explains in one text.
+class JourneyPassage {
+  const JourneyPassage(this.first, this.last);
+
+  final int first;
+  final int last;
+
+  bool get isOne => first == last;
+  Iterable<int> get ayahs =>
+      Iterable.generate(last - first + 1, (i) => first + i);
+
+  @override
+  bool operator ==(Object other) =>
+      other is JourneyPassage && other.first == first && other.last == last;
+
+  @override
+  int get hashCode => Object.hash(first, last);
+
+  @override
+  String toString() => isOne ? '$first' : '$first-$last';
+}
+
+/// A work the meanings are copied from, as QuranEnc.com names it.
+class JourneySource {
+  const JourneySource({
+    required this.key,
+    required this.en,
+    required this.ar,
+    required this.byEn,
+    required this.byAr,
+    required this.version,
+    required this.date,
+    required this.url,
+  });
+
+  factory JourneySource.fromJson(Map<String, dynamic> json) => JourneySource(
+    key: json['key'] as String,
+    en: json['en'] as String,
+    ar: json['ar'] as String,
+    byEn: json['byEn'] as String,
+    byAr: json['byAr'] as String,
+    version: json['version'] as String,
+    date: json['date'] as String,
+    url: json['url'] as String,
+  );
+
+  final String key;
+  final String en;
+  final String ar;
+  final String byEn;
+  final String byAr;
+  final String version;
+
+  /// When QuranEnc last changed it, as year-month-day.
+  final String date;
+  final String url;
+
+  String title(bool arabic) => arabic ? ar : en;
+  String by(bool arabic) => arabic ? byAr : byEn;
 }
 
 /// The whole journey through Surah Al-Kahf, with the surah's own text.
@@ -152,7 +232,11 @@ class Journey {
     required this.words,
     required this.verses,
     required this.basmalah,
-  }) : stops = [for (final section in sections) ...section.stops];
+    required this.translation,
+    required this.tafsir,
+    required this.wordSource,
+  }) : stops = [for (final section in sections) ...section.stops],
+       passages = _passages(ayahs);
 
   static const surah = 18;
 
@@ -164,8 +248,29 @@ class Journey {
   final List<String> verses;
   final String basmalah;
 
+  /// Where the English meanings, the Arabic ones and the word meanings are
+  /// copied from.
+  final JourneySource translation;
+  final JourneySource tafsir;
+  final JourneySource wordSource;
+
   /// Every stop in walking order.
   final List<JourneyStop> stops;
+
+  /// The surah as the Arabic levels divide it, in order.
+  final List<JourneyPassage> passages;
+
+  static List<JourneyPassage> _passages(List<JourneyAyah> ayahs) {
+    final out = <JourneyPassage>[];
+    for (var ayah = 1; ayah <= ayahs.length; ayah++) {
+      if (out.isNotEmpty && ayahs[out.last.last - 1].ar == ayahs[ayah - 1].ar) {
+        out[out.length - 1] = JourneyPassage(out.last.first, ayah);
+      } else {
+        out.add(JourneyPassage(ayah, ayah));
+      }
+    }
+    return out;
+  }
 
   static Journey? _read;
 
@@ -197,9 +302,15 @@ class Journey {
     List<String> strings(Object? value) => [
       for (final item in value as List) item as String,
     ];
+    final sources = json['sources'] as Map<String, dynamic>;
+    JourneySource source(String use) =>
+        JourneySource.fromJson(sources[use] as Map<String, dynamic>);
     return Journey(
       verses: verses,
       basmalah: basmalah,
+      translation: source('translation'),
+      tafsir: source('tafsir'),
+      wordSource: source('words'),
       sections: [
         for (final section in json['sections'] as List)
           JourneySection(
@@ -209,6 +320,8 @@ class Journey {
             ar: section['ar'] as String,
             art: section['art'] as String,
             number: section['number'] as int?,
+            blessingEn: section['blessingEn'] as String?,
+            blessingAr: section['blessingAr'] as String?,
             keepsake: section['keepsake'] == null
                 ? null
                 : JourneyKeepsake(
@@ -216,9 +329,6 @@ class Journey {
                     en: section['keepsake']['en'] as String,
                     ar: section['keepsake']['ar'] as String,
                     ayah: section['keepsake']['ayah'] as int,
-                    first: section['keepsake']['first'] as int,
-                    last: section['keepsake']['last'] as int,
-                    line: section['keepsake']['line'] as String,
                   ),
             stops: [
               for (final stop in section['stops'] as List)
@@ -228,8 +338,6 @@ class Journey {
                   ar: stop['ar'] as String,
                   first: stop['first'] as int,
                   last: stop['last'] as int,
-                  storyEn: strings(stop['storyEn']),
-                  storyAr: strings(stop['storyAr']),
                   questions: [
                     for (final question in stop['questions'] as List)
                       JourneyQuestion(
@@ -248,6 +356,7 @@ class Journey {
           JourneyAyah(
             en: ayah['en'] as String,
             ar: ayah['ar'] as String,
+            notes: ayah['notes'] == null ? const [] : strings(ayah['notes']),
             skip: ayah['skip'] == true,
           ),
       ],
@@ -270,31 +379,36 @@ class Journey {
 
   JourneyAyah meaning(int ayah) => ayahs[ayah - 1];
 
-  /// The ayah as the mushaf writes it.
+  /// The ayah as the mushaf writes it, whole.
   String verse(int ayah) => verses[ayah - 1];
 
-  /// The ayah followed by its end mark, as the reader shows it.
-  String verseWithMark(int ayah) => '${verse(ayah)} ${arabicDigits(ayah)}';
+  /// The ayah followed by its end mark, as the reader shows it: a no-break
+  /// space and the number, which the mushaf's font draws as the ornament.
+  String verseWithMark(int ayah) => '${verse(ayah)}\u00A0${arabicDigits(ayah)}';
 
-  /// The opening words of a long ayah, for a choice that has to stay short.
-  String verseOpening(int ayah, {int words = 16}) {
-    final all = verse(ayah).split(' ');
-    if (all.length <= words + 2) return verseWithMark(ayah);
-    return '${all.take(words).join(' ')} …';
-  }
+  /// The passage [ayah] belongs to in the Arabic levels.
+  JourneyPassage passageOf(int ayah) =>
+      passages.firstWhere((p) => p.first <= ayah && ayah <= p.last);
 
-  /// The closing words of a long ayah, for the cue before a recitation.
-  String verseEnding(int ayah, {int words = 14}) {
-    final all = verse(ayah).split(' ');
-    if (all.length <= words + 2) return verseWithMark(ayah);
-    return '… ${all.skip(all.length - words).join(' ')} ${arabicDigits(ayah)}';
-  }
+  /// The passages of a stop, in order. A passage never crosses a stop.
+  List<JourneyPassage> passagesOf(JourneyStop stop) => [
+    for (final passage in passages)
+      if (passage.first >= stop.first && passage.last <= stop.last) passage,
+  ];
 
-  /// Some words of an ayah, first to last.
-  String verseWords(int ayah, int first, int last) {
+  /// The ayahs of a passage, whole, each with its end mark.
+  String passageText(JourneyPassage passage) =>
+      [for (final ayah in passage.ayahs) verseWithMark(ayah)].join(' ');
+
+  /// Whether the Arabic levels leave a passage out.
+  bool skips(JourneyPassage passage) =>
+      passage.ayahs.any((ayah) => meaning(ayah).skip);
+
+  /// The words of the mushaf a word meaning explains.
+  String wordText(int ayah, JourneyWord word) {
     final all = verse(ayah).split(' ');
-    final end = (last + 1).clamp(0, all.length);
-    return all.sublist(first.clamp(0, end), end).join(' ');
+    final end = (word.word + word.span).clamp(0, all.length);
+    return all.sublist(word.word.clamp(0, end), end).join(' ');
   }
 
   /// The stops whose lantern must be lit before [stop] opens: all before it.

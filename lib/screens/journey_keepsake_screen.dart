@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/journey.dart';
 import '../services/journey_progress.dart';
 import '../widgets/journey_art.dart';
+import '../widgets/journey_reading.dart';
 import '../widgets/journey_ui.dart';
 import 'journey_stop_screen.dart';
 
@@ -45,8 +46,8 @@ class JourneyKeepsakeScreen extends StatelessWidget {
         children: [
           Text(
             t.pick(
-              '${section.en.toUpperCase()} IS COMPLETE',
-              'اكتملت القصة: ${section.ar}',
+              'STORY COMPLETE: ${section.full(false).toUpperCase()}',
+              'اكتملت القصة: ${section.full(true)}',
             ),
             textAlign: TextAlign.center,
             style: J.text(
@@ -72,33 +73,43 @@ class JourneyKeepsakeScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
+          // The ayah that names it is opened whole, with the meaning its
+          // source gives. No part of an ayah is lifted out onto this screen.
           JCard(
-            padding: const EdgeInsets.fromLTRB(14, 6, 14, 12),
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  journey.verseWords(
-                    keepsake.ayah,
-                    keepsake.first,
-                    keepsake.last,
+                  t.pick(
+                    'Ayah ${keepsake.ayah} of Al-Kahf mentions ${keepsake.en}.',
+                    'جاء ذكر ${keepsake.ar} في الآية ${t.number(keepsake.ayah)} من سورة الكهف.',
                   ),
                   textAlign: TextAlign.center,
-                  textDirection: TextDirection.rtl,
-                  style: J.quran(24, height: 2),
+                  style: J.text(16.5, weight: 600, height: arabic ? 1.6 : 1.4),
                 ),
-                if (!arabic) ...[
-                  Text(
-                    keepsake.line,
-                    textAlign: TextAlign.center,
-                    style: J.text(15.5, height: 1.4),
+                const SizedBox(height: 8),
+                JButton.text(
+                  t.pick(
+                    'Read ayah ${keepsake.ayah}',
+                    'اقرأ الآية ${t.number(keepsake.ayah)}',
                   ),
-                  const SizedBox(height: 4),
-                ],
-                Text(
-                  t.fromAyah(keepsake.ayah),
-                  textAlign: TextAlign.center,
-                  style: J.text(13.5, weight: 700, color: J.label),
+                  color: J.white,
+                  depth: 0,
+                  minHeight: 48,
+                  size: 17,
+                  weight: 700,
+                  icon: const Icon(
+                    Icons.menu_book_rounded,
+                    color: J.ink,
+                    size: 22,
+                  ),
+                  onTap: () => showJourneyAyah(
+                    context,
+                    journey: journey,
+                    ayah: keepsake.ayah,
+                    arabic: arabic,
+                  ),
                 ),
               ],
             ),
@@ -139,8 +150,8 @@ class JourneyKeepsakeScreen extends StatelessWidget {
                   Text(
                     opensStory
                         ? t.pick(
-                            'Next story: ${nextSection.en}',
-                            'القصة التالية: ${nextSection.ar}',
+                            'Next story: ${nextSection.full(false)}',
+                            'القصة التالية: ${nextSection.full(true)}',
                           )
                         : t.pick('Keep going: ${next.en}', 'تابع: ${next.ar}'),
                     textAlign: TextAlign.center,

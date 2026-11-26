@@ -85,22 +85,24 @@ Developer Program (99 USD a year).
 
 ## Al-Kahf Journey
 
-The **Journey** tab walks through Surah Al-Kahf, first ayah to last, as a story
-in 28 stops. A stop tells its part of the story, asks three or four questions
-about its ayahs and lights a lantern when they are all answered right. Nothing
-is timed or scored: a wrong answer comes back at the end of the stop. Each of
-the four stories ends with a keepsake named in its own ayahs: the silver coin
-(the Cave), the vine (the Two Gardens), the ship (Musa and Al-Khidr) and the
-iron (Dhul-Qarnayn).
+The **Journey** tab walks through Surah Al-Kahf, first ayah to last, in 28
+stops. A stop shows its ayahs to read, each one whole with its meaning from a
+named source, then asks three or four questions about them and lights a
+lantern when they are all answered right. Nothing is timed or scored: a wrong
+answer comes back at the end of the stop. Each of the four stories ends with a
+keepsake its own ayahs mention: the silver coin (the Cave), the grapevines (the
+Two Gardens), the ship (Musa and Al-Khidr, peace be upon them) and the iron
+(Dhul-Qarnayn).
 
 Choose how to play on the first screen; the pill at the top of the map changes
-it later. Every level asks about whole ayahs.
+it later. Every level shows whole ayahs.
 
-- **English**: for someone who does not read Arabic. The story and the
-  questions are in English, and each ayah is shown and can be played.
-- **Arabic**: the ayah is shown and you choose its meaning. **معاني الكلمات**
-  lists the harder words of that ayah for whoever wants them.
-- **Arabic, strong**: the meaning is given and you choose the ayah, with no
+- **English**: for someone who does not read Arabic. Each ayah is shown, can be
+  played, and is followed by its translation. The questions are in English.
+- **Arabic**: the ayah is shown and you choose its tafsir from three texts of
+  al-Tafsir al-Muyassar. **معاني الكلمات** lists the words of that ayah that
+  As-Siraj explains, for whoever wants them.
+- **Arabic, strong**: the tafsir is given and you choose the ayah, with no
   help.
 
 **Recite the ayahs** comes after a lantern is lit. You are given an ayah and
@@ -113,10 +115,32 @@ Quran speech model once; after that reciting works offline, and the recording
 is checked on the phone and deleted. It needs the microphone, which the app
 asks for the first time **Recite** is tapped.
 
-The meanings follow al-Tafsir al-Muyassar; the English is the app's own
-wording, not a published translation. The content lives in
-`tools/make_kahf_journey.py`, which checks it against the bundled Hafs text.
-Sources and licences are in `docs/QURAN_SOURCES.md`.
+### What the game quotes, and what it wrote
+
+Nothing in the game explains the Quran in the app's own words.
+
+| Shown in the game | Copied from |
+| --- | --- |
+| Every ayah, always whole | The bundled Hafs text of the King Fahd Complex, never retyped |
+| Meaning in English, with footnotes | Saheeh International, as QuranEnc.com serves it |
+| Meaning in Arabic | al-Tafsir al-Muyassar (King Fahd Complex), as QuranEnc.com serves it |
+| Meanings of single words | As-Siraj fi Bayan Gharib al-Quran, as QuranEnc.com serves it |
+
+The optional word meanings show the single word they explain, as the mushaf
+writes it. Everywhere else an ayah stands whole.
+
+The game's **Sources** page names each work with its version. The app wrote
+only the names of the stops and the wording of the 108 English questions. The
+choices under a question are phrases of the translation: the right one from the
+ayah asked about, the others from other ayahs of the surah. The pictures show
+places and things only: no prophet, no person and no animal is drawn.
+
+The questions and the stop names are not a scholar's words. Before a public
+release they should be read by a teacher or scholar.
+
+`tools/make_kahf_journey.py` builds the game's content from the three source
+files in `tools/sources/quranenc/` and checks all of the above; the tests check
+it again. Sources and licences are in `docs/QURAN_SOURCES.md`.
 
 ## Quran
 

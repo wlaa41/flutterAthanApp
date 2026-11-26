@@ -31,4 +31,21 @@ Future<void> loadJourneyFonts() async {
   await (FontLoader(
     'kfgqpc_hafs',
   )..addFont(read('asset/fonts/kfgqpc_hafs.ttf'))).load();
+  await (FontLoader(
+    'journey_signs',
+  )..addFont(read('asset/fonts/journey_signs.ttf'))).load();
 }
+
+/// Surah 18 of one of the works the journey quotes, as QuranEnc.com served
+/// it: the file kept in tools/sources/quranenc, ayah 1 first.
+List<Map<String, dynamic>> readSource(String key) => [
+  for (final row
+      in (jsonDecode(
+                File(
+                  'tools/sources/quranenc/${key}_18.json',
+                ).readAsStringSync(),
+              )
+              as Map<String, dynamic>)['result']
+          as List)
+    row as Map<String, dynamic>,
+];

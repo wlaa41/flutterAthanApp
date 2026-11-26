@@ -33,6 +33,10 @@ abstract final class J {
   static const font = 'baloo';
   static const quranFont = 'kfgqpc_hafs';
 
+  /// Holds the one sign the sources use that [font] has no drawing for: the
+  /// blessing written after the Prophet's name.
+  static const signsFont = 'journey_signs';
+
   /// Text in the journey's own face. [weight] is 400, 600, 700 or 800.
   static TextStyle text(
     double size, {
@@ -42,6 +46,7 @@ abstract final class J {
     double? spacing,
   }) => TextStyle(
     fontFamily: font,
+    fontFamilyFallback: const [signsFont],
     fontSize: size,
     fontWeight: FontWeight.values[(weight ~/ 100 - 1).clamp(0, 8)],
     color: color,
@@ -123,14 +128,19 @@ class JPage extends StatelessWidget {
     super.key,
     required this.children,
     this.padding = const EdgeInsets.fromLTRB(20, 14, 20, 16),
+    this.controller,
   });
 
   final List<Widget> children;
   final EdgeInsetsGeometry padding;
 
+  /// Lets the screen bring the page back to its top.
+  final ScrollController? controller;
+
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, box) => SingleChildScrollView(
+      controller: controller,
       child: ConstrainedBox(
         constraints: BoxConstraints(minHeight: box.maxHeight),
         child: IntrinsicHeight(
@@ -147,9 +157,7 @@ class JPage extends StatelessWidget {
   );
 }
 
-/// Quran text in the mushaf's own font. Where an ayah was cut short, the
-/// dots that say so are drawn in the journey's face: the mushaf's font has
-/// no such sign.
+/// Quran text in the mushaf's own font: whole ayahs, each with its end mark.
 class JQuran extends StatelessWidget {
   const JQuran(
     this.text, {
@@ -159,33 +167,29 @@ class JQuran extends StatelessWidget {
     this.color = J.ink,
   });
 
-  /// May open with "… " or close with " …".
   final String text;
   final double size;
   final double height;
   final Color color;
 
-  @override
-  Widget build(BuildContext context) {
-    var body = text;
-    final before = body.startsWith('… ');
-    if (before) body = body.substring(2);
-    final after = body.endsWith(' …');
-    if (after) body = body.substring(0, body.length - 2);
-    final dots = J.text(size * 0.85, weight: 700, color: color);
-    return Text.rich(
-      TextSpan(
-        children: [
-          if (before) TextSpan(text: '… ', style: dots),
-          TextSpan(text: body),
-          if (after) TextSpan(text: ' …', style: dots),
-        ],
-      ),
-      textAlign: TextAlign.center,
-      textDirection: TextDirection.rtl,
-      style: J.quran(size, height: height, color: color),
-    );
+  /// Smaller for a long ayah, but never too small to read its marks: a
+  /// screen scrolls, an ayah is not cut.
+  static double sizeFor(String text, {double largest = 24}) {
+    final words = text.split(' ').length;
+    return words <= 12
+        ? largest
+        : words <= 22
+        ? largest - 2
+        : largest - 4;
   }
+
+  @override
+  Widget build(BuildContext context) => Text(
+    text,
+    textAlign: TextAlign.center,
+    textDirection: TextDirection.rtl,
+    style: J.quran(size, height: height, color: color),
+  );
 }
 
 /// A card with the ink outline and the hard shadow.
@@ -462,8 +466,24 @@ class JText {
   String ayah(int ayah) =>
       pick('Al-Kahf, ayah $ayah', 'الكهف، الآية ${number(ayah)}');
 
-  String fromAyah(int ayah) =>
-      pick('Al-Kahf, from ayah $ayah', 'الكهف، من الآية ${number(ayah)}');
+  /// The label over an ayah, or over the few shown as one passage.
+  String passage(int first, int last) => first == last
+      ? ayah(first)
+      : pick(
+          'Al-Kahf, ayahs $first to $last',
+          'الكهف، الآيات ${number(first)} إلى ${number(last)}',
+        );
+
+  /// Where the meanings shown at this level are copied from.
+  String get meaningSource => pick(
+    'Translation: Saheeh International',
+    'التفسير الميسر، مجمع الملك فهد',
+  );
+
+  /// Where the word meanings are copied from.
+  String get wordSource => 'من كتاب السراج في بيان غريب القرآن';
+
+  String get sources => pick('Sources', 'المصادر');
 
   String ofCount(int index, int count) =>
       pick('$index of $count', '${number(index)} من ${number(count)}');
@@ -494,8 +514,8 @@ class JText {
 
   /// What a screen reader says for a keepsake's badge.
   String keepsake(String en, String ar, {required bool found}) => found
-      ? pick('$en, found', '$ar، وُجد')
-      : pick('$en, not found yet', '$ar، لم يوجد بعد');
+      ? pick('$en, found', 'التذكار «$ar»، وُجد')
+      : pick('$en, not found yet', 'التذكار «$ar»، لم يوجد بعد');
 
   String questions(int count) => arabic
       ? switch (count) {
